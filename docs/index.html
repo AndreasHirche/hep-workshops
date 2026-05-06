@@ -295,7 +295,7 @@
     <div class="pref-group" style="border-left:none;padding-left:0;margin-left:0">
       <span class="pref-group-label">Mode</span>
       <div class="pref-group-row">
-        
+        <button id="view-toggle-btn" class="view-toggle" onclick="toggleViewMode()">👤 Participant</button>
         <button id="layout-toggle-btn" class="layout-toggle part-only" onclick="toggleLayout()">☰ List</button>
         <button id="all-toggle-btn" class="phase-toggle org-col" onclick="toggleAllUpcoming()">📅 Upcoming</button>
       </div>
@@ -560,7 +560,7 @@
 <div class="sap-card row-postponed" data-start="2026-05-19" data-lang="english" data-cc="us"><div class="sap-pills-hidden"><span class="pill" data-col="topic"    data-val="SAP BDC"></span><span class="pill" data-col="region"   data-val="NA"></span><span class="pill" data-col="language" data-val="English"></span><span class="pill" data-col="location" data-val="NA"></span><span class="pill" data-col="phase"    data-val="postponed"></span></div><div class="sap-topic">SAP BDC</div><div class="sap-location">📍 NA</div><div class="sap-date">May 19-21, 2026</div><div class="sap-lang">Language · English</div><div class="sap-reg-wrap"><span class="sap-stay">stay tuned ›</span></div></div>
 <div class="sap-card row-postponed" data-start="2026-05-26" data-lang="spanish" data-cc="br"><div class="sap-pills-hidden"><span class="pill" data-col="topic"    data-val="SAP Business AI or Joule??"></span><span class="pill" data-col="region"   data-val="LAC"></span><span class="pill" data-col="language" data-val="Spanish"></span><span class="pill" data-col="location" data-val="São Paulo"></span><span class="pill" data-col="phase"    data-val="postponed"></span></div><div class="sap-topic">SAP Business AI or Joule??</div><div class="sap-location">📍 São Paulo</div><div class="sap-date">May 26-27, 2026</div><div class="sap-lang">Language · Spanish</div><div class="sap-reg-wrap"><button class="sap-reg-btn" data-url="https://partnerbenefitscatalog.sap.com/Partner-Benefits-Catalog/Innovation/SAP-BTP-Partner-Hands-on-Excellence-Program%3A-SAP-Business-Data-Cloud-Workshop%2C-S%C3%A3o-Paulo/p/1002571">Register ↗</button></div></div>
 </main>
-<footer>Generated 2026-05-06 15:20 · HEP Workshop Organization</footer>
+<footer>Generated 2026-05-06 15:25 · HEP Workshop Organization</footer>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9/dist/leaflet.js"></script>
@@ -1158,8 +1158,8 @@ function toggleAllUpcoming() {
   if (isOrgView) {
     document.body.classList.remove('part-view');
     document.body.classList.add('sketch-theme');
-    (document.getElementById('view-toggle-btn')||{}).textContent = '🔑 Organizer';
-    document.getElementById('view-toggle-btn')?.classList.add('org-active');
+    document.getElementById('view-toggle-btn').textContent = '🔑 Organizer';
+    document.getElementById('view-toggle-btn').classList.add('org-active');
   } else {
     applyLayout();
   }
@@ -1181,8 +1181,8 @@ function toggleViewMode() {
   document.body.classList.toggle('part-view', !isOrgView);
   document.body.classList.toggle('sketch-theme', isOrgView);
   if (!isOrgView) applyLayout();
-  (document.getElementById('view-toggle-btn')||{}).textContent = isOrgView ? '🔑 Organizer' : '👤 Participant';
-  document.getElementById('view-toggle-btn')?.classList.toggle('org-active', isOrgView);
+  document.getElementById('view-toggle-btn').textContent = isOrgView ? '🔑 Organizer' : '👤 Participant';
+  document.getElementById('view-toggle-btn').classList.toggle('org-active', isOrgView);
   updateGlobeTheme();
   updateLeafletTheme();
 }
