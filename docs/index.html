@@ -281,33 +281,34 @@
   body.part-view #sp-close{color:#94a3b8}
   body.part-view #sp-close:hover{background:#e2e8f0;color:#1e293b}
 
-  /* ── MOBILE PORTRAIT: stack map + single-column calendar ── */
-  @media(max-width:700px) and (orientation:portrait){
+  /* ── MOBILE NARROW (portrait phones): narrow calendar, stacked controls ── */
+  @media(max-width:700px){
     .top-bar{padding:8px 12px;gap:8px}
-    .top-links{gap:4px}
-    #map-row{flex-direction:column}
-    #map{flex:0 0 200px}
-    #cal-panel{width:100%!important;flex:1;height:auto;border-left:none;border-top:1px solid #1e40af33;padding:6px 8px;overflow-y:auto}
+    .top-links{flex-direction:column;gap:2px}
+    .pref-group{flex-direction:row;align-items:center;gap:6px;border-left:none;padding-left:0;margin-left:0}
+    .pref-group-label{min-width:52px}
+    .pref-group-row{gap:4px}
+    #cal-panel{width:180px!important;padding:6px;overflow-y:auto}
     .cal-cols{grid-template-columns:1fr}
     body.panel-open #site-header,body.panel-open #scroll-area{margin-right:0}
     #side-panel{width:100%;right:-105%}
     #scroll-area{height:calc(100dvh - var(--hdr-h))}
   }
 
-  /* ── MOBILE LANDSCAPE: compact banner (mode over prefs), single-month calendar beside map ── */
+  /* ── MOBILE SHORT (landscape phones): compact header, 2-month calendar, controls side by side ── */
   @media(max-height:500px) and (orientation:landscape){
-    :root{--hdr-h:210px}
-    #site-header{height:210px!important}
-    #site-header.compact{height:160px!important}
+    :root{--hdr-h:200px}
+    #site-header{height:200px!important}
+    #site-header.compact{height:155px!important}
     .top-title p{display:none}
     .top-bar{padding:4px 12px}
-    .top-links{flex-direction:column;gap:1px}
-    .pref-group{flex-direction:row;align-items:center;gap:6px;border-left:none;padding-left:0;margin-left:0}
-    .pref-group-label{min-width:52px}
+    .top-links{flex-direction:row!important;gap:8px}
+    .pref-group{flex-direction:column!important;align-items:flex-start!important;border-left:1px solid #334155!important;padding-left:10px!important;margin-left:2px!important}
+    .pref-group-label{min-width:auto!important}
     .pref-group-row{gap:4px}
-    #cal-panel{width:240px!important;overflow-y:auto}
-    .cal-cols{grid-template-columns:1fr}
-    #scroll-area{height:calc(100dvh - 210px)}
+    #cal-panel{width:370px!important;padding:6px 8px;overflow-y:auto}
+    .cal-cols{grid-template-columns:1fr 1fr}
+    #scroll-area{height:calc(100dvh - 200px)}
   }
 </style>
 </head>
