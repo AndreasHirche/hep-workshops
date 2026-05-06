@@ -280,6 +280,27 @@
   body.part-view #sp-title{color:#2563eb}
   body.part-view #sp-close{color:#94a3b8}
   body.part-view #sp-close:hover{background:#e2e8f0;color:#1e293b}
+
+  /* ── MOBILE PORTRAIT: stack map + single-column calendar ── */
+  @media(max-width:700px) and (orientation:portrait){
+    .top-bar{padding:8px 12px;gap:8px}
+    .top-links{gap:4px}
+    #map-row{flex-direction:column}
+    #map{flex:0 0 200px}
+    #cal-panel{width:100%!important;flex:1;height:auto;border-left:none;border-top:1px solid #1e40af33;padding:6px 8px}
+    .cal-cols{grid-template-columns:1fr}
+    body.panel-open #site-header,body.panel-open #scroll-area{margin-right:0}
+    #side-panel{width:100%;right:-105%}
+  }
+
+  /* ── MOBILE LANDSCAPE: shrink header so it fits the short viewport ── */
+  @media(max-height:500px) and (orientation:landscape){
+    :root{--hdr-h:190px}
+    #site-header{height:190px!important}
+    #site-header.compact{height:150px!important}
+    .top-bar{padding:6px 14px}
+    #cal-panel{width:240px!important}
+  }
 </style>
 </head>
 <body class="part-view part-view">
