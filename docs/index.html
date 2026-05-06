@@ -32,7 +32,7 @@
   /* ── GLOBE + CALENDAR ROW ── */
   #map-row{display:flex;flex:1;min-height:0}
   #map{flex:1;background:#0f172a;overflow:hidden}
-  #cal-panel{width:min(430px,50%);flex-shrink:0;background:#0d1f35;padding:10px 10px 6px;border-left:1px solid #1e40af33;overflow:hidden;transition:width .35s ease}
+  #cal-panel{width:50%;flex-shrink:0;min-width:180px;background:#0d1f35;padding:10px 10px 6px;border-left:1px solid #1e40af33;overflow:hidden;transition:width .35s ease}
 
   /* ── CALENDAR ── */
   .cal-cols{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}
@@ -981,16 +981,19 @@ function renderMonthGrid(wsMap, prefMap, today, active, yr, mo) {
 function renderCal() {
   const wsMap = buildWsMap(), prefMap = buildPrefMap(), today = new Date().toISOString().slice(0,10), active = filters.get('start') || '';
   const compact = siteHeader.classList.contains('compact');
-  const count = compact ? 2 : 4;
+  const w = calDrop.offsetWidth || 430;
+  const cols = w < 200 ? 1 : w < 380 ? 2 : w < 560 ? 3 : 4;
+  const rows = compact ? 1 : 2;
+  const count = cols * rows;
   let items = '';
   for (let i = 0; i < count; i++) {
     let mo = calMonth + i, yr = calYear;
     while (mo > 11) { mo -= 12; yr++; }
     const prev = i === 0 ? `<button onclick="calNav(-1)">‹</button>` : `<span style="width:22px;display:inline-block"></span>`;
-    const next = i === 1 ? `<button onclick="calNav(1)">›</button>` : `<span style="width:22px;display:inline-block"></span>`;
+    const next = i === cols-1 ? `<button onclick="calNav(1)">›</button>` : `<span style="width:22px;display:inline-block"></span>`;
     items += `<div><div class="cal-header">${prev}<span>${MONTHS[mo]} ${yr}</span>${next}</div><div class="cal-grid">${renderMonthGrid(wsMap,prefMap,today,active,yr,mo)}</div></div>`;
   }
-  calDrop.innerHTML = `<div class="cal-cols">${items}</div>`;
+  calDrop.innerHTML = `<div class="cal-cols" style="grid-template-columns:repeat(${cols},1fr)">${items}</div>`;
 }
 
 function calNav(dir) {
@@ -1222,6 +1225,7 @@ function toggleViewMode() {
 }
 
 Object.assign(window, {toggleMapMode, calNav, calClick, closePanel, toggleAllUpcoming, toggleViewMode, toggleLayout});
+window.addEventListener('resize', () => { clearTimeout(window._calResT); window._calResT = setTimeout(renderCal, 120); });
 </script>
 </body>
 </html>
