@@ -1,0 +1,14 @@
+# Only docs/ and build_public.py are tracked
+*.xlsx
+*.py
+!build_public.py
+*.png
+*.jpg
+__pycache__/
+backup/
+Agenda/
+hep-dashboard*.html
+hep-list.html
+hep-workshops.html
+serve.py
+build_hep_*.py
