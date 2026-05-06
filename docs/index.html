@@ -32,8 +32,7 @@
   /* ── GLOBE + CALENDAR ROW ── */
   #map-row{display:flex;flex:1;min-height:0}
   #map{flex:1;background:#0f172a;overflow:hidden}
-  #cal-panel{width:430px;flex-shrink:0;background:#0d1f35;padding:10px 10px 6px;border-left:1px solid #1e40af33;overflow:hidden;transition:width .35s ease}
-  #site-header.compact #cal-panel{width:430px}
+  #cal-panel{width:min(430px,50%);flex-shrink:0;background:#0d1f35;padding:10px 10px 6px;border-left:1px solid #1e40af33;overflow:hidden;transition:width .35s ease}
 
   /* ── CALENDAR ── */
   .cal-cols{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}
@@ -280,6 +279,11 @@
   body.part-view #sp-title{color:#2563eb}
   body.part-view #sp-close{color:#94a3b8}
   body.part-view #sp-close:hover{background:#e2e8f0;color:#1e293b}
+
+  /* ── NARROW WINDOW: 1-month calendar ── */
+  @media(max-width:860px){
+    .cal-cols{grid-template-columns:1fr}
+  }
 
   /* ── MOBILE NARROW (portrait phones): narrow calendar, stacked controls ── */
   @media(max-width:700px){
