@@ -285,12 +285,13 @@
     .cal-cols{grid-template-columns:1fr}
   }
 
-  /* ── MOBILE NARROW (portrait phones): wrap buttons below title when no room ── */
+  /* ── MOBILE NARROW (portrait phones): buttons stack within each group, stay beside title ── */
   @media(max-width:700px){
-    .top-bar{padding:8px 12px;gap:6px 12px;flex-wrap:wrap}
-    .top-title{flex:1}
-    .top-links{width:100%;gap:8px}
-    .pref-group{gap:2px}
+    .top-bar{padding:8px 12px;gap:8px}
+    .top-title{flex:1;min-width:0}
+    .top-links{flex-shrink:0;gap:6px}
+    .pref-group-row{flex-direction:column;gap:3px}
+    .view-toggle,.layout-toggle,.phase-toggle,.pref-btn{font-size:0.7rem;padding:3px 8px}
     #cal-panel{width:180px!important;padding:6px;overflow-y:auto}
     .cal-cols{grid-template-columns:1fr}
     body.panel-open #site-header,body.panel-open #scroll-area{margin-right:0}
@@ -306,6 +307,7 @@
     .top-title p{display:none}
     .top-bar{padding:4px 12px}
     .top-links{flex-direction:row!important;gap:8px;width:auto!important}
+    .pref-group-row{flex-direction:row!important;gap:4px}
     .pref-group{flex-direction:column!important;align-items:flex-start!important;border-left:1px solid #334155!important;padding-left:10px!important;margin-left:2px!important}
     .pref-group-label{min-width:auto!important}
     .pref-group-row{gap:4px}
