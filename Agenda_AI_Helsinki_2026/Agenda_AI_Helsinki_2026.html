@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Custom AI Solutions Workshop – Helsinki 2026 – SAP Discovery Center</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'><rect width='40' height='20' fill='%232563eb'/><text x='20' y='15' font-family='Arial' font-size='14' font-weight='900' fill='white' text-anchor='middle' letter-spacing='1'>HEP</text></svg>">
+<style>
+@font-face{font-family:'72';src:url('https://ui5.sap.com/resources/sap/ui/core/themes/sap_fiori_3/fonts/72-Regular.woff2') format('woff2');font-weight:400}
+@font-face{font-family:'72';src:url('https://ui5.sap.com/resources/sap/ui/core/themes/sap_fiori_3/fonts/72-Bold.woff2') format('woff2');font-weight:700}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363a;font-size:14px;-webkit-font-smoothing:antialiased}
+.sh-bar{height:44px;background:#fff;border-bottom:1px solid #d9d9d9;display:flex;align-items:center;padding:0 16px;position:sticky;top:0;z-index:200}
+.sh-sep{width:1px;height:24px;background:rgba(0,0,0,.15);margin:0 12px;flex-shrink:0}
+.sh-app{color:#1d2d3e;font-size:.925rem;font-weight:700;white-space:nowrap}
+.sh-spacer{flex:1}
+.sh-icon{background:none;border:none;cursor:pointer;color:#32363a;width:36px;height:44px;display:flex;align-items:center;justify-content:center}
+.sh-icon:hover{background:rgba(0,0,0,.05)}
+.sh-avatar{width:28px;height:28px;border-radius:50%;background:#0064d9;color:#fff;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin-left:4px;cursor:pointer;flex-shrink:0}
+.breadcrumb{background:#fff;border-bottom:1px solid #e8ebee;padding:0 16px;height:36px;display:flex;align-items:center;gap:3px;font-size:.8rem;color:#74777a}
+.breadcrumb a{color:#0064d9;text-decoration:none}
+.breadcrumb a:hover{text-decoration:underline}
+.bc-sep{color:#c5cbd3;margin:0 2px}
+.m-header{background:#e8f0ff;border-bottom:1px solid #d9d9d9;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.m-title{font-size:1.15rem;font-weight:700;color:#1d2d3e}
+.m-meta{display:flex;gap:32px;flex-wrap:wrap;margin-top:6px}
+.m-info-col{display:flex;flex-direction:column;gap:3px;font-size:.78rem}
+.m-lbl{color:#74777a}
+.m-val{color:#1d2d3e}
+.board-wrap{overflow-x:auto;padding:12px 16px 48px}
+.board{display:flex;gap:10px;align-items:flex-start;min-width:max-content}
+.side-col{width:220px;flex-shrink:0}
+.b-col-hdr{border-bottom:1px solid #e8ebee;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;transition:opacity .25s}
+.b-col-title{font-size:.7rem;font-weight:700;color:#1d2d3e;letter-spacing:.5px;text-transform:uppercase}
+.b-col-cards{padding:8px;display:flex;flex-direction:column;gap:8px;position:relative}
+.days-area{display:flex;flex-direction:column}
+.days-hdrs{display:flex;gap:10px}
+.axis-spacer-hdr{width:52px;flex-shrink:0}
+.dc-hdr{width:270px;flex-shrink:0;border-bottom:1px solid #e8ebee;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;transition:opacity .25s}
+.days-tl{display:flex;gap:10px}
+.time-axis{width:52px;flex-shrink:0;position:relative;background:#f5f6f7}
+.axis-mark{position:absolute;right:8px;transform:translateY(-50%);font-size:.6rem;font-weight:600;color:#94a3b8;white-space:nowrap}
+.day-timeline{width:270px;flex-shrink:0;position:relative;overflow:hidden;transition:opacity .25s}
+.h-line{position:absolute;left:0;right:0;border-top:1px solid #c8d4de;pointer-events:none;z-index:0}
+.now-line{position:absolute;left:0;right:0;border-top:2px solid #e63939;pointer-events:none;z-index:5}
+.now-line::before{content:'';position:absolute;left:-1px;top:-4px;width:6px;height:6px;background:#e63939;border-radius:50%}
+.tc-card{position:absolute;left:4px;right:4px;border-radius:4px;padding:5px 8px;background:#fff;border:1px solid #e8ebee;box-shadow:0 1px 2px rgba(0,0,0,.04);z-index:1;transition:box-shadow .15s,opacity .25s,filter .25s}
+.tc-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.tc-card.is-break{background:#f5f6f7;border-color:#e0e0e0;box-shadow:none;pointer-events:none}
+.tc-card.is-break .m-card-title{color:#74777a;font-style:italic}
+.tc-right-col{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.tc-speaker{font-size:.57rem;font-weight:700;color:#8b9db0;background:#eef2f7;border-radius:3px;padding:1px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
+.m-card{background:#fff;border:1px solid #d9d9d9;border-radius:4px;padding:10px 12px;box-shadow:0 1px 2px rgba(0,0,0,.05);transition:box-shadow .15s,opacity .25s,filter .25s;position:relative;z-index:1}
+.m-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.m-card-badges{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px}
+.badge{font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap}
+.m-card-row{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.m-card-title{font-size:.76rem;color:#1d2d3e;line-height:1.4;flex:1}
+.m-card-done{display:none}
+.m-card.done,.tc-card.done{background:#f0faf4;border-color:#a7d7b8}
+.cbtn{background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;margin-top:1px;line-height:0;transition:transform .1s}
+.cbtn:hover{transform:scale(1.15)}
+.cbtn:active{transform:scale(.9)}
+.side-col.col-locked .b-col-hdr{opacity:.6}
+.side-col.col-locked .m-card{opacity:.35;filter:grayscale(1);pointer-events:none}
+.dc-hdr.col-locked{opacity:.6}
+.day-timeline.col-locked .tc-card{opacity:.35;filter:grayscale(1);pointer-events:none}
+.sap-footer{background:#fff;border-top:1px solid #d9d9d9;padding:16px 24px;display:flex;align-items:flex-start;gap:48px;flex-wrap:wrap}
+.f-logo{flex-shrink:0;opacity:.65}
+.f-section{display:flex;flex-direction:column;gap:5px}
+.f-head{font-size:.72rem;font-weight:700;color:#32363a;margin-bottom:3px}
+.f-link{font-size:.72rem;color:#74777a;cursor:pointer}
+.f-link:hover{color:#0064d9}
+.e-bar{background:#fff;border-bottom:1px solid #e8ebee;padding:6px 16px;display:flex;justify-content:flex-end}
+.e-toggle{padding:4px 14px;border:none;border-radius:4px;background:#0064d9;color:#fff;font-family:'72',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer}
+.e-toggle:hover{background:#0057bc}
+.e-mode .e-toggle{background:#0b6e3a}
+.e-del,.e-edit{position:absolute;width:18px;height:18px;border:none;border-radius:3px;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:.8rem;z-index:20;padding:0;line-height:1}
+.e-mode .e-del,.e-mode .e-edit{display:flex}
+.e-del{top:3px;right:3px;background:#fee2e2;color:#dc2626}.e-del:hover{background:#fca5a5}
+.e-edit{top:3px;right:25px;background:#eff6ff;color:#2563eb}.e-edit:hover{background:#dbeafe}
+.e-mode .cbtn{opacity:.25;pointer-events:none}
+.e-add-btn{display:block;width:100%;margin-top:6px;padding:7px;border:1px dashed #c5cbd3;border-radius:4px;background:none;color:#94a3b8;font-size:.75rem;cursor:pointer;text-align:center;font-family:'72',sans-serif}
+.e-add-btn:hover{background:#f5f6f7;color:#0064d9;border-color:#0064d9;border-style:solid}
+.drag-over{outline:2px dashed #0064d9!important;outline-offset:-2px;background:#eff6ff!important}.dragging{opacity:.4}.card-fade{opacity:0;transition:opacity .15s}
+#e-modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;align-items:center;justify-content:center}
+.e-dialog{background:#fff;border-radius:8px;padding:20px;width:340px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.e-dialog-title{font-size:.9rem;font-weight:700;color:#1d2d3e;margin-bottom:14px}
+.e-field{margin-bottom:10px}.e-field label{display:block;font-size:.72rem;color:#64748b;margin-bottom:3px;font-weight:600}
+.e-input{width:100%;padding:5px 9px;border:1px solid #c5cbd3;border-radius:4px;font-size:.82rem;font-family:'72',sans-serif;outline:none;color:#1d2d3e}
+.e-input:focus{border-color:#0064d9;box-shadow:0 0 0 2px #e0eefa}
+.e-dialog-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.e-btn-sec{padding:4px 12px;border:1px solid #c5cbd3;border-radius:4px;background:#fff;color:#32363a;font-size:.8rem;cursor:pointer;font-family:'72',sans-serif}
+.e-btn-pri{padding:4px 14px;border:none;border-radius:4px;background:#0064d9;color:#fff;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'72',sans-serif}
+.e-mode .m-card-title,.e-mode .tc-card .m-card-title{cursor:text}
+.m-card-title[contenteditable="true"],.tc-card .m-card-title[contenteditable="true"]{outline:2px solid #0064d9;border-radius:2px;padding:1px 3px;background:#fff;white-space:pre-wrap;cursor:text}
+.e-mode .badge:not(.e-add-badge-btn){cursor:pointer}.e-mode .badge:not(.e-add-badge-btn):hover{opacity:.75}
+.badge[contenteditable="true"]{outline:2px solid #0064d9;outline-offset:1px;cursor:text;min-width:16px;display:inline-block}
+.e-add-badge-btn{opacity:.55!important}.e-add-badge-btn:hover{opacity:1!important}
+.e-mode .tc-card:not(.is-break){cursor:grab}
+.day-timeline .e-add-btn{position:absolute;left:4px;right:4px;margin-top:0;z-index:10}
+</style>
+</head>
+<body>
+
+<div style="background:linear-gradient(135deg,#003d73,#0d5a9c);padding:18px 24px 16px;color:#fff">
+  <div style="font-size:.75rem;opacity:.75;margin-bottom:4px">SAP Discovery Center &rsaquo; Missions &rsaquo; Custom AI Solutions</div>
+  <div style="font-size:1.25rem;font-weight:700;letter-spacing:-.01em">Custom AI Solutions Workshop 2026 – Helsinki</div>
+  <div style="font-size:.82rem;margin-top:6px;opacity:.85;display:flex;gap:24px;flex-wrap:wrap">
+    <span>&#128205; Helsinki, Finland</span>
+    <span>&#128197; 2026</span>
+    <span>&#128203; 3-day Hands-on Workshop</span>
+  </div>
+</div>
+
+<div class="e-bar">
+  <button id="eBtn" class="e-toggle" onclick="toggleEdit()">&#9998; Edit</button>
+</div>
+
+<div class="board-wrap">
+  <div class="board">
+
+    <!-- PREPARE AND SETUP -->
+    <div class="b-col side-col" data-col="0">
+      <div class="b-col-hdr" style="background:#f0f4ff"><span class="b-col-title">PREPARE AND SETUP</span></div>
+      <div class="b-col-cards" style="background:#edf1fb;min-height:1050px">
+        <div class="m-card" data-col="0" data-cid="0"><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#d0f0f2">Check</span><span class="badge" style="color:#c0392b;background:#fde8e6">Important</span></div><div class="m-card-row"><div class="m-card-title">System Credentials</div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+      </div>
+    </div>
+
+    <!-- DAYS -->
+    <div class="days-area">
+      <div class="days-hdrs">
+        <div class="axis-spacer-hdr"></div>
+        <div class="dc-hdr col-locked" data-col="1" style="background:#fff"><span class="b-col-title">DAY 1</span></div>
+        <div class="dc-hdr col-locked" data-col="2" style="background:#fff"><span class="b-col-title">DAY 2</span></div>
+        <div class="dc-hdr col-locked" data-col="3" style="background:#fff"><span class="b-col-title">DAY 3</span></div>
+      </div>
+      <div class="days-tl" style="background:linear-gradient(to bottom,transparent 0px,#c8d4de 0px,#c8d4de 1px,transparent 1px,transparent 120px,#c8d4de 120px,#c8d4de 121px,transparent 121px,transparent 240px,#c8d4de 240px,#c8d4de 241px,transparent 241px,transparent 360px,#c8d4de 360px,#c8d4de 361px,transparent 361px,transparent 480px,#c8d4de 480px,#c8d4de 481px,transparent 481px,transparent 600px,#c8d4de 600px,#c8d4de 601px,transparent 601px,transparent 720px,#c8d4de 720px,#c8d4de 721px,transparent 721px,transparent 840px,#c8d4de 840px,#c8d4de 841px,transparent 841px,transparent 960px,#c8d4de 960px,#c8d4de 961px,transparent 961px)">
+
+        <!-- Time axis -->
+        <div class="time-axis" style="height:1050px">
+          <div class="axis-mark" style="top:0px">09:00</div>
+          <div class="axis-mark" style="top:120px">10:00</div>
+          <div class="axis-mark" style="top:240px">11:00</div>
+          <div class="axis-mark" style="top:360px">12:00</div>
+          <div class="axis-mark" style="top:480px">13:00</div>
+          <div class="axis-mark" style="top:600px">14:00</div>
+          <div class="axis-mark" style="top:720px">15:00</div>
+          <div class="axis-mark" style="top:840px">16:00</div>
+          <div class="axis-mark" style="top:960px">17:00</div>
+        </div>
+
+        <!-- DAY 1 -->
+        <div class="day-timeline col-locked" data-col="1" style="background:#f8f9fa;height:1050px">
+          <div class="h-line" style="top:0px"></div><div class="h-line" style="top:120px"></div><div class="h-line" style="top:240px"></div><div class="h-line" style="top:360px"></div><div class="h-line" style="top:480px"></div><div class="h-line" style="top:600px"></div><div class="h-line" style="top:720px"></div><div class="h-line" style="top:840px"></div><div class="h-line" style="top:960px"></div>
+          <div class="tc-card" data-col="1" data-cid="10" style="top:60px;height:50px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#d0f0f2">Check</span></div><div class="m-card-row"><div class="m-card-title">9:30 Welcome and Agenda</div><div class="tc-right-col"><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="1" data-cid="11" style="top:110px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><div class="m-card-row"><div class="m-card-title">09:45 SAP Business AI Overview</div><div class="tc-right-col"><span class="tc-speaker">Vidya</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="1" data-cid="12" style="top:170px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><div class="m-card-row"><div class="m-card-title">10:15 Overview of AI Catalog – Understanding Embedded AI Capabilities</div><div class="tc-right-col"><span class="tc-speaker">Carolin</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card is-break" data-col="1" data-cid="13" style="top:230px;height:30px;left:4px;right:4px"><div class="m-card-row"><div class="m-card-title">10:45 Coffee Break</div></div></div>
+          <div class="tc-card" data-col="1" data-cid="14" style="top:260px;height:50px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><div class="m-card-row"><div class="m-card-title">11:00 Streamline document processing with SAP Document AI</div><div class="tc-right-col"><span class="tc-speaker">Vidya</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="1" data-cid="15" style="top:310px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Hands-On</span></div><div class="m-card-row"><div class="m-card-title">11:15 Custom Documents with Generative AI and SAP Document AI</div><div class="tc-right-col"><span class="tc-speaker">Vidya</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card is-break" data-col="1" data-cid="16" style="top:370px;height:150px;left:4px;right:4px"><div class="m-card-row"><div class="m-card-title">11:45 Lunch</div></div></div>
+          <div class="tc-card" data-col="1" data-cid="17" style="top:520px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><div class="m-card-row"><div class="m-card-title">13:00 Overview of Generative AI</div><div class="tc-right-col"><span class="tc-speaker">Carolin</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="1" data-cid="18" style="top:580px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><div class="m-card-row"><div class="m-card-title">13:30 Joule and Document Grounding</div><div class="tc-right-col"><span class="tc-speaker">Chandresh</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card is-break" data-col="1" data-cid="19" style="top:640px;height:30px;left:4px;right:4px"><div class="m-card-row"><div class="m-card-title">14:00 Coffee Break</div></div></div>
+          <div class="tc-card" data-col="1" data-cid="20" style="top:670px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><div class="m-card-row"><div class="m-card-title">14:15 Embedding Business Context – SAP HANA Vector and Generative AI Hub</div><div class="tc-right-col"><span class="tc-speaker">Jayi</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="1" data-cid="21" style="top:730px;height:120px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Hands-On</span></div><div class="m-card-row"><div class="m-card-title">14:45 Working with Joule and Text Embeddings in SAP HANA Cloud</div><div class="tc-right-col"><span class="tc-speaker">Jayi</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="1" data-cid="22" style="top:850px;height:120px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Hands-On</span></div><div class="m-card-row"><div class="m-card-title">15:45 SAP HANA Cloud with Vector Engine and GenAI Hub</div><div class="tc-right-col"><span class="tc-speaker">Jayi</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="1" data-cid="23" style="top:970px;height:50px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#e0f5f7">Wrap-Up</span></div><div class="m-card-row"><div class="m-card-title">16:45 Parking lot. End of the day</div><div class="tc-right-col"><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+        </div>
+
+        <!-- DAY 2 -->
+        <div class="day-timeline col-locked" data-col="2" style="background:#f8f9fa;height:1050px">
+          <div class="h-line" style="top:0px"></div><div class="h-line" style="top:120px"></div><div class="h-line" style="top:240px"></div><div class="h-line" style="top:360px"></div><div class="h-line" style="top:480px"></div><div class="h-line" style="top:600px"></div><div class="h-line" style="top:720px"></div><div class="h-line" style="top:840px"></div><div class="h-line" style="top:960px"></div>
+          <div class="tc-card" data-col="2" data-cid="30" style="top:60px;height:50px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#d0f0f2">Check</span></div><div class="m-card-row"><div class="m-card-title">9:30 Welcome back and Recap</div><div class="tc-right-col"><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="2" data-cid="31" style="top:110px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><div class="m-card-row"><div class="m-card-title">09:45 Overview of Joule Studio: Joule Skills and Joule Agents</div><div class="tc-right-col"><span class="tc-speaker">Vidya</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="2" data-cid="32" style="top:170px;height:120px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Hands-On</span></div><div class="m-card-row"><div class="m-card-title">10:15 Joule Skills</div><div class="tc-right-col"><span class="tc-speaker">Jayi</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card is-break" data-col="2" data-cid="33" style="top:290px;height:30px;left:4px;right:4px"><div class="m-card-row"><div class="m-card-title">11:15 Coffee Break</div></div></div>
+          <div class="tc-card" data-col="2" data-cid="34" style="top:320px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><div class="m-card-row"><div class="m-card-title">11:30 Joule for Developers</div><div class="tc-right-col"><span class="tc-speaker">Santosh</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card is-break" data-col="2" data-cid="35" style="top:380px;height:120px;left:4px;right:4px"><div class="m-card-row"><div class="m-card-title">12:00 Lunch</div></div></div>
+          <div class="tc-card" data-col="2" data-cid="36" style="top:500px;height:90px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Hands-On</span></div><div class="m-card-row"><div class="m-card-title">13:00 Create a Joule Agent with Joule Studio</div><div class="tc-right-col"><span class="tc-speaker">Jayi</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="2" data-cid="37" style="top:590px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#9b1a6e;background:#fce4f3">Demo</span></div><div class="m-card-row"><div class="m-card-title">13:45 Joule for Consultants</div><div class="tc-right-col"><span class="tc-speaker">Carolin</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="2" data-cid="38" style="top:650px;height:90px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#8b4000;background:#fff3e0">Game</span></div><div class="m-card-row"><div class="m-card-title">14:15 Game Play: Chocolate Run</div><div class="tc-right-col"><span class="tc-speaker">Chandresh/Jayi</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card is-break" data-col="2" data-cid="39" style="top:740px;height:30px;left:4px;right:4px"><div class="m-card-row"><div class="m-card-title">15:00 Coffee Break</div></div></div>
+          <div class="tc-card" data-col="2" data-cid="40" style="top:770px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Hands-On</span></div><div class="m-card-row"><div class="m-card-title">15:15 Generative AI-powered development with Joule copilot</div><div class="tc-right-col"><span class="tc-speaker">Chandresh</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="2" data-cid="41" style="top:830px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><div class="m-card-row"><div class="m-card-title">15:45 SAP Domain Nova Model</div><div class="tc-right-col"><span class="tc-speaker">Hong Zhang</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="2" data-cid="42" style="top:890px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><div class="m-card-row"><div class="m-card-title">16:15 SAP Discovery Center</div><div class="tc-right-col"><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="2" data-cid="43" style="top:950px;height:50px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#e0f5f7">Wrap-Up</span></div><div class="m-card-row"><div class="m-card-title">16:45 Parking lot. End of day 2</div><div class="tc-right-col"><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+        </div>
+
+        <!-- DAY 3 -->
+        <div class="day-timeline col-locked" data-col="3" style="background:#f8f9fa;height:1050px">
+          <div class="h-line" style="top:0px"></div><div class="h-line" style="top:120px"></div><div class="h-line" style="top:240px"></div><div class="h-line" style="top:360px"></div><div class="h-line" style="top:480px"></div><div class="h-line" style="top:600px"></div><div class="h-line" style="top:720px"></div><div class="h-line" style="top:840px"></div><div class="h-line" style="top:960px"></div>
+          <div class="tc-card" data-col="3" data-cid="50" style="top:60px;height:50px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#d0f0f2">Check</span></div><div class="m-card-row"><div class="m-card-title">9:30 Welcome back and Recap</div><div class="tc-right-col"><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="3" data-cid="51" style="top:110px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><div class="m-card-row"><div class="m-card-title">09:45 Business AI Explore tour</div><div class="tc-right-col"><span class="tc-speaker">Tine</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="3" data-cid="52" style="top:170px;height:90px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><div class="m-card-row"><div class="m-card-title">10:15 Additional Resources and enablement options for Partners</div><div class="tc-right-col"><span class="tc-speaker">Jayi</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card is-break" data-col="3" data-cid="53" style="top:260px;height:30px;left:4px;right:4px"><div class="m-card-row"><div class="m-card-title">11:00 Coffee Break</div></div></div>
+          <div class="tc-card" data-col="3" data-cid="54" style="top:290px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><div class="m-card-row"><div class="m-card-title">11:15 AI unit commercialization and TDD</div><div class="tc-right-col"><span class="tc-speaker">Teemu</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card" data-col="3" data-cid="55" style="top:350px;height:60px;left:4px;right:4px"><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#e0f5f7">Wrap-Up</span></div><div class="m-card-row"><div class="m-card-title">11:45 Wrap up, feedback, and end of workshop</div><div class="tc-right-col"><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></div>
+          <div class="tc-card is-break" data-col="3" data-cid="56" style="top:410px;height:90px;left:4px;right:4px"><div class="m-card-row"><div class="m-card-title">12:15 Lunch</div></div></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FOLLOW-UP -->
+    <div class="b-col side-col col-locked" data-col="4">
+      <div class="b-col-hdr" style="background:#f0f4ff"><span class="b-col-title">FOLLOW-UP</span></div>
+      <div class="b-col-cards" style="background:#edf1fb;min-height:1050px">
+        <div class="m-card" data-col="4" data-cid="70"><div class="m-card-badges"><span class="badge" style="color:#505050;background:#e8e8f0">Optional</span></div><div class="m-card-row"><div class="m-card-title">Review additional resources and learning opportunities</div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+        <div class="m-card" data-col="4" data-cid="71"><div class="m-card-badges"><span class="badge" style="color:#7a00b8;background:#ecdffe">Mission</span></div><div class="m-card-row"><div class="m-card-title">Your feedback</div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+        <div class="m-card" data-col="4" data-cid="72"><div class="m-card-badges"><span class="badge" style="color:#c0392b;background:#fde8e6">Important</span></div><div class="m-card-row"><div class="m-card-title">Complete 1 more mission</div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+        <div class="m-card" data-col="4" data-cid="73"><div class="m-card-badges"><span class="badge" style="color:#7a00b8;background:#ecdffe">Mission</span></div><div class="m-card-row"><div class="m-card-title">Complete Mission</div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+        <div class="m-card" data-col="4" data-cid="74"><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#d0f0f2">Check</span></div><div class="m-card-row"><div class="m-card-title">Get your Badge</div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="sap-footer">
+  <svg class="f-logo" width="42" height="21" viewBox="0 0 42 21"><rect width="42" height="21" fill="#001e60"/><text x="21" y="15.5" font-family="Arial,sans-serif" font-size="14" font-weight="900" fill="white" text-anchor="middle" letter-spacing="1">SAP</text></svg>
+  <div class="f-section"><span class="f-head">Get in Touch</span><span class="f-link">Contact Us</span></div>
+  <div class="f-section"><span class="f-head">Quick Links</span><span class="f-link">SAP Help Portal</span><span class="f-link">SAP Community</span></div>
+  <div class="f-section"><span class="f-head">Site Information</span><span class="f-link">Privacy</span><span class="f-link">Legal Disclosure</span></div>
+</div>
+
+<div id="e-modal-ov">
+  <div class="e-dialog">
+    <div id="e-modal-title" class="e-dialog-title"></div>
+    <div id="e-modal-body"></div>
+    <div class="e-dialog-btns">
+      <button class="e-btn-sec" onclick="closeModal()">Cancel</button>
+      <button class="e-btn-pri" onclick="if(_modalOk)_modalOk()">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORE_KEY = 'agenda-ai-helsinki-v1';
+const COL_IDS = [0,1,2,3,4];
+const PPM_JS = 2;
+const GSTART_JS = 540;
+
+const J_MT = `<svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const J_DN = `<svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="6.5" fill="#0b6e3a"/><polyline points="3.5,6.5 5.7,9 9.5,4.5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+function getColEls(id) {
+  return Array.from(document.querySelectorAll(
+    '.dc-hdr[data-col="'+id+'"],.day-timeline[data-col="'+id+'"],.side-col[data-col="'+id+'"]'
+  ));
+}
+function getColCards(id) {
+  return getColEls(id).flatMap(el => Array.from(el.querySelectorAll('.m-card:not(.is-break),.tc-card:not(.is-break)')));
+}
+function updateAll() {
+  let prevDone = true;
+  COL_IDS.forEach(id => {
+    const cards = getColCards(id);
+    const allDone = cards.length > 0 && cards.every(c => c.classList.contains('done'));
+    const locked = !prevDone;
+    getColEls(id).forEach(el => el.classList.toggle('col-locked', locked));
+    prevDone = allDone;
+  });
+}
+function saveState() {
+  const state = Array.from(document.querySelectorAll('.m-card,.tc-card')).map(c => c.classList.contains('done') ? 1 : 0);
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+}
+function restoreState() {
+  const saved = localStorage.getItem(STORE_KEY);
+  if (!saved) return;
+  const state = JSON.parse(saved);
+  document.querySelectorAll('.m-card,.tc-card').forEach((c, i) => {
+    if (state[i]) {
+      c.classList.add('done');
+      const btn = c.querySelector('.cbtn');
+      if (btn) { btn.innerHTML = J_DN; btn.title = 'Completed – click to undo'; }
+    }
+  });
+}
+document.querySelectorAll('.cbtn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const card = btn.closest('.m-card,.tc-card'); if (!card) return;
+    card.classList.toggle('done');
+    const isDone = card.classList.contains('done');
+    btn.innerHTML = isDone ? J_DN : J_MT;
+    btn.title = isDone ? 'Completed – click to undo' : 'Mark as complete';
+    updateAll(); saveState();
+  });
+});
+
+(function() {
+  const now = new Date();
+  const mins = now.getHours()*60 + now.getMinutes();
+  document.querySelectorAll('.day-timeline').forEach(function(tl) {
+    const top = (mins - GSTART_JS) * PPM_JS;
+    if (top >= 0 && top <= parseInt(tl.style.height)) {
+      const line = document.createElement('div');
+      line.className = 'now-line';
+      line.style.top = top + 'px';
+      tl.appendChild(line);
+    }
+  });
+})();
+
+const E_KEY = 'agenda-ai-helsinki-v1-edit';
+let eMode = false;
+let eData = (function() { try { return JSON.parse(localStorage.getItem(E_KEY)) || {}; } catch(e) { return {}; } })();
+function eSave() { localStorage.setItem(E_KEY, JSON.stringify(eData)); }
+function hesc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+var BADGE_MAP = {
+  'check':['#02747f','#e0f5f7'],'intro':['#02747f','#e0f5f7'],'recap':['#02747f','#e0f5f7'],
+  'presentation':['#5b21b6','#ede9fe'],'exercise':['#0d6e35','#dcf5e5'],'hands-on':['#0d6e35','#dcf5e5'],
+  'game':['#8b4000','#fff3e0'],'optional':['#505050','#f2f2f2'],'demo':['#9b1a6e','#fce4f3'],
+  'highlight':['#7c5100','#fff8e0'],'mission':['#7a00b8','#f5e3ff'],'important':['#c0392b','#fde8e6'],
+  'wrap-up':['#02747f','#e0f5f7']
+};
+function getBStyle(k) {
+  var c = BADGE_MAP[(k||'').toLowerCase().trim()] || ['#505050','#f2f2f2'];
+  return 'color:'+c[0]+';background:'+c[1];
+}
+function eApply() {
+  (eData.deleted||[]).forEach(function(cid) { var el=document.querySelector('[data-cid="'+cid+'"]'); if(el) el.remove(); });
+  var cm=eData.cols||{};
+  Object.keys(cm).forEach(function(cid) {
+    var el=document.querySelector('[data-cid="'+cid+'"]'); if(!el) return;
+    var nc=cm[cid];
+    var tgt=document.querySelector('.day-timeline[data-col="'+nc+'"]')||document.querySelector('.side-col[data-col="'+nc+'"] .b-col-cards');
+    if(tgt&&el.parentNode!==tgt) { tgt.appendChild(el); el.dataset.col=nc; }
+    var inTl=!!el.closest('.day-timeline');
+    if(inTl&&el.classList.contains('m-card')) { el.classList.remove('m-card'); el.classList.add('tc-card'); }
+    else if(!inTl&&el.classList.contains('tc-card')) { el.classList.remove('tc-card'); el.classList.add('m-card'); el.style.cssText=''; }
+  });
+  var ov=eData.overrides||{};
+  Object.keys(ov).forEach(function(cid) {
+    var el=document.querySelector('[data-cid="'+cid+'"]'); if(!el) return;
+    var d=ov[cid];
+    if(d.title!=null) { var t=el.querySelector('.m-card-title'); if(t) t.textContent=d.title; }
+    if(d.badges!=null) { var bd=el.querySelector('.m-card-badges'); if(bd) bd.innerHTML=d.badges; }
+  });
+  var pos=eData.positions||{};
+  Object.keys(pos).forEach(function(cid) {
+    var el=document.querySelector('[data-cid="'+cid+'"]'); if(!el) return;
+    if(el.classList.contains('tc-card')&&!el.style.left) el.style.cssText='top:'+pos[cid]+'px;height:60px;left:4px;right:4px';
+    else el.style.top=pos[cid]+'px';
+  });
+  (eData.added||[]).forEach(function(a) { insertCard(a, false); });
+}
+function _makeCbtn() {
+  var cb=document.createElement('button');
+  cb.className='cbtn'; cb.title='Mark as complete'; cb.innerHTML=J_MT;
+  cb.addEventListener('click',function(e) {
+    e.stopPropagation();
+    var card=e.currentTarget.closest('.m-card,.tc-card'); if(!card) return;
+    card.classList.toggle('done');
+    var isDone=card.classList.contains('done');
+    e.currentTarget.innerHTML=isDone?J_DN:J_MT;
+    e.currentTarget.title=isDone?'Completed – click to undo':'Mark as complete';
+    updateAll(); saveState();
+  });
+  return cb;
+}
+function insertCard(a, withCtrl) {
+  if(a.isTl) {
+    var tl=document.querySelector('.day-timeline[data-col="'+a.col+'"]'); if(!tl) return;
+    var div=document.createElement('div');
+    div.className='tc-card'; div.dataset.cid=a.cid; div.dataset.col=a.col;
+    div.style.cssText='top:'+(a.top||0)+'px;height:60px;left:4px;right:4px';
+    var bdg=a.badge?'<div class="m-card-badges"><span class="badge" style="'+getBStyle(a.badge)+'">'+hesc(a.badge)+'</span></div>':'';
+    div.innerHTML=bdg+'<div class="m-card-row"><div class="m-card-title">'+hesc((a.time?a.time+' ':'')+a.title)+'</div></div>';
+    div.querySelector('.m-card-row').appendChild(_makeCbtn());
+    tl.appendChild(div); if(withCtrl) attachCtrl(div); return;
+  }
+  var container=document.querySelector('.side-col[data-col="'+a.col+'"] .b-col-cards'); if(!container) return;
+  var div=document.createElement('div');
+  div.className='m-card'; div.dataset.cid=a.cid; div.dataset.col=a.col;
+  var inner='';
+  if(a.badge) inner+='<div class="m-card-badges"><span class="badge" style="'+getBStyle(a.badge)+'">'+hesc(a.badge)+'</span></div>';
+  inner+='<div class="m-card-row"><div class="m-card-title">'+hesc(a.title)+'</div></div>';
+  div.innerHTML=inner;
+  div.querySelector('.m-card-row').appendChild(_makeCbtn());
+  var addBtn=container.querySelector('.e-add-btn');
+  container.insertBefore(div, addBtn||null);
+  if(withCtrl) attachCtrl(div);
+}
+function toggleEdit() {
+  eMode=!eMode;
+  document.body.classList.toggle('e-mode',eMode);
+  document.getElementById('eBtn').innerHTML=eMode?'&#10003; Done':'&#9998; Edit';
+  if(eMode) {
+    document.querySelectorAll('.m-card,.tc-card:not(.is-break)').forEach(attachCtrl);
+    document.querySelectorAll('.side-col .b-col-cards').forEach(function(c) {
+      if(!c.querySelector('.e-add-btn')) {
+        var colId=c.closest('[data-col]').dataset.col;
+        var ab=document.createElement('button');
+        ab.className='e-add-btn'; ab.textContent='+ Add Card';
+        ab.onclick=function() { promptAdd(colId); };
+        c.appendChild(ab);
+      }
+      c.addEventListener('dragover',function(ev) { ev.preventDefault(); });
+      c.addEventListener('drop',function(ev) {
+        if(!_ds) return; ev.preventDefault();
+        var newCol=c.closest('[data-col]').dataset.col;
+        if(_ds.classList.contains('tc-card')) { _ds.classList.remove('tc-card'); _ds.classList.add('m-card'); _ds.style.cssText=''; }
+        c.insertBefore(_ds,c.querySelector('.e-add-btn')||null);
+        if(_ds.dataset.col!==newCol) { _ds.dataset.col=newCol; if(!eData.cols) eData.cols={}; eData.cols[_ds.dataset.cid]=newCol; eSave(); }
+        updateAll();
+      });
+    });
+    document.querySelectorAll('.day-timeline').forEach(function(tl) {
+      if(!tl.querySelector('.e-add-btn')) {
+        var colId=tl.dataset.col;
+        var ab=document.createElement('button');
+        ab.className='e-add-btn'; ab.textContent='+ Add Card';
+        ab.style.top=(parseInt(tl.style.height||0)-44)+'px';
+        ab.onclick=function() { promptAddTc(colId); };
+        tl.appendChild(ab);
+      }
+      tl.addEventListener('dragover',function(ev) { ev.preventDefault(); });
+      tl.addEventListener('drop',function(ev) {
+        ev.preventDefault(); if(!_ds) return;
+        var rect=tl.getBoundingClientRect();
+        var snapped=Math.round(Math.max(0,ev.clientY-rect.top)/PPM_JS/5)*5*PPM_JS;
+        var mins=GSTART_JS+Math.round(snapped/PPM_JS);
+        var hh=String(Math.floor(mins/60)).padStart(2,'0'),mm=String(mins%60).padStart(2,'0');
+        var newTime=hh+':'+mm, newCol=tl.dataset.col;
+        if(_ds.classList.contains('m-card')) { _ds.classList.remove('m-card'); _ds.classList.add('tc-card'); }
+        _ds.style.cssText='top:'+snapped+'px;height:60px;left:4px;right:4px';
+        tl.appendChild(_ds);
+        var te=_ds.querySelector('.m-card-title');
+        if(te) te.textContent=/^\d{2}:\d{2}/.test(te.textContent)?te.textContent.replace(/^\d{2}:\d{2}/,newTime):newTime+' '+te.textContent;
+        _ds.dataset.col=newCol;
+        if(!eData.cols) eData.cols={}; eData.cols[_ds.dataset.cid]=newCol;
+        if(!eData.positions) eData.positions={}; eData.positions[_ds.dataset.cid]=snapped;
+        eSave(); updateAll();
+      });
+    });
+  } else {
+    document.querySelectorAll('.e-del,.e-edit,.e-add-btn,.e-add-badge-btn').forEach(function(b) { b.remove(); });
+    document.querySelectorAll('[draggable]').forEach(function(el) { el.removeAttribute('draggable'); });
+  }
+}
+function attachCtrl(card) {
+  if(card.querySelector('.e-del')) return;
+  var cid=card.dataset.cid;
+  var del=document.createElement('button');
+  del.className='e-del'; del.title='Delete'; del.innerHTML='&times;';
+  del.onclick=function(e) { e.stopPropagation(); delCard(cid); };
+  var edt=document.createElement('button');
+  edt.className='e-edit'; edt.title='Edit title'; edt.innerHTML='&#9998;';
+  edt.onclick=function(e) { e.stopPropagation(); startInlineEdit(card.querySelector('.m-card-title'),cid); };
+  card.appendChild(del); card.appendChild(edt);
+  var titleEl=card.querySelector('.m-card-title');
+  if(titleEl) titleEl.addEventListener('click',function(e) { if(eMode) { e.stopPropagation(); startInlineEdit(titleEl,cid); } });
+  attachBadgeEdit(card,cid);
+  card.setAttribute('draggable','true');
+  card.addEventListener('dragstart',function(e) { _ds=card; card.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+  card.addEventListener('dragover', function(e) { e.preventDefault(); card.classList.add('drag-over'); });
+  card.addEventListener('dragleave',function()  { card.classList.remove('drag-over'); });
+  card.addEventListener('dragend',  function()  { _ds=null; card.classList.remove('dragging'); document.querySelectorAll('.drag-over').forEach(function(x){ x.classList.remove('drag-over'); }); });
+  if(card.closest('.side-col')) {
+    card.addEventListener('drop',function(e) {
+      e.stopPropagation(); e.preventDefault(); card.classList.remove('drag-over');
+      if(!_ds||_ds===card) return;
+      var p=card.parentNode;
+      var si=Array.from(p.children).indexOf(_ds),ti=Array.from(p.children).indexOf(card);
+      p.insertBefore(_ds,(si===-1||si>ti)?card:card.nextSibling);
+      var newCol=p.closest('[data-col]').dataset.col;
+      if(_ds.dataset.col!==newCol) { _ds.dataset.col=newCol; if(!eData.cols) eData.cols={}; eData.cols[_ds.dataset.cid]=newCol; eSave(); }
+    });
+  }
+}
+var _ds=null, _modalOk=null, _addCol=null, _eCtr=10000;
+function delCard(cid) {
+  if(!eData.deleted) eData.deleted=[];
+  eData.deleted.push(String(cid));
+  var el=document.querySelector('[data-cid="'+cid+'"]');
+  if(el) { el.classList.add('card-fade'); setTimeout(function() { if(el.parentNode) el.remove(); updateAll(); },160); }
+  eSave();
+}
+function startInlineEdit(titleEl,cid) {
+  if(!titleEl||titleEl.contentEditable==='true') return;
+  var original=titleEl.textContent.trim();
+  titleEl.contentEditable='true'; titleEl.focus();
+  var range=document.createRange(); range.selectNodeContents(titleEl);
+  var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  function commit() {
+    var v=titleEl.textContent.trim(); titleEl.contentEditable='false';
+    if(v&&v!==original) { if(!eData.overrides) eData.overrides={}; if(!eData.overrides[cid]) eData.overrides[cid]={}; eData.overrides[cid].title=v; eSave(); }
+    else if(!v) titleEl.textContent=original;
+    titleEl.removeEventListener('blur',commit); titleEl.removeEventListener('keydown',onKey);
+  }
+  function onKey(e) {
+    if(e.key==='Enter') { e.preventDefault(); commit(); }
+    if(e.key==='Escape') { e.preventDefault(); titleEl.textContent=original; titleEl.contentEditable='false'; titleEl.removeEventListener('blur',commit); titleEl.removeEventListener('keydown',onKey); }
+  }
+  titleEl.addEventListener('blur',commit); titleEl.addEventListener('keydown',onKey);
+}
+function attachBadgeEdit(card,cid) {
+  card.querySelectorAll('.badge:not(.e-add-badge-btn)').forEach(function(badge) {
+    badge.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startBadgeEdit(badge,cid,card); });
+  });
+  var bd=card.querySelector('.m-card-badges');
+  if(!bd) { bd=document.createElement('div'); bd.className='m-card-badges'; card.insertBefore(bd,card.firstChild); }
+  if(bd.querySelector('.e-add-badge-btn')) return;
+  var ab=document.createElement('span');
+  ab.className='badge e-add-badge-btn'; ab.style.cssText='cursor:pointer;background:#f0f0f0;color:#64748b'; ab.textContent='+ Label';
+  ab.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); addBadge(bd,cid,card); });
+  bd.appendChild(ab);
+}
+function startBadgeEdit(badge,cid,card) {
+  if(badge.contentEditable==='true') return;
+  var original=badge.textContent.trim();
+  badge.contentEditable='true'; badge.focus();
+  var range=document.createRange(); range.selectNodeContents(badge);
+  var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  function commit() {
+    badge.contentEditable='false';
+    var v=badge.textContent.trim();
+    if(!v) badge.remove(); else badge.setAttribute('style',getBStyle(v));
+    saveBadges(cid,card);
+    badge.removeEventListener('blur',commit); badge.removeEventListener('keydown',onKey);
+  }
+  function onKey(e) {
+    if(e.key==='Enter') { e.preventDefault(); commit(); }
+    if(e.key==='Escape') { e.preventDefault(); badge.textContent=original; badge.contentEditable='false'; badge.removeEventListener('blur',commit); badge.removeEventListener('keydown',onKey); }
+  }
+  badge.addEventListener('blur',commit); badge.addEventListener('keydown',onKey);
+}
+function addBadge(bd,cid,card) {
+  var span=document.createElement('span');
+  span.className='badge'; span.style.cssText=getBStyle('check'); span.textContent='Label';
+  var addBtn=bd.querySelector('.e-add-badge-btn');
+  bd.insertBefore(span,addBtn||null);
+  span.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startBadgeEdit(span,cid,card); });
+  saveBadges(cid,card); startBadgeEdit(span,cid,card);
+}
+function saveBadges(cid,card) {
+  var bd=card.querySelector('.m-card-badges'); if(!bd) return;
+  var clone=bd.cloneNode(true); var ab=clone.querySelector('.e-add-badge-btn'); if(ab) ab.remove();
+  if(!eData.overrides) eData.overrides={}; if(!eData.overrides[cid]) eData.overrides[cid]={};
+  eData.overrides[cid].badges=clone.innerHTML; eSave();
+}
+function promptAdd(colId) {
+  _addCol=String(colId);
+  showModal('Add Card','<div class="e-field"><label>Title</label><input id="ef-t" class="e-input" placeholder="Card title..."></div><div class="e-field"><label>Label (optional)</label><input id="ef-b" class="e-input" placeholder="hands-on / presentation / check..."></div>',function() {
+    var t=document.getElementById('ef-t'); if(!t||!t.value.trim()) return;
+    var cid='a'+(_eCtr++); var b=(document.getElementById('ef-b')||{}).value||'';
+    var a={cid:cid,col:_addCol,title:t.value.trim(),badge:b.trim()};
+    if(!eData.added) eData.added=[]; eData.added.push(a); insertCard(a,true); eSave(); updateAll();
+  });
+  setTimeout(function() { var i=document.getElementById('ef-t'); if(i) i.focus(); },20);
+}
+function promptAddTc(colId) {
+  _addCol=String(colId);
+  showModal('Add Card to Day '+colId,'<div class="e-field"><label>Time (HH:MM)</label><input id="ef-tm" class="e-input" placeholder="09:00" maxlength="5"></div><div class="e-field"><label>Title</label><input id="ef-t" class="e-input" placeholder="Session title..."></div><div class="e-field"><label>Label (optional)</label><input id="ef-b" class="e-input" placeholder="hands-on / presentation..."></div>',function() {
+    var tm=document.getElementById('ef-tm'),t=document.getElementById('ef-t'); if(!t||!t.value.trim()) return;
+    var cid='a'+(_eCtr++); var b=(document.getElementById('ef-b')||{}).value||'';
+    var timev=(tm&&tm.value.trim())||''; var mins=0;
+    if(timev) { var p=timev.split(':'); mins=(parseInt(p[0])||0)*60+(parseInt(p[1])||0); }
+    var top=(mins-GSTART_JS)*PPM_JS; if(top<0) top=0;
+    var a={cid:cid,col:_addCol,title:t.value.trim(),badge:b.trim(),isTl:true,time:timev,top:top};
+    if(!eData.added) eData.added=[]; eData.added.push(a); insertCard(a,true); eSave(); updateAll();
+  });
+  setTimeout(function() { var i=document.getElementById('ef-tm'); if(i) i.focus(); },20);
+}
+function showModal(title,body,ok) {
+  document.getElementById('e-modal-title').textContent=title;
+  document.getElementById('e-modal-body').innerHTML=body;
+  var ov=document.getElementById('e-modal-ov');
+  ov.style.display='flex'; _modalOk=function() { ok(); closeModal(); };
+  ov.addEventListener('click',function(e) { if(e.target===ov) closeModal(); },{once:true});
+  document.addEventListener('keydown',function(e) { if(e.key==='Enter') { if(_modalOk) _modalOk(); } if(e.key==='Escape') closeModal(); },{once:true});
+}
+function closeModal() {
+  document.getElementById('e-modal-ov').style.display='none'; _modalOk=null;
+}
+restoreState(); eApply(); updateAll();
+</script>
+</body>
+</html>
