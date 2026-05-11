@@ -69,6 +69,13 @@ def build():
 
     open(os.path.join(DOCS, '.nojekyll'), 'w').close()
 
+    # Verify PWA assets are present in docs/
+    for pwa_file in ('manifest.json', 'sw.js', 'icon.svg', 'icon-192.png', 'icon-512.png'):
+        if os.path.exists(os.path.join(DOCS, pwa_file)):
+            print(f'PWA:      {pwa_file}')
+        else:
+            print(f'Missing PWA asset: {pwa_file} (add to docs/ manually)')
+
 
 if __name__ == '__main__':
     build()
