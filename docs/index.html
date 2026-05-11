@@ -1285,16 +1285,16 @@ window.addEventListener('resize', () => { clearTimeout(window._calResT); window.
 // ── Agenda column ─────────────────────────────────────────────────────────────
 (function(){
   const AGENDAS = {
-    '2026-04-28': 'Agenda_AI_PaloAlto_2026/agenda.html',
-    '2026-05-19': 'Agenda_IS_Bellevue_2026/agenda.html',
-    '2026-06-11': 'Agenda_AI_Helsinki_2026/Agenda_AI_Helsinki_2026.html'
+    '2026-04-28_us': 'Agenda_AI_PaloAlto_2026/agenda.html',
+    '2026-05-19_us': 'Agenda_IS_Bellevue_2026/agenda.html',
+    '2026-06-11_fi': 'Agenda_AI_Helsinki_2026/Agenda_AI_Helsinki_2026.html'
   };
   document.querySelectorAll('#tbody tr').forEach(tr => {
     const regTd = tr.querySelector('.td-reg');
     if (!regTd) return;
     const td = document.createElement('td');
     td.className = 'td-agenda';
-    const url = AGENDAS[tr.dataset.start];
+    const url = AGENDAS[tr.dataset.start + '_' + (tr.dataset.cc || '')];
     if (url) {
       const a = document.createElement('a');
       a.href = url; a.target = '_blank'; a.className = 'agenda-link';
