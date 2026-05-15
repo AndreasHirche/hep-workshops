@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Missions Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232563eb'/><text x='16' y='23' font-family='system-ui,sans-serif' font-size='18' font-weight='900' fill='white' text-anchor='middle'>M</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -18,7 +19,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .particles{position:fixed;inset:0;pointer-events:none;z-index:0}
 .particle{position:absolute;border-radius:50%;animation:float linear infinite}
 @keyframes float{0%{transform:translateY(100vh) translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-20px) translateX(40px);opacity:0}}
-.wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:32px 24px}
+.wrap{position:relative;z-index:1;max-width:100%;margin:0 auto;padding:32px 16px}
 
 /* Header */
 header{margin-bottom:32px}
@@ -57,7 +58,7 @@ header p{color:var(--muted);font-size:0.9rem;margin-top:6px}
 /* Table */
 .tbl-wrap{background:var(--glass);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(12px);overflow:hidden}
 .tbl-scroll{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:0.81rem;min-width:820px}
+table{width:100%;border-collapse:collapse;font-size:0.81rem;min-width:600px}
 thead th{padding:11px 14px;text-align:left;font-weight:600;font-size:0.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:rgba(0,0,0,0.2)}
 thead th.sortable{cursor:pointer;user-select:none}
 thead th.sortable:hover{color:var(--text)}
@@ -419,6 +420,12 @@ function renderCharts(){
     },
     options:{
       responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      onClick:function(e,els){
+        if(!els.length)return;
+        var cat=catSorted[els[0].index][0];
+        document.getElementById('fCategory').value=cat==='(none)'?'':cat;
+        applyFilters();
+      },
       plugins:{
         legend:{display:false},
         tooltip:{callbacks:{label:function(ctx){return' '+ctx.parsed.x+' missions';}}}
