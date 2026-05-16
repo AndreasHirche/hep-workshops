@@ -2,6 +2,8 @@
 *.xlsx
 *.py
 !build_public.py
+!Requirements/gen.py
+!Missions/gen_missions.py
 *.png
 *.jpg
 __pycache__/
