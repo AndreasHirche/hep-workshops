@@ -2,6 +2,7 @@
 *.xlsx
 *.py
 !build_public.py
+!Requirements/gen.py
 *.png
 *.jpg
 __pycache__/
