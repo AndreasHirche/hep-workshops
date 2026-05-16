@@ -8,6 +8,7 @@ __pycache__/
 backup/
 Agenda/
 hep-dashboard*.html
+!docs/hep-dashboard.html
 hep-list.html
 hep-workshops.html
 serve.py
