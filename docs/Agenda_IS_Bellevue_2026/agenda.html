@@ -99,18 +99,24 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 .e-add-badge-btn{opacity:.55!important}.e-add-badge-btn:hover{opacity:1!important}
 .e-mode .tc-card:not(.is-break){cursor:grab}
 .day-timeline .e-add-btn{position:absolute;left:4px;right:4px;margin-top:0;z-index:10}
+.header-wrap{position:relative;display:flex;align-items:stretch;width:100%;border-bottom:2px solid #bfc6ce;overflow:hidden}
+.header-left-color{flex-shrink:0;width:320px;height:189px;background:linear-gradient(to bottom,#ffffff 48px,#f1ecff 48px);display:block}
+.header-overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:18px 28px;pointer-events:none}
+.header-overlay h1{font-size:1.3rem;font-weight:700;color:#1d2d3e;line-height:1.2;margin:0}
+.header-overlay p{font-size:.8rem;color:#4a5568;margin:4px 0 0}
+.header-mid{flex:1 1 0;min-width:0;height:189px;background:linear-gradient(to bottom,#ffffff 48px,#f1ecff 48px)}
+.header-right{flex-shrink:0;width:auto;height:189px;display:block}
 </style>
 </head>
 <body>
 
 <!-- Mission header banner -->
-<div style="background:linear-gradient(135deg,#0050b3,#1a73e8);padding:18px 24px 16px;color:#fff">
-  <div style="font-size:.75rem;opacity:.75;margin-bottom:4px">SAP Discovery Center &rsaquo; Missions &rsaquo; Integration Suite</div>
-  <div style="font-size:1.25rem;font-weight:700;letter-spacing:-.01em">SAP Integration Suite – Bellevue 2026</div>
-  <div style="font-size:.82rem;margin-top:6px;opacity:.85;display:flex;gap:24px;flex-wrap:wrap">
-    <span>&#128205; Bellevue, WA</span>
-    <span>&#128197; May 2026</span>
-    <span>&#128203; 3-day Hands-on Workshop</span>
+<div class="header-wrap">
+  <div class="header-left-color"></div>
+  <div class="header-mid"></div>
+  <div class="header-overlay">
+    <h1>SAP Integration Suite Workshop 2026 – Bellevue</h1>
+    <p>&#128205; Bellevue, WA &nbsp;·&nbsp; &#128197; May 2026 &nbsp;·&nbsp; 3-day Hands-on Workshop</p>
   </div>
 </div>
 
