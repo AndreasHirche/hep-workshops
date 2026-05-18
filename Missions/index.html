@@ -147,12 +147,20 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
   <!-- Charts -->
   <div class="charts fade-in" style="animation-delay:.1s">
     <div class="chart-card">
-      <div class="chart-title">Status Distribution</div>
+      <div class="chart-title">Status Distribution <span style="font-size:.62rem;font-weight:400;color:#475569;margin-left:6px">click to filter</span></div>
       <div class="chart-inner"><canvas id="statusChart"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">Missions by Category</div>
+      <div class="chart-title">Missions by Category <span style="font-size:.62rem;font-weight:400;color:#475569;margin-left:6px">click to filter</span></div>
       <div class="chart-inner"><canvas id="categoryChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Coach chart -->
+  <div class="charts fade-in" style="grid-template-columns:1fr;animation-delay:.13s;margin-bottom:28px">
+    <div class="chart-card">
+      <div class="chart-title">Missions by Coach <span style="font-size:.62rem;font-weight:400;color:#475569;margin-left:6px">click to filter</span></div>
+      <div class="chart-inner" id="coachChartInner" style="height:200px"><canvas id="coachChart"></canvas></div>
     </div>
   </div>
 
@@ -205,7 +213,8 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
 
 // ── State ──────────────────────────────────────────────────────────────
 var allMissions=[], filtered=[], sortCol='', sortDir=1, curPage=1;
-var statusChart=null, categoryChart=null;
+var statusChart=null, categoryChart=null, coachChart=null;
+var activeCoach='';
 var PAGE_SIZE=25;
 
 // <<VAL_MAP_BEGIN>>
@@ -398,6 +407,11 @@ function renderCharts(){
     },
     options:{
       responsive:true,maintainAspectRatio:false,cutout:'68%',
+      onClick:function(e,els){
+        if(!els.length)return;
+        var st=STATUS_ORDER[els[0].index];
+        filterKPI(document.getElementById('fStatus').value===st?'':st);
+      },
       plugins:{
         legend:{position:'right',labels:{color:'#94a3b8',font:{size:11,family:'Inter'},padding:14,boxWidth:12}},
         tooltip:{callbacks:{label:function(ctx){return' '+ctx.label+': '+ctx.parsed;}}}
@@ -440,6 +454,65 @@ function renderCharts(){
       }
     }
   });
+
+  // Coach bar chart
+  var coachCounts={};
+  allMissions.forEach(function(m){
+    var c=String(m['Coach name(s)']||m._ucr&&m._ucr['Coach']||'').trim();
+    if(c)coachCounts[c]=(coachCounts[c]||0)+1;
+  });
+  var coachSorted=Object.entries(coachCounts).sort(function(a,b){return b[1]-a[1];});
+  // Dynamic height: 32px per coach, min 120px
+  var coachH=Math.max(120,coachSorted.length*32);
+  document.getElementById('coachChartInner').style.height=coachH+'px';
+  if(coachChart)coachChart.destroy();
+  coachChart=new Chart(document.getElementById('coachChart'),{
+    type:'bar',
+    data:{
+      labels:coachSorted.map(function(e){return e[0];}),
+      datasets:[{
+        data:coachSorted.map(function(e){return e[1];}),
+        backgroundColor:coachSorted.map(function(e){return activeCoach===e[0]?'rgba(6,182,212,0.85)':'rgba(6,182,212,0.45)';}),
+        borderColor:coachSorted.map(function(e){return activeCoach===e[0]?'rgba(6,182,212,1)':'rgba(6,182,212,0.7)';}),
+        borderWidth:1,borderRadius:4,
+        hoverBackgroundColor:'rgba(6,182,212,0.75)'
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      onClick:function(e,els){
+        if(!els.length)return;
+        var name=coachSorted[els[0].index][0];
+        setCoach(activeCoach===name?'':name);
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:function(ctx){return' '+ctx.parsed.x+' mission'+(ctx.parsed.x!==1?'s':'');}}}
+      },
+      scales:{
+        x:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'},border:{color:'transparent'}},
+        y:{ticks:{color:'#e2e8f0',font:{size:11,family:'Inter'}},grid:{display:false},border:{color:'transparent'}}
+      }
+    }
+  });
+}
+
+// ── Coach filter ───────────────────────────────────────────────────────
+function setCoach(name){
+  activeCoach=name;
+  // Rebuild coach chart colors to highlight active
+  if(coachChart){
+    var coachCounts={};
+    allMissions.forEach(function(m){
+      var c=String(m['Coach name(s)']||m._ucr&&m._ucr['Coach']||'').trim();
+      if(c)coachCounts[c]=(coachCounts[c]||0)+1;
+    });
+    var coachSorted=Object.entries(coachCounts).sort(function(a,b){return b[1]-a[1];});
+    coachChart.data.datasets[0].backgroundColor=coachSorted.map(function(e){return activeCoach===e[0]?'rgba(6,182,212,0.85)':'rgba(6,182,212,0.45)';});
+    coachChart.data.datasets[0].borderColor=coachSorted.map(function(e){return activeCoach===e[0]?'rgba(6,182,212,1)':'rgba(6,182,212,0.7)';});
+    coachChart.update();
+  }
+  applyFilters();
 }
 
 // ── KPI tile filter ────────────────────────────────────────────────────
@@ -458,8 +531,11 @@ function filterByCell(col, value){
     document.getElementById('fStatus').value=value;
   } else if(col==='Category'){
     document.getElementById('fCategory').value=value;
-  } else if(col==='Author'||col==='ucrStatus'||col==='_coach'){
+  } else if(col==='Author'||col==='ucrStatus'){
     document.getElementById('search').value=value;
+  } else if(col==='_coach'){
+    setCoach(value);
+    return;
   }
   applyFilters();
 }
@@ -471,6 +547,7 @@ function renderChips(){
   var q=document.getElementById('search').value.trim();
   if(st) chips.push({label:'Status: '+st, clear:function(){document.getElementById('fStatus').value='';applyFilters();}});
   if(cat) chips.push({label:'Category: '+cat, clear:function(){document.getElementById('fCategory').value='';applyFilters();}});
+  if(activeCoach) chips.push({label:'Coach: '+activeCoach, clear:function(){setCoach('');}});
   if(q) chips.push({label:'Search: '+q, clear:function(){document.getElementById('search').value='';applyFilters();}});
   var row=document.getElementById('chipRow');
   if(!chips.length){row.innerHTML='';return;}
@@ -495,6 +572,7 @@ function applyFilters(){
   filtered=allMissions.filter(function(m){
     if(st&&String(m['STATUS']||'').trim()!==st)return false;
     if(cat&&String(m['Category']||'').trim()!==cat)return false;
+    if(activeCoach){var c=String(m['Coach name(s)']||m._ucr&&m._ucr['Coach']||'').trim();if(c!==activeCoach)return false;}
     if(q){
       var hay=[m['Mission Name'],m['Author'],m['Tags'],m['Mission ID'],m['Category'],m['Mission Description'],m['_coach']]
         .join(' ').toLowerCase();
