@@ -585,33 +585,34 @@ function closeModal() {
 
 // ── Speaker tiles ──────────────────────────────────────────────────────
 var SP_COLORS=['#2563eb','#0891b2','#059669','#7c3aed','#dc2626','#d97706','#be185d','#1d4ed8','#0f766e','#9333ea'];
+var SP_STOP={the:1,a:1,an:1,to:1,of:1,and:1,with:1,for:1,in:1,from:1,by:1,on:1,or:1,its:1,your:1,sap:1};
 function renderSpeakerTiles() {
   var bar=document.getElementById('spTilesBar'); if(!bar) return;
-  // Assign a consistent color to each unique person name
-  var colorMap={}, colorIdx=0;
-  document.querySelectorAll('.tc-card').forEach(function(card) {
-    var spEl=card.querySelector('.tc-speaker');
-    if(!spEl||spEl.classList.contains('e-add-sp')) return;
-    spEl.textContent.trim().split(/\s+and\s+|,\s*/i).forEach(function(n) {
-      n=n.trim(); if(n&&!colorMap[n]){colorMap[n]=SP_COLORS[colorIdx%SP_COLORS.length];colorIdx++;}
-    });
-  });
-  // One tile per card with a speaker
-  var tiles=[];
+  var colorMap={}, colorIdx=0, personMap={};
   document.querySelectorAll('.tc-card').forEach(function(card) {
     var spEl=card.querySelector('.tc-speaker');
     if(!spEl||spEl.classList.contains('e-add-sp')) return;
     var raw=spEl.textContent.trim(); if(!raw) return;
     var titleEl=card.querySelector('.m-card-title');
     var title=titleEl?titleEl.textContent.trim():'';
-    var firstName=raw.split(/\s+and\s+|,\s*/i)[0].trim();
-    tiles.push({speaker:raw,title:title,color:colorMap[firstName]||SP_COLORS[0],initial:firstName.charAt(0).toUpperCase()});
+    raw.split(/\s+and\s+|,\s*/i).forEach(function(n) {
+      n=n.trim(); if(!n) return;
+      if(!colorMap[n]){colorMap[n]=SP_COLORS[colorIdx%SP_COLORS.length];colorIdx++;}
+      if(!personMap[n]) personMap[n]={color:colorMap[n],titles:[]};
+      if(title) personMap[n].titles.push(title);
+    });
   });
-  bar.innerHTML='<span class="sp-tiles-lbl">Speakers</span>'+tiles.map(function(t) {
-    var short=t.title.length>42?t.title.slice(0,40)+'…':t.title;
-    return '<div class="sp-tile"><div class="sp-avatar" style="background:'+t.color+'">'+hesc(t.initial)+'</div>'
-      +'<span class="sp-name">'+hesc(t.speaker)+'</span>'
-      +(short?'<span class="sp-desc"> · '+hesc(short)+'</span>':'')+'</div>';
+  var people=Object.keys(personMap).sort(function(a,b){return personMap[b].titles.length-personMap[a].titles.length;});
+  bar.innerHTML='<span class="sp-tiles-lbl">Speakers</span>'+people.map(function(name) {
+    var p=personMap[name];
+    var seen={};
+    var shorts=p.titles.map(function(t) {
+      var words=t.replace(/&amp;/g,'&').split(/[\s\-–·&:,]+/).filter(function(w){return w.length>=2&&!SP_STOP[w.toLowerCase()];});
+      return words.slice(0,2).join(' ');
+    }).filter(function(t){if(!t||seen[t])return false;seen[t]=true;return true;});
+    return '<div class="sp-tile"><div class="sp-avatar" style="background:'+p.color+'">'+hesc(name.charAt(0).toUpperCase())+'</div>'
+      +'<span class="sp-name">'+hesc(name)+'</span>'
+      +(shorts.length?'<span class="sp-desc"> · '+hesc(shorts.join(', '))+'</span>':'')+'</div>';
   }).join('');
 }
 
