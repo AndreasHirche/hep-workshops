@@ -95,6 +95,7 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 .e-mode .m-card-title,.e-mode .tc-card .m-card-title{cursor:text}
 .m-card-title[contenteditable="true"],.tc-card .m-card-title[contenteditable="true"]{outline:2px solid #0064d9;border-radius:2px;padding:1px 3px;background:#fff;white-space:pre-wrap;cursor:text}
 .e-mode .badge:not(.e-add-badge-btn){cursor:pointer}.e-mode .badge:not(.e-add-badge-btn):hover{opacity:.75}
+.e-mode .day-timeline.col-locked .tc-card:not(.is-break),.e-mode .col-locked .m-card{opacity:1!important;filter:none!important;pointer-events:auto!important}
 .badge[contenteditable="true"]{outline:2px solid #0064d9;outline-offset:1px;cursor:text;min-width:16px;display:inline-block}
 .e-add-badge-btn{opacity:.55!important}.e-add-badge-btn:hover{opacity:1!important}
 .e-mode .tc-card:not(.is-break){cursor:grab}
@@ -589,13 +590,15 @@ function closeModal() {
 
 // ── Speaker tiles ──────────────────────────────────────────────────────
 var SP_COLORS=['#2563eb','#0891b2','#059669','#7c3aed','#dc2626','#d97706','#be185d','#1d4ed8','#0f766e','#9333ea'];
-var SP_STOP={the:1,a:1,an:1,to:1,of:1,and:1,with:1,for:1,in:1,from:1,by:1,on:1,or:1,its:1,your:1,sap:1};
+var SP_STOP={the:1,a:1,an:1,to:1,of:1,and:1,with:1,for:1,in:1,from:1,by:1,on:1,or:1,its:1,your:1,sap:1,welcome:1,back:1,recap:1,wrap:1,up:1,day:1,feedback:1,introduction:1,kickoff:1,overview:1,session:1,update:1};
 function renderSpeakerTiles() {
   var bar=document.getElementById('spTilesBar'); if(!bar) return;
   var colorMap={}, colorIdx=0, personMap={};
   document.querySelectorAll('.tc-card').forEach(function(card) {
     var spEl=card.querySelector('.tc-speaker');
     if(!spEl||spEl.classList.contains('e-add-sp')) return;
+    var badges=card.querySelector('.m-card-badges');
+    if(badges&&/intro|wrap.?up/i.test(badges.textContent)) return;
     var raw=spEl.dataset.speakerText||spEl.textContent.trim(); if(!raw) return;
     var titleEl=card.querySelector('.m-card-title');
     var title=titleEl?titleEl.textContent.trim():'';
