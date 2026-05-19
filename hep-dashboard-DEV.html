@@ -59,6 +59,7 @@
   .cal-pref-full{box-shadow:inset 0 -2px 0 #f59e0b}
   .cal-pref-lang{box-shadow:inset 0 -2px 0 #60a5fa}
   .cal-pref-loc {box-shadow:inset 0 -2px 0 #4ade80}
+  .cal-pref-topic{box-shadow:inset 0 -2px 0 #a78bfa}
 
   /* ── FILTER BAR ── */
   #filter-bar{display:none;flex-wrap:wrap;align-items:center;gap:8px;padding:7px 28px;background:#1e293b;border-top:1px solid #334155}
@@ -166,6 +167,7 @@
   .pref-btn.active{border-color:#f59e0b;color:#fde68a}
   #lang-btn.active{border-color:#60a5fa!important;color:#93c5fd!important}
   #cc-btn.active{border-color:#4ade80!important;color:#86efac!important}
+  #topic-btn.active{border-color:#a78bfa!important;color:#c4b5fd!important}
   tbody tr.row-pref-no{opacity:0.4}
   .sap-card.row-pref-no{opacity:0.4}
   .pref-arrow{font-size:0.6rem;opacity:.5}
@@ -187,6 +189,8 @@
   tbody tr.row-pref-full{background:#1c1811 !important}
   tbody tr.row-pref-lang{background:#0d1825 !important}
   tbody tr.row-pref-loc {background:#0a1811 !important}
+  tbody tr.row-pref-topic{background:#1a1028 !important}
+  tbody tr.row-pref-topic td:first-child{box-shadow:inset 3px 0 0 #a78bfa}
 
   /* ── VIEW MODE ── */
   body.part-view .org-col{display:none}
@@ -290,9 +294,11 @@
   body.part-view tbody tr.row-pref-full{background:#fefce8 !important}
   body.part-view tbody tr.row-pref-lang{background:#eff6ff !important}
   body.part-view tbody tr.row-pref-loc{background:#f0fdf4 !important}
+  body.part-view tbody tr.row-pref-topic{background:#faf5ff !important}
   body.part-view tbody tr.row-pref-full td:first-child{box-shadow:inset 3px 0 0 #f59e0b}
   body.part-view tbody tr.row-pref-lang td:first-child{box-shadow:inset 3px 0 0 #2563eb}
   body.part-view tbody tr.row-pref-loc td:first-child{box-shadow:inset 3px 0 0 #22c55e}
+  body.part-view tbody tr.row-pref-topic td:first-child{box-shadow:inset 3px 0 0 #9333ea}
   body.part-view #side-panel{background:#f8fafc;border-left-color:#e2e8f0;box-shadow:-8px 0 32px #00000018}
   body.part-view #sp-header{background:#f1f5f9;border-bottom-color:#e2e8f0}
   body.part-view #sp-title{color:#2563eb}
@@ -398,6 +404,10 @@
 <div class="pref-opt" data-kw="us"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 10" width="20" height="12" style="border-radius:2px;vertical-align:middle;margin-left:3px"><rect width="19" height="10" fill="#B22234"/><rect width="19" height="0.77" y="0.77" fill="#fff"/><rect width="19" height="0.77" y="2.31" fill="#fff"/><rect width="19" height="0.77" y="3.85" fill="#fff"/><rect width="19" height="0.77" y="5.38" fill="#fff"/><rect width="19" height="0.77" y="6.92" fill="#fff"/><rect width="19" height="0.77" y="8.46" fill="#fff"/><rect width="7" height="5.38" fill="#3C3B6E"/></svg>&nbsp;USA</div>
 <div class="pref-opt" data-kw="gb"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30" width="20" height="12" style="border-radius:2px;vertical-align:middle;margin-left:3px"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/></svg>&nbsp;United Kingdom</div>
 </div>
+        </div>
+        <div class="pref-pick">
+          <button class="pref-btn" id="topic-btn"><span id="topic-btn-inner">📚 Topic</span><span class="pref-arrow">▾</span></button>
+          <div class="pref-drop" id="topic-drop"></div>
         </div>
       </div>
     </div>
@@ -642,6 +652,7 @@ let showPostponed = showAll;
 let isOrgView      = localStorage.getItem('hep-dashboard-view') === 'org';
 let partLayout     = localStorage.getItem('hep-part-layout') || 'cards';
 let prefCC   = localStorage.getItem('hep-pref-cc')   || '';
+let prefTopic = localStorage.getItem('hep-pref-topic') || '';
 
 function applyFilters() {
   let visible = 0, firstVisible = null;
@@ -968,19 +979,24 @@ function buildWsMap() {
 
 function buildPrefMap() {
   const m = {};
-  if (!prefLang && !prefCC) return m;
+  if (!prefLang && !prefCC && !prefTopic) return m;
+  const prefCount = (prefLang?1:0) + (prefCC?1:0) + (prefTopic?1:0);
   trows.forEach(tr => {
-    const lm = prefLang && (tr.dataset.lang||'').includes(prefLang);
-    const cm = prefCC   && (tr.dataset.cc||'') === prefCC;
-    if (!lm && !cm) return;
-    const cls = (lm && cm) ? 'pref-full' : lm ? 'pref-lang' : 'pref-loc';
+    const lm = prefLang  && (tr.dataset.lang||'').includes(prefLang);
+    const cm = prefCC    && (tr.dataset.cc||'') === prefCC;
+    const tv = tr.querySelector('.pill[data-col="topic"]')?.dataset.val || '';
+    const tm = prefTopic && tv.includes(prefTopic);
+    if (!lm && !cm && !tm) return;
+    const matchCount = (lm?1:0) + (cm?1:0) + (tm?1:0);
+    const cls = matchCount === prefCount ? 'pref-full' : lm ? 'pref-lang' : cm ? 'pref-loc' : 'pref-topic';
     const s = tr.dataset.start, e = tr.dataset.end || s;
     if (!s) return;
     let cur = new Date(s + 'T00:00:00');
     const fin = new Date((e || s) + 'T00:00:00');
+    const pri = {'pref-full':4,'pref-lang':3,'pref-loc':2,'pref-topic':1};
     while (cur <= fin) {
       const iso = cur.toISOString().slice(0,10);
-      if (!m[iso] || cls === 'pref-full' || (cls === 'pref-lang' && m[iso] === 'pref-loc')) m[iso] = cls;
+      if (!m[iso] || (pri[cls]||0) > (pri[m[iso]]||0)) m[iso] = cls;
       cur.setDate(cur.getDate()+1);
     }
   });
@@ -1143,9 +1159,10 @@ requestAnimationFrame(function _spaceInit() {
 
 function applyPrefs() {
   prefLocsFull.clear(); prefLocsLang.clear(); prefLocsCC.clear();
+  const prefCount = (prefLang?1:0) + (prefCC?1:0) + (prefTopic?1:0);
   trows.forEach(tr => {
-    const lm = prefLang && (tr.dataset.lang||'').includes(prefLang);
-    const cm = prefCC   && (tr.dataset.cc||'') === prefCC;
+    const lm = prefLang  && (tr.dataset.lang||'').includes(prefLang);
+    const cm = prefCC    && (tr.dataset.cc||'') === prefCC;
     if (!lm && !cm) return;
     const locEl = tr.querySelector('.pill[data-col="location"]');
     const loc = locEl ? locEl.dataset.val : '';
@@ -1155,35 +1172,43 @@ function applyPrefs() {
     else          prefLocsCC.add(loc);
   });
   trows.forEach(tr => {
-    tr.classList.remove('row-pref-full','row-pref-lang','row-pref-loc','row-pref-no');
+    tr.classList.remove('row-pref-full','row-pref-lang','row-pref-loc','row-pref-topic','row-pref-no');
     if (tr.classList.contains('row-hidden')) return;
-    const lm = prefLang && (tr.dataset.lang||'').includes(prefLang);
-    const cm = prefCC   && (tr.dataset.cc||'') === prefCC;
-    if (lm && cm) tr.classList.add('row-pref-full');
-    else if (lm)  tr.classList.add('row-pref-lang');
-    else if (cm)  tr.classList.add('row-pref-loc');
+    const lm = prefLang  && (tr.dataset.lang||'').includes(prefLang);
+    const cm = prefCC    && (tr.dataset.cc||'') === prefCC;
+    const tv = tr.querySelector('.pill[data-col="topic"]')?.dataset.val || '';
+    const tm = prefTopic && tv.includes(prefTopic);
+    const matchCount = (lm?1:0) + (cm?1:0) + (tm?1:0);
+    if      (matchCount > 0 && matchCount === prefCount) tr.classList.add('row-pref-full');
+    else if (lm) tr.classList.add('row-pref-lang');
+    else if (cm) tr.classList.add('row-pref-loc');
+    else if (tm) tr.classList.add('row-pref-topic');
   });
-  const anyPref = !!(prefLang || prefCC);
+  const anyPref = prefCount > 0;
   trows.forEach(tr => {
-    const hasMatch = tr.classList.contains('row-pref-full') || tr.classList.contains('row-pref-lang') || tr.classList.contains('row-pref-loc');
+    const hasMatch = tr.classList.contains('row-pref-full') || tr.classList.contains('row-pref-lang') || tr.classList.contains('row-pref-loc') || tr.classList.contains('row-pref-topic');
     tr.classList.toggle('row-pref-no', anyPref && !hasMatch && !tr.classList.contains('row-hidden'));
   });
   document.querySelectorAll('.sap-card').forEach(card => {
     if (!('lang' in card.dataset)) return;
-    const lm = prefLang && (card.dataset.lang||'').includes(prefLang);
-    const cm = prefCC && (card.dataset.cc||'') === prefCC;
+    const lm = prefLang  && (card.dataset.lang||'').includes(prefLang);
+    const cm = prefCC    && (card.dataset.cc||'') === prefCC;
     card.classList.toggle('row-pref-no', anyPref && !lm && !cm && !card.classList.contains('row-hidden'));
   });
   const lOpt = document.querySelector(`#lang-drop .pref-opt[data-kw="${prefLang}"]`);
   const cOpt = document.querySelector(`#cc-drop .pref-opt[data-kw="${prefCC}"]`);
+  const tOpt = Array.from(document.querySelectorAll('#topic-drop .pref-opt')).find(o => o.dataset.kw === prefTopic);
   document.getElementById('lang-btn-inner').innerHTML = lOpt && prefLang ? lOpt.innerHTML : '🌐 Language';
   document.getElementById('cc-btn-inner').innerHTML   = cOpt && prefCC   ? cOpt.innerHTML : '📍 Country';
+  document.getElementById('topic-btn-inner').innerHTML = tOpt && prefTopic ? tOpt.innerHTML : '📚 Topic';
   document.getElementById('lang-btn').classList.toggle('active', !!prefLang);
   document.getElementById('cc-btn').classList.toggle('active', !!prefCC);
+  document.getElementById('topic-btn').classList.toggle('active', !!prefTopic);
   syncMarkers();
   renderCal();
 }
 
+buildTopicDrop();
 document.querySelectorAll('.pref-pick').forEach(pick => {
   const btn  = pick.querySelector('.pref-btn');
   const drop = pick.querySelector('.pref-drop');
@@ -1193,15 +1218,15 @@ document.querySelectorAll('.pref-pick').forEach(pick => {
   });
   drop.querySelectorAll('.pref-opt').forEach(opt => {
     opt.addEventListener('click', () => {
-      const isLang = drop.id === 'lang-drop';
-      if (isLang) { prefLang = opt.dataset.kw; localStorage.setItem('hep-pref-lang', prefLang); }
-      else        { prefCC   = opt.dataset.kw; localStorage.setItem('hep-pref-cc',   prefCC);   }
+      if (drop.id === 'lang-drop')       { prefLang  = opt.dataset.kw; localStorage.setItem('hep-pref-lang',  prefLang);  }
+      else if (drop.id === 'topic-drop') { prefTopic = opt.dataset.kw; localStorage.setItem('hep-pref-topic', prefTopic); }
+      else                               { prefCC    = opt.dataset.kw; localStorage.setItem('hep-pref-cc',    prefCC);    }
       drop.querySelectorAll('.pref-opt').forEach(o => o.classList.toggle('selected', o.dataset.kw === opt.dataset.kw));
       drop.classList.remove('open');
       applyPrefs();
       if (opt.dataset.kw) {
         const firstMatch = trows.find(tr => !tr.classList.contains('row-hidden') &&
-          (tr.classList.contains('row-pref-full') || tr.classList.contains('row-pref-lang') || tr.classList.contains('row-pref-loc')));
+          (tr.classList.contains('row-pref-full') || tr.classList.contains('row-pref-lang') || tr.classList.contains('row-pref-loc') || tr.classList.contains('row-pref-topic')));
         if (firstMatch) firstMatch.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
@@ -1209,10 +1234,32 @@ document.querySelectorAll('.pref-pick').forEach(pick => {
 });
 document.addEventListener('click', e => { if (!e.target.closest('.pref-pick')) document.querySelectorAll('.pref-drop.open').forEach(d => d.classList.remove('open')); });
 
+function buildTopicDrop() {
+  const byColor = {};
+  trows.forEach(tr => {
+    const pill = tr.querySelector('.pill[data-col="topic"]');
+    if (!pill) return;
+    const val = pill.dataset.val, col = tr.dataset.color || '#64748b';
+    if (!byColor[col]) byColor[col] = [];
+    if (!byColor[col].includes(val)) byColor[col].push(val);
+  });
+  const topics = Object.entries(byColor).map(([col, vals]) => ({
+    col, name: vals.slice().sort((a,b) => a.length - b.length)[0]
+  })).sort((a,b) => a.name.localeCompare(b.name));
+  const drop = document.getElementById('topic-drop');
+  drop.innerHTML = '<div class="pref-opt pref-opt-clear" data-kw="">✕ Any topic</div>';
+  topics.forEach(({col, name}) => {
+    const d = document.createElement('div');
+    d.className = 'pref-opt'; d.dataset.kw = name;
+    d.innerHTML = '<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:'+col+';flex-shrink:0"></span> '+name;
+    drop.appendChild(d);
+  });
+}
+
 (function() {
-  ['lang-drop','cc-drop'].forEach(id => {
-    const kw = id==='lang-drop' ? prefLang : prefCC;
-    if (kw) { const o = document.querySelector(`#${id} .pref-opt[data-kw="${kw}"]`); if(o) o.classList.add('selected'); }
+  ['lang-drop','cc-drop','topic-drop'].forEach(id => {
+    const kw = id==='lang-drop' ? prefLang : id==='cc-drop' ? prefCC : prefTopic;
+    if (kw) { const o = Array.from(document.querySelectorAll(`#${id} .pref-opt`)).find(o => o.dataset.kw === kw); if(o) o.classList.add('selected'); }
   });
   applyPrefs();
 })();

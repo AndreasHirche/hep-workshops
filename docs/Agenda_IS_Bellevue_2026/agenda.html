@@ -109,6 +109,18 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 .header-overlay p{font-size:.8rem;color:rgba(255,255,255,0.85);margin:4px 0 0}
 .header-mid{flex:1 1 0;min-width:0;height:189px;background:#046c7a}
 .header-right{flex-shrink:0;width:auto;height:189px;display:block}
+/* Speaker tiles */
+.sp-tiles-bar{background:#f8f9fa;border-bottom:1px solid #e8ebee;padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:42px}
+.sp-tiles-lbl{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-right:4px;flex-shrink:0}
+.sp-tile{display:inline-flex;align-items:center;gap:5px;padding:3px 10px 3px 4px;border-radius:20px;background:#fff;border:1px solid #e0e4ea;font-size:.72rem;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.sp-avatar{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;color:#fff;flex-shrink:0}
+.sp-name{font-weight:600;color:#1d2d3e}
+.sp-count{font-size:.62rem;color:#74777a;background:#f0f2f4;border-radius:10px;padding:0 5px}
+/* Edit mode: time and speaker inline editable */
+.e-mode .tc-time{cursor:text;border-radius:2px}.e-mode .tc-time:hover{background:#fef9c3;outline:1px dashed #f59e0b}
+.e-mode .tc-speaker{cursor:text;border-radius:2px}.e-mode .tc-speaker:hover{background:#dbeafe;outline:1px dashed #3b82f6}
+.tc-time[contenteditable="true"],.tc-speaker[contenteditable="true"]{outline:2px solid #0064d9;border-radius:2px;padding:0 3px;background:#fff;cursor:text}
+.e-add-sp{cursor:pointer!important;opacity:.4;font-size:.57rem!important;font-weight:700!important;color:#0064d9!important;background:#eff6ff!important}.e-mode .e-add-sp{display:inline-block}.e-add-sp:hover{opacity:.9!important}
 </style>
 </head>
 <body>
@@ -127,6 +139,8 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 <div class="e-bar">
   <button id="eBtn" class="e-toggle" onclick="toggleEdit()">&#9998; Edit</button>
 </div>
+
+<div id="spTilesBar" class="sp-tiles-bar"></div>
 
 <div class="board-wrap">
   <div class="board">
@@ -306,6 +320,8 @@ function eApply() {
     var el=document.querySelector('[data-cid="'+cid+'"]'); if(!el) return;
     var d=ov[cid];
     if(d.title!=null) { var t=el.querySelector('.m-card-title'); if(t) { var v=d.title; if(el.classList.contains('tc-card')&&el.querySelector('.tc-top-row')) { var mm=v.match(/^(\d{2}:\d{2})\s+([\s\S]*)/); if(mm) { var ts=el.querySelector('.tc-time'); if(ts) ts.textContent=mm[1]; el.dataset.time=mm[1]; v=mm[2]; } } t.textContent=v; } }
+    if(d.time!=null) { var ts2=el.querySelector('.tc-time'); if(ts2) { ts2.textContent=d.time; el.dataset.time=d.time; } }
+    if(d.speaker!=null) { var sp=el.querySelector('.tc-speaker'); if(d.speaker==='') { if(sp) sp.remove(); } else if(sp) { sp.textContent=d.speaker; } else { var nsp=document.createElement('span'); nsp.className='tc-speaker'; nsp.textContent=d.speaker; var tr2=el.querySelector('.tc-top-row'); if(tr2) { var cb2=tr2.querySelector('.cbtn'); tr2.insertBefore(nsp,cb2||null); } } }
     if(d.badges!=null) { var bd=el.querySelector('.m-card-badges'); if(bd) bd.innerHTML=d.badges; }
   });
   var pos=eData.positions||{};
@@ -337,7 +353,7 @@ function insertCard(a, withCtrl) {
     div.className='tc-card'; div.dataset.cid=a.cid; div.dataset.col=a.col;
     div.style.cssText='top:'+(a.top||0)+'px;height:60px;left:4px;right:4px';
     if(a.time) div.dataset.time=a.time;
-    var topRow='<div class="tc-top-row">'+(a.time?'<span class="tc-time">'+hesc(a.time)+'</span>':'')+(a.badge?'<div class="m-card-badges"><span class="badge" style="'+getBStyle(a.badge)+'">'+hesc(a.badge)+'</span></div>':'')+'</div>';
+    var topRow='<div class="tc-top-row">'+(a.time?'<span class="tc-time">'+hesc(a.time)+'</span>':'')+(a.badge?'<div class="m-card-badges"><span class="badge" style="'+getBStyle(a.badge)+'">'+hesc(a.badge)+'</span></div>':'')+(a.speaker?'<span class="tc-speaker">'+hesc(a.speaker)+'</span>':'')+'</div>';
     div.innerHTML=topRow+'<div class="m-card-title">'+hesc(a.title)+'</div>';
     div.querySelector('.tc-top-row').appendChild(_makeCbtn());
     tl.appendChild(div); if(withCtrl) attachCtrl(div); return;
@@ -408,7 +424,7 @@ function toggleEdit() {
       });
     });
   } else {
-    document.querySelectorAll('.e-del,.e-edit,.e-add-btn,.e-add-badge-btn').forEach(function(b) { b.remove(); });
+    document.querySelectorAll('.e-del,.e-edit,.e-add-btn,.e-add-badge-btn,.e-add-sp').forEach(function(b) { b.remove(); });
     document.querySelectorAll('[draggable]').forEach(function(el) { el.removeAttribute('draggable'); });
   }
 }
@@ -425,6 +441,24 @@ function attachCtrl(card) {
   var titleEl=card.querySelector('.m-card-title');
   if(titleEl) titleEl.addEventListener('click',function(e) { if(eMode) { e.stopPropagation(); startInlineEdit(titleEl,cid); } });
   attachBadgeEdit(card,cid);
+  // Time editing (tc-card only)
+  if(card.classList.contains('tc-card')) {
+    var timeEl=card.querySelector('.tc-time');
+    if(timeEl) timeEl.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startTimeEdit(timeEl,cid); });
+    // Speaker editing
+    var spEl=card.querySelector('.tc-speaker');
+    if(spEl) {
+      spEl.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startSpeakerEdit(spEl,cid,card,false); });
+    } else if(!card.classList.contains('is-break')) {
+      var topRow2=card.querySelector('.tc-top-row');
+      if(topRow2&&!topRow2.querySelector('.e-add-sp')) {
+        var addSpBtn=document.createElement('span');
+        addSpBtn.className='tc-speaker e-add-sp'; addSpBtn.textContent='+ Speaker';
+        var cbtn3=topRow2.querySelector('.cbtn'); topRow2.insertBefore(addSpBtn,cbtn3||null);
+        addSpBtn.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startSpeakerEdit(addSpBtn,cid,card,true); });
+      }
+    }
+  }
   card.setAttribute('draggable','true');
   card.addEventListener('dragstart',function(e) { _ds=card; card.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
   card.addEventListener('dragover', function(e) { e.preventDefault(); card.classList.add('drag-over'); });
@@ -525,13 +559,14 @@ function promptAdd(colId) {
 }
 function promptAddTc(colId) {
   _addCol=String(colId);
-  showModal('Add Card to '+colId,'<div class="e-field"><label>Time (HH:MM)</label><input id="ef-tm" class="e-input" placeholder="09:00" maxlength="5"></div><div class="e-field"><label>Title</label><input id="ef-t" class="e-input" placeholder="Session title..."></div><div class="e-field"><label>Label (optional)</label><input id="ef-b" class="e-input" placeholder="hands-on / presentation..."></div>',function() {
+  showModal('Add Card to Day '+colId,'<div class="e-field"><label>Time (HH:MM)</label><input id="ef-tm" class="e-input" placeholder="09:00" maxlength="5"></div><div class="e-field"><label>Title</label><input id="ef-t" class="e-input" placeholder="Session title..."></div><div class="e-field"><label>Speaker (optional)</label><input id="ef-sp" class="e-input" placeholder="Speaker name..."></div><div class="e-field"><label>Label (optional)</label><input id="ef-b" class="e-input" placeholder="hands-on / presentation..."></div>',function() {
     var tm=document.getElementById('ef-tm'),t=document.getElementById('ef-t'); if(!t||!t.value.trim()) return;
     var cid='a'+(_eCtr++); var b=(document.getElementById('ef-b')||{}).value||'';
+    var sp=(document.getElementById('ef-sp')||{}).value||'';
     var timev=(tm&&tm.value.trim())||''; var mins=0;
     if(timev) { var p=timev.split(':'); mins=(parseInt(p[0])||0)*60+(parseInt(p[1])||0); }
     var top=(mins-GSTART_JS)*PPM_JS; if(top<0) top=0;
-    var a={cid:cid,col:_addCol,title:t.value.trim(),badge:b.trim(),isTl:true,time:timev,top:top};
+    var a={cid:cid,col:_addCol,title:t.value.trim(),badge:b.trim(),speaker:sp.trim(),isTl:true,time:timev,top:top};
     if(!eData.added) eData.added=[]; eData.added.push(a); insertCard(a,true); eSave(); updateAll();
   });
   setTimeout(function() { var i=document.getElementById('ef-tm'); if(i) i.focus(); },20);
@@ -547,7 +582,81 @@ function showModal(title,body,ok) {
 function closeModal() {
   document.getElementById('e-modal-ov').style.display='none'; _modalOk=null;
 }
-restoreState(); eApply(); updateAll();
+
+// ── Speaker tiles ──────────────────────────────────────────────────────
+var SP_COLORS=['#2563eb','#0891b2','#059669','#7c3aed','#dc2626','#d97706','#be185d','#1d4ed8','#0f766e','#9333ea'];
+function renderSpeakerTiles() {
+  var bar=document.getElementById('spTilesBar'); if(!bar) return;
+  var counts={};
+  document.querySelectorAll('.tc-speaker').forEach(function(sp) {
+    var raw=sp.textContent.trim(); if(!raw||sp.classList.contains('e-add-sp')) return;
+    raw.split(/\s+and\s+|,\s*/i).forEach(function(n) { n=n.trim(); if(n) counts[n]=(counts[n]||0)+1; });
+  });
+  var names=Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; });
+  bar.innerHTML='<span class="sp-tiles-lbl">Speakers</span>'+names.map(function(name,i) {
+    return '<div class="sp-tile"><div class="sp-avatar" style="background:'+SP_COLORS[i%SP_COLORS.length]+'">'+hesc(name.charAt(0).toUpperCase())+'</div>'
+      +'<span class="sp-name">'+hesc(name)+'</span><span class="sp-count">'+counts[name]+'</span></div>';
+  }).join('');
+}
+
+// ── Time inline edit ───────────────────────────────────────────────────
+function startTimeEdit(timeEl,cid) {
+  if(!timeEl||timeEl.contentEditable==='true') return;
+  var original=timeEl.textContent.trim();
+  timeEl.contentEditable='true'; timeEl.focus();
+  var range=document.createRange(); range.selectNodeContents(timeEl);
+  var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  function commit() {
+    var v=timeEl.textContent.trim(); timeEl.contentEditable='false';
+    if(v&&v!==original) {
+      var card=timeEl.closest('.tc-card'); if(card) card.dataset.time=v;
+      if(!eData.overrides) eData.overrides={}; if(!eData.overrides[cid]) eData.overrides[cid]={};
+      eData.overrides[cid].time=v; eSave();
+    } else if(!v) timeEl.textContent=original;
+    timeEl.removeEventListener('blur',commit); timeEl.removeEventListener('keydown',onKey);
+  }
+  function onKey(e) {
+    if(e.key==='Enter') { e.preventDefault(); commit(); }
+    if(e.key==='Escape') { e.preventDefault(); timeEl.textContent=original; timeEl.contentEditable='false'; timeEl.removeEventListener('blur',commit); timeEl.removeEventListener('keydown',onKey); }
+  }
+  timeEl.addEventListener('blur',commit); timeEl.addEventListener('keydown',onKey);
+}
+
+// ── Speaker inline edit ────────────────────────────────────────────────
+function startSpeakerEdit(spEl,cid,card,isNew) {
+  if(!spEl||spEl.contentEditable==='true') return;
+  var original=isNew?'':spEl.textContent.trim();
+  if(isNew) spEl.textContent='';
+  spEl.contentEditable='true'; spEl.focus();
+  var range=document.createRange(); range.selectNodeContents(spEl);
+  var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  function commit() {
+    var v=spEl.textContent.trim(); spEl.contentEditable='false';
+    if(isNew) {
+      if(!v) { spEl.remove(); return; }
+      spEl.classList.remove('e-add-sp'); spEl.className='tc-speaker';
+      spEl.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startSpeakerEdit(spEl,cid,card,false); });
+    } else if(!v) {
+      spEl.remove();
+    }
+    if(v!==original) {
+      if(!eData.overrides) eData.overrides={}; if(!eData.overrides[cid]) eData.overrides[cid]={};
+      eData.overrides[cid].speaker=v; eSave(); renderSpeakerTiles();
+    }
+    spEl.removeEventListener('blur',commit); spEl.removeEventListener('keydown',onKey);
+  }
+  function onKey(e) {
+    if(e.key==='Enter') { e.preventDefault(); commit(); }
+    if(e.key==='Escape') {
+      e.preventDefault(); spEl.textContent=original; spEl.contentEditable='false';
+      if(isNew&&!original) spEl.remove();
+      spEl.removeEventListener('blur',commit); spEl.removeEventListener('keydown',onKey);
+    }
+  }
+  spEl.addEventListener('blur',commit); spEl.addEventListener('keydown',onKey);
+}
+
+restoreState(); eApply(); updateAll(); renderSpeakerTiles();
 </script>
 </body>
 </html>
