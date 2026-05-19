@@ -57,7 +57,7 @@ header p{color:var(--muted);font-size:0.9rem;margin-top:6px}
 .result-count{font-size:0.75rem;color:var(--muted);margin-left:auto;white-space:nowrap}
 
 /* Table */
-.tbl-wrap{background:var(--glass);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(12px);overflow:hidden}
+.tbl-wrap{background:var(--glass);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(12px)}
 .tbl-scroll{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:0.81rem;min-width:600px}
 thead th{padding:11px 14px;text-align:left;font-weight:600;font-size:0.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:rgba(0,0,0,0.2)}
@@ -227,7 +227,7 @@ var colDropTarget=null;
 var PAGE_SIZE=25;
 
 // <<VAL_MAP_BEGIN>>
-var VAL_MAP={"UC10000456": {"key": "DISCOVALIDATION-7", "status": "Inactive", "resol": "Won't Fix", "version": "unknown"}, "UC10000516": {"key": "DISCOVALIDATION-18", "status": "Completed", "resol": "Fixed", "version": "Feb 26"}, "UC10000474": {"key": "DISCOVALIDATION-1", "status": "Completed", "resol": "Fixed", "version": "NOV-25-SPRINT1"}, "UC10000446": {"key": "DISCOVALIDATION-8", "status": "Consumed", "resol": "Fixed", "version": "NOV-25-SPRINT1"}, "UC10000482": {"key": "DISCOVALIDATION-10", "status": "Completed", "resol": "Fixed", "version": "NOV-25-SPRINT2"}, "UC10000477": {"key": "DISCOVALIDATION-2", "status": "Completed", "resol": "Fixed", "version": "DEC-25-SPRINT1"}, "UC10000483": {"key": "DISCOVALIDATION-9", "status": "Completed", "resol": "Fixed", "version": "DEC-25-SPRINT1"}, "UC10000179": {"key": "DISCOVALIDATION-3", "status": "Consumed", "resol": "Fixed", "version": "Feb 26"}, "UC10000496": {"key": "DISCOVALIDATION-12", "status": "Completed", "resol": "Fixed", "version": "Feb 26"}, "UC10000508": {"key": "DISCOVALIDATION-13", "status": "Completed", "resol": "Fixed", "version": "Feb 26"}, "UC10000510": {"key": "DISCOVALIDATION-14", "status": "Consumed", "resol": "Fixed", "version": "Feb 26"}, "UC10000352": {"key": "DISCOVALIDATION-4", "status": "Consumed", "resol": "Fixed", "version": "Mar 26"}, "UC10000501": {"key": "DISCOVALIDATION-16", "status": "Consumed", "resol": "Fixed", "version": "Mar 26"}, "UC00003969": {"key": "DISCOVALIDATION-17", "status": "Completed", "resol": "Fixed", "version": "Mar 26"}, "UC10000531": {"key": "DISCOVALIDATION-20", "status": "Consumed", "resol": "Fixed", "version": "Mar 26"}, "UC10000465": {"key": "DISCOVALIDATION-6", "status": "Inactive", "resol": "Won't Fix", "version": "Apr 26"}, "UC10000499": {"key": "DISCOVALIDATION-22", "status": "Completed", "resol": "Fixed", "version": "Apr 26"}, "UC10000439": {"key": "DISCOVALIDATION-5", "status": "Completed", "resol": "Fixed", "version": "May 26"}, "UC10000506": {"key": "DISCOVALIDATION-15", "status": "Completed", "resol": "Fixed", "version": "May 26"}, "UC10000413": {"key": "DISCOVALIDATION-21", "status": "Completed", "resol": "Fixed", "version": "May 26"}, "UC10000445": {"key": "DISCOVALIDATION-23", "status": "Open", "resol": "Unresolved", "version": "May 26"}, "UC10000488": {"key": "DISCOVALIDATION-24", "status": "Open", "resol": "Unresolved", "version": "Jun 26"}, "UC10000542": {"key": "DISCOVALIDATION-34", "status": "Open", "resol": "Unresolved", "version": "Jun 26"}, "UC10000561": {"key": "DISCOVALIDATION-35", "status": "Open", "resol": "Unresolved", "version": "Jun 26"}};
+var VAL_MAP={"UC10000456": {"key": "DISCOVALIDATION-7", "status": "Inactive", "resol": "Won't Fix", "version": "unknown", "assignee": "Manish Kumar"}, "UC10000516": {"key": "DISCOVALIDATION-18", "status": "Completed", "resol": "Fixed", "version": "Feb 26", "assignee": "Shweta"}, "UC10000474": {"key": "DISCOVALIDATION-1", "status": "Completed", "resol": "Fixed", "version": "NOV-25-SPRINT1", "assignee": "Manish Kumar"}, "UC10000446": {"key": "DISCOVALIDATION-8", "status": "Consumed", "resol": "Fixed", "version": "NOV-25-SPRINT1", "assignee": "Shweta"}, "UC10000482": {"key": "DISCOVALIDATION-10", "status": "Completed", "resol": "Fixed", "version": "NOV-25-SPRINT2", "assignee": "Shweta"}, "UC10000477": {"key": "DISCOVALIDATION-2", "status": "Completed", "resol": "Fixed", "version": "DEC-25-SPRINT1", "assignee": "Manish Kumar"}, "UC10000483": {"key": "DISCOVALIDATION-9", "status": "Completed", "resol": "Fixed", "version": "DEC-25-SPRINT1", "assignee": "Manish Kumar"}, "UC10000179": {"key": "DISCOVALIDATION-3", "status": "Consumed", "resol": "Fixed", "version": "Feb 26", "assignee": "Shweta"}, "UC10000496": {"key": "DISCOVALIDATION-12", "status": "Completed", "resol": "Fixed", "version": "Feb 26", "assignee": "Shveta Sharma"}, "UC10000508": {"key": "DISCOVALIDATION-13", "status": "Completed", "resol": "Fixed", "version": "Feb 26", "assignee": "Shveta Sharma"}, "UC10000510": {"key": "DISCOVALIDATION-14", "status": "Consumed", "resol": "Fixed", "version": "Feb 26", "assignee": "Manish Kumar"}, "UC10000352": {"key": "DISCOVALIDATION-4", "status": "Consumed", "resol": "Fixed", "version": "Mar 26", "assignee": "Shweta"}, "UC10000501": {"key": "DISCOVALIDATION-16", "status": "Consumed", "resol": "Fixed", "version": "Mar 26", "assignee": "Shveta Sharma"}, "UC00003969": {"key": "DISCOVALIDATION-17", "status": "Completed", "resol": "Fixed", "version": "Mar 26", "assignee": "Manish Kumar"}, "UC10000531": {"key": "DISCOVALIDATION-20", "status": "Consumed", "resol": "Fixed", "version": "Mar 26", "assignee": "Manish Kumar"}, "UC10000465": {"key": "DISCOVALIDATION-6", "status": "Inactive", "resol": "Won't Fix", "version": "Apr 26", "assignee": "Manish Kumar"}, "UC10000499": {"key": "DISCOVALIDATION-22", "status": "Completed", "resol": "Fixed", "version": "Apr 26", "assignee": "Manish Kumar"}, "UC10000439": {"key": "DISCOVALIDATION-5", "status": "Completed", "resol": "Fixed", "version": "May 26", "assignee": "Shweta"}, "UC10000506": {"key": "DISCOVALIDATION-15", "status": "Completed", "resol": "Fixed", "version": "May 26", "assignee": "Manish Kumar"}, "UC10000413": {"key": "DISCOVALIDATION-21", "status": "Completed", "resol": "Fixed", "version": "May 26", "assignee": "Manish Kumar"}, "UC10000445": {"key": "DISCOVALIDATION-23", "status": "Open", "resol": "Unresolved", "version": "May 26", "assignee": "Shveta Sharma"}, "UC10000488": {"key": "DISCOVALIDATION-24", "status": "Open", "resol": "Unresolved", "version": "Jun 26", "assignee": "Shweta"}, "UC10000542": {"key": "DISCOVALIDATION-34", "status": "Open", "resol": "Unresolved", "version": "Jun 26", "assignee": "Manish Kumar"}, "UC10000561": {"key": "DISCOVALIDATION-35", "status": "Open", "resol": "Unresolved", "version": "Jun 26", "assignee": "Shveta Sharma"}};
 // <<VAL_MAP_END>>
 
 var STATUS_ORDER=['published','draft','Archived','idea'];
@@ -631,6 +631,7 @@ function setSort(col){
 // ── Table ──────────────────────────────────────────────────────────────
 var COLS=[
   {key:'Mission Name',label:'Mission',tdClass:'td-name',sortable:true},
+  {key:'_coach',label:'Coach',sortable:true,filterCol:'coach'},
   {key:'Category',label:'Category',sortable:true},
   {key:'STATUS',label:'Status',sortable:true,filterCol:'status'},
   {key:'_ucr_status',label:'Status (UCR)',sortable:false},
@@ -638,7 +639,6 @@ var COLS=[
   {key:'Author',label:'Author',sortable:true,tdClass:'td-muted'},
   {key:'Committed Date',label:'Committed',sortable:true,tdClass:'td-muted'},
   {key:'_ucr_expiry',label:'Expiry',sortable:true},
-  {key:'_coach',label:'Coach',sortable:true,filterCol:'coach'},
   {key:'Featured Mission?',label:'★',sortable:false},
   {key:'_val_status',label:'Validation',sortable:false},
   {key:'_rev_lang',label:'Lang Rev',sortable:false},
@@ -700,7 +700,9 @@ function renderTable(){
 
     var valInfo=VAL_MAP[ucrId]||null;
     var valCell=valInfo
-      ?'<a href="https://jira.tools.sap/browse/'+escHtml(valInfo.key)+'" target="_blank" rel="noopener" style="text-decoration:none"><span class="badge '+valBadgeClass(valInfo.status)+'">'+escHtml(valInfo.key.replace('DISCOVALIDATION-','#'))+'&nbsp;'+escHtml(valInfo.status)+'</span></a>'
+      ?'<a href="https://jira.tools.sap/browse/'+escHtml(valInfo.key)+'" target="_blank" rel="noopener" style="text-decoration:none;display:block"><span class="badge '+valBadgeClass(valInfo.status)+'">'+escHtml(valInfo.key.replace('DISCOVALIDATION-','#'))+'&nbsp;'+escHtml(valInfo.status)+'</span>'
+        +(valInfo.assignee?'<br><span style="font-size:.65rem;color:#94a3b8">'+escHtml(valInfo.assignee)+'</span>':'')
+      +'</a>'
       :'<span style="color:#334155">—</span>';
 
     var cat=String(m['Category']||'').trim();
@@ -708,6 +710,7 @@ function renderTable(){
 
     html+='<tr>'
       +'<td class="td-name">'+nameCell+'</td>'
+      +'<td class="td-muted filterable" title="Filter by coach" onclick="filterByCell(\'_coach\',\''+escHtml(coach)+'\')" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+coachCell+'</td>'
       +'<td class="filterable" title="Filter by category" onclick="filterByCell(\'Category\',\''+escHtml(cat)+'\')">'+(cat||'<span style="color:#334155">—</span>')+'</td>'
       +'<td class="filterable" title="Filter by status" onclick="filterByCell(\'STATUS\',\''+escHtml(String(m['STATUS']||'').trim())+'\')">'+(badgeStatus(m['STATUS']))+'</td>'
       +'<td class="filterable" title="Filter by UCR status" onclick="filterByCell(\'ucrStatus\',\''+escHtml(ucrStatus)+'\')">'+(ucrStatus?'<span class="badge b-neutral">'+escHtml(ucrStatus)+'</span>':'<span style="color:#334155">—</span>')+'</td>'
@@ -715,7 +718,6 @@ function renderTable(){
       +'<td class="td-muted filterable" title="Filter by author" onclick="filterByCell(\'Author\',\''+escHtml(author)+'\')">'+escHtml(author||'—')+'</td>'
       +'<td class="td-muted" style="white-space:nowrap">'+fmtDate(m['Committed Date'])+'</td>'
       +'<td style="white-space:nowrap">'+expCell+'</td>'
-      +'<td class="td-muted filterable" title="Filter by coach" onclick="filterByCell(\'_coach\',\''+escHtml(coach)+'\')" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+coachCell+'</td>'
       +'<td style="text-align:center">'+(isFeatured?'<span class="star">★</span>':'')+'</td>'
       +'<td style="white-space:nowrap">'+valCell+'</td>'
       +'<td style="text-align:center">'+revIcon(m._rev_lang,m['Name UA']||m['Review by UA'])+'</td>'
