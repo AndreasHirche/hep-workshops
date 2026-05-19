@@ -121,6 +121,16 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
 /* Star */
 .star{color:#f59e0b}
 
+/* Column header filter button */
+.th-filter-btn{cursor:pointer;opacity:.4;padding:1px 3px;border-radius:3px;border:1px solid transparent;background:none;color:inherit;font-family:inherit;font-size:.7rem;line-height:1;vertical-align:middle;margin-left:3px;transition:opacity .15s,border-color .15s}
+.th-filter-btn:hover{opacity:1;border-color:rgba(124,58,237,0.5);background:rgba(124,58,237,0.1)}
+.th-filter-btn.active{opacity:1;color:#a78bfa;border-color:rgba(167,139,250,0.5);background:rgba(167,139,250,0.12)}
+
+/* Reviewer status icons */
+.rev-done{color:#4ade80;font-size:.95rem}
+.rev-prog{color:#fbbf24;font-size:.95rem}
+.rev-open{color:#334155;font-size:.95rem}
+
 /* Fade in */
 .fade-in{animation:fadeIn .4s ease both}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -191,8 +201,9 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
       <span id="pageInfo"></span>
       <div class="page-btns" id="pageBtns"></div>
     </div>
-  </div>
+  </div><!-- /.wrap -->
 </div>
+<div id="colFilterDrop" style="position:fixed;z-index:300;background:#1a1a2e;border:1px solid rgba(255,255,255,0.18);border-radius:8px;padding:4px;min-width:150px;box-shadow:0 8px 24px rgba(0,0,0,0.6);display:none"></div>
 
 <!-- Scripts loaded in order: XLSX first, then Chart.js, then app -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -212,6 +223,7 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
 var allMissions=[], filtered=[], sortCol='', sortDir=1, curPage=1;
 var statusChart=null, categoryChart=null, coachChart=null;
 var activeCoach='';
+var colDropTarget=null;
 var PAGE_SIZE=25;
 
 // <<VAL_MAP_BEGIN>>
@@ -354,7 +366,23 @@ function processData(portfolio,ucr){
       var ucr=ucrMap.get(ucrId)||null;
       var coach=String(r['Coach name(s)']||ucr&&ucr['Coach']||'').trim();
       var expiry=ucr?ucr['Expiry Date']:null;
-      return Object.assign({},r,{_ucr:ucr,_coach:coach,_ucr_expiry:expiry||''});
+      var revLang=(function(){
+        if(String(r['Date UA']||'').trim())return'done';
+        if(String(r['Name UA']||r['Review by UA']||'').trim())return'inprogress';
+        return'open';
+      })();
+      var revQual=(function(){
+        var q=String(r['Quality Review completed (yes/no)']||'').trim().toLowerCase();
+        if(q==='yes')return'done';
+        if(q&&q!=='no')return'inprogress';
+        return'open';
+      })();
+      var revPM=(function(){
+        if(String(r['Date PE']||'').trim())return'done';
+        if(String(r['Name PE']||r['Review by Platform Exp.']||'').trim())return'inprogress';
+        return'open';
+      })();
+      return Object.assign({},r,{_ucr:ucr,_coach:coach,_ucr_expiry:expiry||'',_rev_lang:revLang,_rev_qual:revQual,_rev_pm:revPM});
     }).filter(function(r){return r['Mission Name']||r['Mission ID']||r['Nr'];});
     buildCategoryFilter();
     renderKPIs();
@@ -604,15 +632,19 @@ function setSort(col){
 var COLS=[
   {key:'Mission Name',label:'Mission',tdClass:'td-name',sortable:true},
   {key:'Category',label:'Category',sortable:true},
-  {key:'STATUS',label:'Status',sortable:true},
+  {key:'STATUS',label:'Status',sortable:true,filterCol:'status'},
   {key:'_ucr_status',label:'Status (UCR)',sortable:false},
   {key:'UCR ID',label:'UCR',sortable:true},
   {key:'Author',label:'Author',sortable:true,tdClass:'td-muted'},
   {key:'Committed Date',label:'Committed',sortable:true,tdClass:'td-muted'},
   {key:'_ucr_expiry',label:'Expiry',sortable:true},
-  {key:'_coach',label:'Coach',sortable:true},
+  {key:'_coach',label:'Coach',sortable:true,filterCol:'coach'},
   {key:'Featured Mission?',label:'★',sortable:false},
-  {key:'_val_status',label:'Validation',sortable:false}
+  {key:'_val_status',label:'Validation',sortable:false},
+  {key:'_rev_lang',label:'Lang Rev',sortable:false},
+  {key:'_rev_qual',label:'Qual Rev',sortable:false},
+  {key:'_rev_pm',label:'PM Rev',sortable:false},
+  {key:'_dc_link',label:'DC',sortable:false}
 ];
 
 function badgeStatus(s){
@@ -633,10 +665,12 @@ function renderTable(){
   var html='<table><thead><tr>';
   COLS.forEach(function(c){
     var isActive=sortCol===c.key;
+    var isFiltered=c.filterCol==='status'?!!document.getElementById('fStatus').value:c.filterCol==='coach'?!!activeCoach:false;
     var thClass=c.sortable?' class="sortable'+(isActive?' sorted':'')+'"':'';
     var thClick=c.sortable?' onclick="setSort(\''+c.key+'\')"':'';
     var icon=c.sortable?'<i class="sort-icon">'+(isActive?(sortDir===1?'↑':'↓'):'↕')+'</i>':'';
-    html+='<th'+thClass+thClick+'>'+c.label+icon+'</th>';
+    var filterBtn=c.filterCol?'<button class="th-filter-btn'+(isFiltered?' active':'')+'" title="Filter" onclick="openColFilter(\''+c.filterCol+'\',this,event)">▾</button>':'';
+    html+='<th'+thClass+thClick+' style="position:relative">'+c.label+icon+filterBtn+'</th>';
   });
   html+='</tr></thead><tbody>';
 
@@ -684,6 +718,10 @@ function renderTable(){
       +'<td class="td-muted filterable" title="Filter by coach" onclick="filterByCell(\'_coach\',\''+escHtml(coach)+'\')" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+coachCell+'</td>'
       +'<td style="text-align:center">'+(isFeatured?'<span class="star">★</span>':'')+'</td>'
       +'<td style="white-space:nowrap">'+valCell+'</td>'
+      +'<td style="text-align:center">'+revIcon(m._rev_lang,m['Name UA']||m['Review by UA'])+'</td>'
+      +'<td style="text-align:center">'+revIcon(m._rev_qual,m['Quality Review completed (yes/no)'])+'</td>'
+      +'<td style="text-align:center">'+revIcon(m._rev_pm,m['Name PE']||m['Review by Platform Exp.'])+'</td>'
+      +'<td style="text-align:center">'+(link?'<a href="'+escHtml(link)+'" target="_blank" rel="noopener" title="Open in Discovery Center" style="color:#22d3ee;font-size:.85rem;text-decoration:none">↗</a>':'<span style="color:#334155">—</span>')+'</td>'
       +'</tr>';
   });
 
@@ -719,6 +757,51 @@ function valBadgeClass(s){
 }
 
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── Reviewer icon ──────────────────────────────────────────────────────
+function revIcon(status, tooltipVal){
+  var tt=String(tooltipVal||'').trim();
+  if(status==='done')return'<span class="rev-done" title="'+(tt?escHtml(tt):'Done')+'">●</span>';
+  if(status==='inprogress')return'<span class="rev-prog" title="'+(tt?escHtml(tt):'In Progress')+'">◑</span>';
+  return'<span class="rev-open" title="Open">○</span>';
+}
+
+// ── Column header filter dropdown ──────────────────────────────────────
+function openColFilter(col, btn, event){
+  event.stopPropagation();
+  var drop=document.getElementById('colFilterDrop');
+  var rect=btn.getBoundingClientRect();
+  var options=[];
+  if(col==='coach'){
+    var seen={};
+    allMissions.forEach(function(m){var c=String(m['Coach name(s)']||m._ucr&&m._ucr['Coach']||'').trim();if(c&&!seen[c]){seen[c]=true;options.push(c);}});
+    options.sort(function(a,b){return a.localeCompare(b);});
+    options.unshift('(All)');
+  }else if(col==='status'){
+    options=['(All)','published','draft','Archived','idea'];
+  }
+  drop.innerHTML=options.map(function(opt){
+    var cur=col==='coach'?activeCoach:document.getElementById('fStatus').value;
+    var isActive=(opt==='(All)'&&!cur)||(opt===cur&&opt!=='(All)');
+    return'<button onclick="selectColFilter(\''+col+'\',\''+opt.replace(/'/g,"\\'")+'\')" style="display:block;width:100%;text-align:left;padding:6px 10px;border:none;background:'+(isActive?'rgba(124,58,237,0.25)':'none')+';color:'+(isActive?'#c4b5fd':'#e2e8f0')+';font-family:Inter,sans-serif;font-size:.78rem;cursor:pointer;border-radius:5px">'+(opt==='(All)'?'<span style="opacity:.6">⊘</span> All':escHtml(opt))+'</button>';
+  }).join('');
+  drop.style.left=(rect.left+window.scrollX)+'px';
+  drop.style.top=(rect.bottom+window.scrollY+3)+'px';
+  drop.style.display='block';
+  colDropTarget=col;
+}
+
+function selectColFilter(col, val){
+  document.getElementById('colFilterDrop').style.display='none';
+  colDropTarget=null;
+  if(col==='coach'){setCoach(val==='(All)'?'':val);}
+  else if(col==='status'){filterKPI(val==='(All)'?'':val);}
+}
+
+document.addEventListener('click',function(e){
+  var drop=document.getElementById('colFilterDrop');
+  if(drop&&!drop.contains(e.target)){drop.style.display='none';colDropTarget=null;}
+});
 
 // Start
 init();
