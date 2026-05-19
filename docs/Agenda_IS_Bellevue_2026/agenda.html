@@ -115,7 +115,7 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 .sp-tile{display:inline-flex;align-items:center;gap:5px;padding:3px 10px 3px 4px;border-radius:20px;background:#fff;border:1px solid #e0e4ea;font-size:.72rem;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.04)}
 .sp-avatar{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;color:#fff;flex-shrink:0}
 .sp-name{font-weight:600;color:#1d2d3e}
-.sp-count{font-size:.62rem;color:#74777a;background:#f0f2f4;border-radius:10px;padding:0 5px}
+.sp-desc{font-size:.68rem;color:#74777a;font-weight:400}
 /* Edit mode: time and speaker inline editable */
 .e-mode .tc-time{cursor:text;border-radius:2px}.e-mode .tc-time:hover{background:#fef9c3;outline:1px dashed #f59e0b}
 .e-mode .tc-speaker{cursor:text;border-radius:2px}.e-mode .tc-speaker:hover{background:#dbeafe;outline:1px dashed #3b82f6}
@@ -587,15 +587,31 @@ function closeModal() {
 var SP_COLORS=['#2563eb','#0891b2','#059669','#7c3aed','#dc2626','#d97706','#be185d','#1d4ed8','#0f766e','#9333ea'];
 function renderSpeakerTiles() {
   var bar=document.getElementById('spTilesBar'); if(!bar) return;
-  var counts={};
-  document.querySelectorAll('.tc-speaker').forEach(function(sp) {
-    var raw=sp.textContent.trim(); if(!raw||sp.classList.contains('e-add-sp')) return;
-    raw.split(/\s+and\s+|,\s*/i).forEach(function(n) { n=n.trim(); if(n) counts[n]=(counts[n]||0)+1; });
+  // Assign a consistent color to each unique person name
+  var colorMap={}, colorIdx=0;
+  document.querySelectorAll('.tc-card').forEach(function(card) {
+    var spEl=card.querySelector('.tc-speaker');
+    if(!spEl||spEl.classList.contains('e-add-sp')) return;
+    spEl.textContent.trim().split(/\s+and\s+|,\s*/i).forEach(function(n) {
+      n=n.trim(); if(n&&!colorMap[n]){colorMap[n]=SP_COLORS[colorIdx%SP_COLORS.length];colorIdx++;}
+    });
   });
-  var names=Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; });
-  bar.innerHTML='<span class="sp-tiles-lbl">Speakers</span>'+names.map(function(name,i) {
-    return '<div class="sp-tile"><div class="sp-avatar" style="background:'+SP_COLORS[i%SP_COLORS.length]+'">'+hesc(name.charAt(0).toUpperCase())+'</div>'
-      +'<span class="sp-name">'+hesc(name)+'</span><span class="sp-count">'+counts[name]+'</span></div>';
+  // One tile per card with a speaker
+  var tiles=[];
+  document.querySelectorAll('.tc-card').forEach(function(card) {
+    var spEl=card.querySelector('.tc-speaker');
+    if(!spEl||spEl.classList.contains('e-add-sp')) return;
+    var raw=spEl.textContent.trim(); if(!raw) return;
+    var titleEl=card.querySelector('.m-card-title');
+    var title=titleEl?titleEl.textContent.trim():'';
+    var firstName=raw.split(/\s+and\s+|,\s*/i)[0].trim();
+    tiles.push({speaker:raw,title:title,color:colorMap[firstName]||SP_COLORS[0],initial:firstName.charAt(0).toUpperCase()});
+  });
+  bar.innerHTML='<span class="sp-tiles-lbl">Speakers</span>'+tiles.map(function(t) {
+    var short=t.title.length>42?t.title.slice(0,40)+'…':t.title;
+    return '<div class="sp-tile"><div class="sp-avatar" style="background:'+t.color+'">'+hesc(t.initial)+'</div>'
+      +'<span class="sp-name">'+hesc(t.speaker)+'</span>'
+      +(short?'<span class="sp-desc"> · '+hesc(short)+'</span>':'')+'</div>';
   }).join('');
 }
 
