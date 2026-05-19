@@ -221,7 +221,7 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 </div>
 
 <script>
-const STORE_KEY = 'agenda-is-bellevue-v1';
+const STORE_KEY = 'agenda-is-bellevue-v2';
 const COL_IDS = [0,1,2,3,4];
 const PPM_JS = 3;
 const GSTART_JS = 540;
@@ -248,15 +248,16 @@ function updateAll() {
   });
 }
 function saveState() {
-  const state = Array.from(document.querySelectorAll('.m-card,.tc-card')).map(c => c.classList.contains('done') ? 1 : 0);
+  const state = {};
+  document.querySelectorAll('.m-card,.tc-card').forEach(c => { if(c.classList.contains('done')) state[c.dataset.cid]='1'; });
   localStorage.setItem(STORE_KEY, JSON.stringify(state));
 }
 function restoreState() {
   const saved = localStorage.getItem(STORE_KEY);
   if (!saved) return;
-  const state = JSON.parse(saved);
-  document.querySelectorAll('.m-card,.tc-card').forEach((c, i) => {
-    if (state[i]) {
+  let state; try { state = JSON.parse(saved); } catch(e) { return; }
+  document.querySelectorAll('.m-card,.tc-card').forEach(c => {
+    if (state[c.dataset.cid]) {
       c.classList.add('done');
       const btn = c.querySelector('.cbtn');
       if (btn) { btn.innerHTML = J_DN; btn.title = 'Completed – click to undo'; }
@@ -688,7 +689,7 @@ function startSpeakerEdit(spEl,cid,card,isNew) {
   spEl.addEventListener('blur',commit); spEl.addEventListener('keydown',onKey);
 }
 
-restoreState(); eApply(); updateAll(); renderSpeakerTiles();
+eApply(); restoreState(); updateAll(); renderSpeakerTiles();
 </script>
 </body>
 </html>
