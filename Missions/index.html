@@ -19,10 +19,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .particles{position:fixed;inset:0;pointer-events:none;z-index:0}
 .particle{position:absolute;border-radius:50%;animation:float linear infinite}
 @keyframes float{0%{transform:translateY(100vh) translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-20px) translateX(40px);opacity:0}}
-.wrap{position:relative;z-index:1;max-width:100%;margin:0 auto;padding:32px 16px}
+.wrap{position:relative;z-index:1;max-width:100%;margin:0 auto}
 
 /* Header */
-header{margin-bottom:32px}
+header{margin-bottom:20px}
 header h1{font-size:2rem;font-weight:700;background:linear-gradient(135deg,#e2e8f0,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 header p{color:var(--muted);font-size:0.9rem;margin-top:6px}
 
@@ -57,18 +57,19 @@ header p{color:var(--muted);font-size:0.9rem;margin-top:6px}
 .result-count{font-size:0.75rem;color:var(--muted);margin-left:auto;white-space:nowrap}
 
 /* Table */
-.tbl-wrap{background:var(--glass);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(12px)}
-.tbl-scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:#7c3aed rgba(255,255,255,0.05)}
+.tbl-scroll{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:#7c3aed rgba(255,255,255,0.05)}
 .tbl-scroll::-webkit-scrollbar{height:7px;width:7px}
 .tbl-scroll::-webkit-scrollbar-track{background:rgba(255,255,255,0.03);border-radius:0 0 12px 12px}
 .tbl-scroll::-webkit-scrollbar-thumb{background:#7c3aed;border-radius:4px}
 .tbl-scroll::-webkit-scrollbar-thumb:hover{background:#9f6cf0}
 /* Page vertical scrollbar — always visible */
-html{overflow-y:scroll;scrollbar-width:thin;scrollbar-color:#7c3aed rgba(255,255,255,0.05)}
-::-webkit-scrollbar{width:7px}
-::-webkit-scrollbar-track{background:rgba(255,255,255,0.03)}
-::-webkit-scrollbar-thumb{background:#7c3aed;border-radius:4px}
-::-webkit-scrollbar-thumb:hover{background:#9f6cf0}
+html,body{overflow:hidden;height:100%}
+.wrap{display:flex;flex-direction:column;height:100%;padding:24px 16px 0;overflow:hidden}
+.tbl-wrap{flex:1;min-height:0;background:var(--glass);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(12px);display:flex;flex-direction:column}
+/* Compact header transitions */
+.kpis,.charts{transition:max-height .3s ease,opacity .3s ease,margin-bottom .3s ease;max-height:600px;opacity:1}
+body.compact .kpis{max-height:0;overflow:hidden;margin-bottom:0;opacity:0;pointer-events:none}
+body.compact .charts{max-height:0;overflow:hidden;margin-bottom:0;opacity:0;pointer-events:none}
 table{width:100%;border-collapse:collapse;font-size:0.81rem;min-width:600px}
 thead th{padding:11px 14px;text-align:left;font-weight:600;font-size:0.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:rgba(0,0,0,0.2)}
 thead th.sortable{cursor:pointer;user-select:none}
@@ -737,7 +738,7 @@ function renderTable(){
 
   html+='</tbody></table>';
   document.getElementById('tableArea').innerHTML=html;
-  fitTableHeight();
+  initCompactScroll();
   document.getElementById('pagination').style.display='none';
 }
 
@@ -760,16 +761,14 @@ function renderPagination(){
 
 function goPage(p){curPage=p;renderTable();}
 
-function fitTableHeight(){
-  var el=document.querySelector('.tbl-scroll');
-  if(!el)return;
-  var top=el.getBoundingClientRect().top;
-  var avail=window.innerHeight-Math.max(0,top)-16;
-  el.style.maxHeight=Math.max(200,avail)+'px';
+function initCompactScroll(){
+  var ts=document.querySelector('.tbl-scroll');
+  if(!ts||ts._compactBound)return;
+  ts._compactBound=true;
+  ts.addEventListener('scroll',function(){
+    document.body.classList.toggle('compact',this.scrollTop>30);
+  });
 }
-var _fitRaf=null;
-window.addEventListener('resize',function(){cancelAnimationFrame(_fitRaf);_fitRaf=requestAnimationFrame(fitTableHeight);});
-window.addEventListener('scroll',function(){cancelAnimationFrame(_fitRaf);_fitRaf=requestAnimationFrame(fitTableHeight);},true);
 
 function valBadgeClass(s){
   if(s==='Completed')return 'b-published';
