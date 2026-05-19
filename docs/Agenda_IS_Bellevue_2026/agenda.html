@@ -708,8 +708,12 @@ eApply(); restoreState(); updateAll(); renderSpeakerTiles();
 (function(){
   var hdr=document.querySelector('.header-wrap');
   var full=hdr.offsetHeight;
+  var isCollapsed=false;
+  var ON=Math.round(full*0.4), OFF=Math.round(full*0.15);
   window.addEventListener('scroll',function(){
-    hdr.classList.toggle('collapsed', window.scrollY>full/2);
+    var y=window.scrollY;
+    if(!isCollapsed&&y>ON){isCollapsed=true;hdr.classList.add('collapsed');}
+    else if(isCollapsed&&y<OFF){isCollapsed=false;hdr.classList.remove('collapsed');}
   },{passive:true});
 })();
 </script>
