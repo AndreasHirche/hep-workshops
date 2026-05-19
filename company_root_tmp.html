@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Company Pages</title>
+<style>
+@font-face{font-family:'72';src:url('https://ui5.sap.com/resources/sap/ui/core/themes/sap_fiori_3/fonts/72-Regular.woff2') format('woff2');font-weight:400}
+@font-face{font-family:'72';src:url('https://ui5.sap.com/resources/sap/ui/core/themes/sap_fiori_3/fonts/72-Bold.woff2') format('woff2');font-weight:700}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'72',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d1f3c;color:#e2e8f0;min-height:100vh;padding:48px 40px}
+.page-header{max-width:1240px;margin:0 auto 40px;display:flex;align-items:center;gap:16px}
+.logo{width:44px;height:44px;background:linear-gradient(135deg,#2563eb,#1d4ed8);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;color:#fff;box-shadow:0 4px 14px #2563eb44;flex-shrink:0}
+.page-header h1{font-size:1.4rem;font-weight:700;color:#f8fafc}
+.page-header p{font-size:0.8rem;color:#64748b;margin-top:2px}
+.projects{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.project-card{background:#1e293b;border:1px solid #334155;border-radius:14px;overflow:hidden}
+.project-title{padding:14px 20px;border-bottom:1px solid #334155;display:flex;align-items:center;gap:10px}
+.project-title h2{font-size:0.95rem;font-weight:700;color:#f1f5f9}
+.project-title .badge{font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:20px;background:#0d1f3c;color:#64748b;border:1px solid #334155;letter-spacing:0.05em}
+.thumbs{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.thumbs-1{grid-template-columns:1fr;max-width:420px}
+.thumbs-3{grid-template-columns:repeat(3,1fr)}
+.thumb-col{padding:16px 20px}
+.thumb-col+.thumb-col{border-left:1px solid #334155}
+.thumb-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.thumb-label a{font-size:0.65rem;font-weight:600;color:inherit;opacity:0.7;text-decoration:none;margin-left:auto;letter-spacing:0}
+.thumb-label a:hover{opacity:1;text-decoration:underline}
+.thumb-label.dev{color:#f59e0b}
+.thumb-label.dev::before{content:'';width:7px;height:7px;border-radius:50%;background:#f59e0b;flex-shrink:0}
+.thumb-label.gh{color:#a78bfa}
+.thumb-label.gh::before{content:'';width:7px;height:7px;border-radius:50%;background:#a78bfa;flex-shrink:0}
+.thumb-label.hist{color:#94a3b8}
+.thumb-label.hist::before{content:'';width:7px;height:7px;border-radius:50%;background:#94a3b8;flex-shrink:0}
+.thumb-label .gh-tag{color:#c4b5fd;background:rgba(167,139,250,0.13);border:1px solid rgba(167,139,250,0.3);border-radius:10px;padding:1px 8px;font-size:0.65rem;letter-spacing:0;font-weight:600;text-transform:none}
+.tag-personal{color:#34d399;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);border-radius:10px;padding:1px 7px;font-size:0.6rem;font-weight:700;letter-spacing:0.05em}
+.tag-company{color:#60a5fa;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.25);border-radius:10px;padding:1px 7px;font-size:0.6rem;font-weight:700;letter-spacing:0.05em}
+.thumb-wrap{position:relative;width:100%;height:222px;overflow:hidden;border-radius:8px;border:2px solid #334155;background:#0d1f3c;transition:border-color .2s,box-shadow .2s}
+.thumb-wrap:hover{border-color:#3b82f6;box-shadow:0 0 0 3px #2563eb33}
+.thumb-wrap iframe{position:absolute;top:0;left:0;width:1280px;height:800px;border:none;pointer-events:none;transform-origin:top left}
+.thumb-link{position:absolute;inset:0;z-index:2;display:flex;align-items:flex-end;padding:10px;text-decoration:none;background:linear-gradient(to top, #0d1f3c 0%, transparent 60%);opacity:0;transition:opacity .2s;border-radius:6px}
+.thumb-wrap:hover .thumb-link{opacity:1}
+.gh-repo{display:inline-flex;align-items:center;gap:5px;margin-top:5px;font-size:0.7rem;font-weight:600;color:#a78bfa;text-decoration:none;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.22);border-radius:20px;padding:2px 10px;transition:background .15s,border-color .15s}
+.gh-repo:hover{background:rgba(167,139,250,0.16);border-color:rgba(167,139,250,0.45)}
+.gh-repo svg{flex-shrink:0}
+.thumb-link span{font-size:0.7rem;font-weight:700;color:#e2e8f0;background:#1e293bcc;border:1px solid #475569;border-radius:6px;padding:3px 10px}
+
+.folder-btn{margin-left:auto;flex-shrink:0;display:inline-flex;align-items:center;gap:5px;font-size:0.65rem;font-weight:600;color:#64748b;text-decoration:none;padding:3px 10px;border-radius:6px;border:1px solid #334155;background:#0d1f3c;transition:color .15s,border-color .15s,background .15s;white-space:nowrap;}
+.folder-btn:hover{color:#e2e8f0;border-color:#475569;background:#1e293b}
+.thumb-ts{font-size:0.6rem;color:#64748b;margin-top:5px;text-align:right;letter-spacing:0.02em;padding:0 2px}
+</style>
+</head>
+<body>
+<header class="page-header">
+  <div>
+    <h1>My Company Pages</h1>
+    <p>All projects â€” DEV and GitHub</p>
+    <a class="gh-repo" href="https://github.tools.sap/DCC/dc-hep" target="_blank" rel="noopener">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      DCC / dc-hep
+    </a>
+  </div>
+</header>
+<div class="projects" id="projects">
+
+  <div class="project-card">
+    <div class="project-title"><h2>Requirements Overview</h2><span class="badge">DC Wishlist &amp; Overview</span><a class="folder-btn" href="https://github.tools.sap/DCC/dc-hep/tree/main/requirements" target="_blank">&#128193; Folder</a></div>
+    <div class="thumbs">
+      <div class="thumb-col">
+        <div class="thumb-label dev">Wishlist</div>
+        <div class="thumb-wrap">
+          <iframe src="requirements/wishlist.html" loading="lazy" title="Requirements Wishlist" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="requirements/wishlist.html" target="_blank"><span>Open Wishlist â†—</span></a>
+        </div>
+      <div class="thumb-ts">&#8635; 2026-05-08 09:20</div>
+      </div>
+      <div class="thumb-col">
+        <div class="thumb-label dev">Overview</div>
+        <div class="thumb-wrap">
+          <iframe src="requirements/overview.html" loading="lazy" title="Requirements Overview" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="requirements/overview.html" target="_blank"><span>Open Overview â†—</span></a>
+        </div>
+      <div class="thumb-ts">&#8635; 2026-05-08 09:48</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-title"><h2>DC-Home-3</h2><span class="badge">Discovery Center Homepage v3</span><a class="folder-btn" href="https://github.tools.sap/DCC/dc-home-3" target="_blank">&#128193; Folder</a></div>
+    <div class="thumbs">
+      <div class="thumb-col">
+        <div class="thumb-label dev">DEV</div>
+        <div class="thumb-wrap">
+          <iframe src="DC-Home-3/index.html" loading="lazy" title="DC-Home-3 DEV" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="DC-Home-3/index.html" target="_blank"><span>Open DEV â†—</span></a>
+        </div>
+      <div class="thumb-ts">&#8635; 2026-05-11 18:12</div>
+      </div>
+      <div class="thumb-col">
+        <div class="thumb-label gh">GITHUB <span class="gh-tag">DCC / dc-home-3</span> <span class="tag-company">Company</span> <a href="https://github.tools.sap/DCC/dc-home-3" target="_blank">â†—</a></div>
+        <div class="thumb-wrap">
+          <iframe src="https://pages.github.tools.sap/DCC/dc-home-3/" loading="lazy" title="DC-Home-3 GitHub Pages" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="https://pages.github.tools.sap/DCC/dc-home-3/" target="_blank"><span>Open GitHub â†—</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-title"><h2>HEP Dashboard</h2><span class="badge">Workshop overview &amp; globe</span><a class="folder-btn" href="https://github.tools.sap/DCC/dc-hep" target="_blank">&#128193; Folder</a></div>
+    <div class="thumbs">
+      <div class="thumb-col">
+        <div class="thumb-label dev">DEV</div>
+        <div class="thumb-wrap">
+          <iframe src="hep-dashboard.html" loading="lazy" title="HEP Dashboard DEV" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="hep-dashboard.html" target="_blank"><span>Open DEV â†—</span></a>
+        </div>
+      <div class="thumb-ts">&#8635; 2026-05-11 18:12</div>
+      </div>
+      <div class="thumb-col">
+        <div class="thumb-label gh">GITHUB <span class="gh-tag">DCC / dc-hep</span> <span class="tag-company">Company</span> <a href="https://github.tools.sap/DCC/dc-hep" target="_blank">â†—</a></div>
+        <div class="thumb-wrap">
+          <iframe src="docs/index.html" loading="lazy" title="HEP Dashboard GitHub Pages" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="https://pages.github.tools.sap/DCC/dc-hep/" target="_blank"><span>Open GitHub â†—</span></a>
+        </div>
+      <div class="thumb-ts">&#8635; 2026-05-11 18:12</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-title"><h2>Agenda â€“ HEP AI Palo Alto 2026</h2><span class="badge">Mission &amp; agenda</span><a class="folder-btn" href="https://github.tools.sap/DCC/dc-hep/tree/main/Agenda" target="_blank">&#128193; Folder</a></div>
+    <div class="thumbs thumbs-3">
+      <div class="thumb-col">
+        <div class="thumb-label hist">V1</div>
+        <div class="thumb-wrap">
+          <iframe src="Agenda/wission.html" loading="lazy" title="V1" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="Agenda/wission.html" target="_blank"><span>Open V1 â†—</span></a>
+        </div>
+      <div class="thumb-ts">&#8635; 2026-05-07 18:57</div>
+      </div>
+      <div class="thumb-col">
+        <div class="thumb-label hist">V2</div>
+        <div class="thumb-wrap">
+          <iframe src="Agenda/Wission2.html" loading="lazy" title="V2" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="Agenda/Wission2.html" target="_blank"><span>Open V2 â†—</span></a>
+        </div>
+      <div class="thumb-ts">&#8635; 2026-05-07 18:57</div>
+      </div>
+      <div class="thumb-col">
+        <div class="thumb-label dev">V3 DEV</div>
+        <div class="thumb-wrap">
+          <iframe src="Agenda/Wission3.html" loading="lazy" title="V3" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="Agenda/Wission3.html" target="_blank"><span>Open V3 â†—</span></a>
+        </div>
+      <div class="thumb-ts">&#8635; 2026-05-07 18:57</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-title"><h2>Agenda â€“ IS Bellevue 2026</h2><span class="badge">IS Workshop agenda</span><a class="folder-btn" href="https://github.tools.sap/DCC/dc-hep/tree/main" target="_blank">&#128193; Folder</a></div>
+    <div class="thumbs thumbs-1">
+      <div class="thumb-col">
+        <div class="thumb-label dev">Agenda</div>
+        <div class="thumb-wrap">
+          <iframe src="Agenda_IS_Bellevue_2026/agenda.html" loading="lazy" title="IS Bellevue Agenda" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="Agenda_IS_Bellevue_2026/agenda.html" target="_blank"><span>Open â†—</span></a>
+        </div>
+      <div class="thumb-ts">&#8635; 2026-05-11 18:12</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-title"><h2>Agenda â€“ AI Helsinki 2026</h2><span class="badge">Custom AI Solutions workshop agenda</span><a class="folder-btn" href="https://github.tools.sap/DCC/dc-hep/tree/main/Agenda_AI_Helsinki_2026" target="_blank">&#128193; Folder</a></div>
+    <div class="thumbs">
+      <div class="thumb-col">
+        <div class="thumb-label dev">Agenda</div>
+        <div class="thumb-wrap">
+          <iframe src="Agenda_AI_Helsinki_2026/Agenda_AI_Helsinki_2026.html" loading="lazy" title="AI Helsinki Agenda" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="Agenda_AI_Helsinki_2026/Agenda_AI_Helsinki_2026.html" target="_blank"><span>Open â†—</span></a>
+        </div>
+      <div class="thumb-ts">&#8635; 2026-05-11 16:56</div>
+      </div>
+      <div class="thumb-col">
+        <div class="thumb-label gh">GITHUB <span class="gh-tag">DCC / dc-hep</span> <span class="tag-company">Company</span> <a href="https://github.tools.sap/DCC/dc-hep" target="_blank">â†—</a></div>
+        <div class="thumb-wrap">
+          <iframe src="Agenda_AI_Helsinki_2026/Agenda_AI_Helsinki_2026.html" loading="lazy" title="AI Helsinki Agenda GitHub" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="https://pages.github.tools.sap/DCC/dc-hep/Agenda_AI_Helsinki_2026/Agenda_AI_Helsinki_2026.html" target="_blank"><span>Open GitHub â†—</span></a>
+        </div>
+      <div class="thumb-ts">&#8635; 2026-05-11 16:56</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-title"><h2>Auto</h2><span class="badge">Fahrzeugkatalog</span><a class="folder-btn" href="https://github.com/AndreasHirche/Auto" target="_blank">&#128193; Folder</a></div>
+    <div class="thumbs thumbs-1">
+      <div class="thumb-col">
+        <div class="thumb-label gh">GITHUB <span class="gh-tag">AndreasHirche / Auto</span> <span class="tag-personal">Personal</span> <a href="https://github.com/AndreasHirche/Auto" target="_blank">â†—</a></div>
+        <div class="thumb-wrap">
+          <iframe src="https://andreashirche.github.io/Auto/" loading="lazy" title="Auto GitHub Pages" sandbox="allow-scripts allow-same-origin"></iframe>
+          <a class="thumb-link" href="https://andreashirche.github.io/Auto/" target="_blank"><span>Open GitHub â†—</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+    </div>
+  </div>
+    </div>
+  </div>
+
+</div>
+<script>
+function scaleIframes() {
+  document.querySelectorAll('.thumb-wrap').forEach(wrap => {
+    const iframe = wrap.querySelector('iframe');
+    if (!iframe) return;
+    const W = 1280, H = 800;
+    const cw = wrap.clientWidth;
+    const scale = cw / W;
+    iframe.style.width  = W + 'px';
+    iframe.style.height = H + 'px';
+    iframe.style.transform = 'scale(' + scale + ')';
+    wrap.style.height = Math.round(H * scale) + 'px';
+  });
+}
+scaleIframes();
+window.addEventListener('resize', scaleIframes);
+</script>
+</body>
+</html>
