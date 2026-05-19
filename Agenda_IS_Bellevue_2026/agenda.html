@@ -101,6 +101,7 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 .day-timeline .e-add-btn{position:absolute;left:4px;right:4px;margin-top:0;z-index:10}
 .tc-top-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
 .tc-time{font-size:.6rem;font-weight:700;color:#8b9db0;white-space:nowrap;flex-shrink:0}
+.tc-speaker{font-size:.62rem;font-weight:600;color:#475569;white-space:nowrap;flex-shrink:0}
 .tc-top-row .m-card-badges{margin-bottom:0;flex:1;min-width:0}
 .header-wrap{position:relative;display:flex;align-items:stretch;width:100%;border-bottom:2px solid #035a67;overflow:hidden}
 .header-left-color{flex-shrink:0;width:320px;height:189px;background:#046c7a;display:block}
@@ -110,12 +111,12 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 .header-mid{flex:1 1 0;min-width:0;height:189px;background:#046c7a}
 .header-right{flex-shrink:0;width:auto;height:189px;display:block}
 /* Speaker tiles */
-.sp-tiles-bar{background:#f8f9fa;border-bottom:1px solid #e8ebee;padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:42px}
-.sp-tiles-lbl{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-right:4px;flex-shrink:0}
-.sp-tile{display:inline-flex;align-items:center;gap:5px;padding:3px 10px 3px 4px;border-radius:20px;background:#fff;border:1px solid #e0e4ea;font-size:.72rem;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-.sp-avatar{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;color:#fff;flex-shrink:0}
-.sp-name{font-weight:600;color:#1d2d3e}
-.sp-desc{font-size:.68rem;color:#74777a;font-weight:400}
+.sp-tiles-bar{background:#f8f9fa;border-bottom:1px solid #e8ebee;padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;min-height:42px}
+.sp-tiles-lbl{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-right:4px;flex-shrink:0;align-self:center}
+.sp-tile{display:inline-flex;flex-direction:column;align-items:center;gap:3px;padding:8px 6px 7px;border-radius:8px;background:#fff;border:1px solid #e0e4ea;box-shadow:0 1px 2px rgba(0,0,0,.04);width:86px;text-align:center}
+.sp-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0}
+.sp-name{font-weight:600;color:#1d2d3e;font-size:.7rem;line-height:1.2;word-break:break-word}
+.sp-desc{font-size:.6rem;color:#74777a;font-weight:400;line-height:1.3}
 /* Edit mode: time and speaker inline editable */
 .e-mode .tc-time{cursor:text;border-radius:2px}.e-mode .tc-time:hover{background:#fef9c3;outline:1px dashed #f59e0b}
 .e-mode .tc-speaker{cursor:text;border-radius:2px}.e-mode .tc-speaker:hover{background:#dbeafe;outline:1px dashed #3b82f6}
@@ -305,6 +306,7 @@ function getBStyle(k) {
 }
 function eApply() {
   (eData.deleted||[]).forEach(function(cid) { var el=document.querySelector('[data-cid="'+cid+'"]'); if(el) el.remove(); });
+  (eData.added||[]).forEach(function(a) { insertCard(a, false); });
   var cm=eData.cols||{};
   Object.keys(cm).forEach(function(cid) {
     var el=document.querySelector('[data-cid="'+cid+'"]'); if(!el) return;
@@ -330,7 +332,6 @@ function eApply() {
     if(el.classList.contains('tc-card')&&!el.style.left) el.style.cssText='top:'+pos[cid]+'px;height:60px;left:4px;right:4px';
     else el.style.top=pos[cid]+'px';
   });
-  (eData.added||[]).forEach(function(a) { insertCard(a, false); });
 }
 function _makeCbtn() {
   var cb=document.createElement('button');
@@ -612,7 +613,7 @@ function renderSpeakerTiles() {
     }).filter(function(t){if(!t||seen[t])return false;seen[t]=true;return true;});
     return '<div class="sp-tile"><div class="sp-avatar" style="background:'+p.color+'">'+hesc(name.charAt(0).toUpperCase())+'</div>'
       +'<span class="sp-name">'+hesc(name)+'</span>'
-      +(shorts.length?'<span class="sp-desc"> · '+hesc(shorts.join(', '))+'</span>':'')+'</div>';
+      +(shorts.length?'<span class="sp-desc">'+hesc(shorts.join(', '))+'</span>':'')+'</div>';
   }).join('');
 }
 
