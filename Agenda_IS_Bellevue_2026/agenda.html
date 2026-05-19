@@ -114,7 +114,7 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 /* Speaker tiles */
 .sp-tiles-bar{background:#f8f9fa;border-bottom:1px solid #e8ebee;padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;min-height:42px}
 .sp-tiles-lbl{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-right:4px;flex-shrink:0;align-self:center}
-.sp-tile{display:inline-flex;flex-direction:column;align-items:center;gap:3px;padding:8px 6px 7px;border-radius:8px;background:#fff;border:1px solid #e0e4ea;box-shadow:0 1px 2px rgba(0,0,0,.04);flex:1 0 80px;max-width:140px;text-align:center}
+.sp-tile{display:inline-flex;flex-direction:column;align-items:center;gap:3px;padding:8px 6px 7px;border-radius:8px;background:#fff;border:1px solid #e0e4ea;box-shadow:0 1px 2px rgba(0,0,0,.04);flex:1 0 80px;text-align:center}
 .sp-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0}
 .sp-name{font-weight:600;color:#1d2d3e;font-size:.7rem;line-height:1.2;word-break:break-word}
 .sp-desc{font-size:.6rem;color:#74777a;font-weight:400;line-height:1.3}
@@ -552,7 +552,7 @@ function saveBadges(cid,card) {
 function promptAdd(colId) {
   _addCol=String(colId);
   showModal('Add Card','<div class="e-field"><label>Title</label><input id="ef-t" class="e-input" placeholder="Card title..."></div><div class="e-field"><label>Label (optional)</label><input id="ef-b" class="e-input" placeholder="hands-on / presentation / check..."></div>',function() {
-    var t=document.getElementById('ef-t'); if(!t||!t.value.trim()) return;
+    var t=document.getElementById('ef-t'); if(!t||!t.value.trim()) return false;
     var cid='a'+(_eCtr++); var b=(document.getElementById('ef-b')||{}).value||'';
     var a={cid:cid,col:_addCol,title:t.value.trim(),badge:b.trim()};
     if(!eData.added) eData.added=[]; eData.added.push(a); insertCard(a,true); eSave(); updateAll();
@@ -562,7 +562,7 @@ function promptAdd(colId) {
 function promptAddTc(colId) {
   _addCol=String(colId);
   showModal('Add Card to Day '+colId,'<div class="e-field"><label>Time (HH:MM)</label><input id="ef-tm" class="e-input" placeholder="09:00" maxlength="5"></div><div class="e-field"><label>Title</label><input id="ef-t" class="e-input" placeholder="Session title..."></div><div class="e-field"><label>Speaker (optional)</label><input id="ef-sp" class="e-input" placeholder="Speaker name..."></div><div class="e-field"><label>Label (optional)</label><input id="ef-b" class="e-input" placeholder="hands-on / presentation..."></div>',function() {
-    var tm=document.getElementById('ef-tm'),t=document.getElementById('ef-t'); if(!t||!t.value.trim()) return;
+    var tm=document.getElementById('ef-tm'),t=document.getElementById('ef-t'); if(!t||!t.value.trim()) return false;
     var cid='a'+(_eCtr++); var b=(document.getElementById('ef-b')||{}).value||'';
     var sp=(document.getElementById('ef-sp')||{}).value||'';
     var timev=(tm&&tm.value.trim())||''; var mins=0;
@@ -577,7 +577,7 @@ function showModal(title,body,ok) {
   document.getElementById('e-modal-title').textContent=title;
   document.getElementById('e-modal-body').innerHTML=body;
   var ov=document.getElementById('e-modal-ov');
-  ov.style.display='flex'; _modalOk=function() { ok(); closeModal(); };
+  ov.style.display='flex'; _modalOk=function() { if(ok()!==false) closeModal(); };
   ov.addEventListener('click',function(e) { if(e.target===ov) closeModal(); },{once:true});
   document.addEventListener('keydown',function(e) { if(e.key==='Enter') { if(_modalOk) _modalOk(); } if(e.key==='Escape') closeModal(); },{once:true});
 }
