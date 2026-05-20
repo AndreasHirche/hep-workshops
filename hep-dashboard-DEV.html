@@ -157,6 +157,8 @@
   .pref-group{display:flex;flex-direction:column;align-items:flex-start;gap:3px;border-left:1px solid #334155;padding-left:10px;margin-left:2px}
   .pref-group-label{font-size:0.6rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
   .pref-group-row{display:flex;align-items:center;gap:6px}
+  .part-pref-group{display:none}
+  body.part-view .part-pref-group{display:flex}
 
   /* ── PREF PICKERS ── */
   .pref-pick{position:relative}
@@ -343,7 +345,7 @@
   }
 </style>
 </head>
-<body class="part-view"><script>(function(){var v=localStorage.getItem('hep-dashboard-view');if(v==='org'){document.body.classList.remove('part-view');document.body.classList.add('sketch-theme');}else{document.body.classList.add('part-view');}})();</script>
+<body class="part-view"><script>(function(){var org=new URLSearchParams(window.location.search).has('org');if(org){document.body.classList.remove('part-view');document.body.classList.add('sketch-theme');}else{document.body.classList.add('part-view');}})();</script>
 
 <header id="site-header">
 <div class="top-bar">
@@ -355,13 +357,11 @@
     <div class="pref-group" style="border-left:none;padding-left:0;margin-left:0">
       <span class="pref-group-label">Mode</span>
       <div class="pref-group-row">
-        <button id="view-toggle-btn" class="view-toggle" onclick="toggleViewMode()">👤 Participant</button>
-        <button id="layout-toggle-btn" class="layout-toggle part-only" onclick="toggleLayout()">☰ List</button>
         <button id="past-toggle-btn" class="phase-toggle org-col" onclick="togglePast()">📅 Past</button>
         <button id="postponed-toggle-btn" class="phase-toggle org-col" onclick="togglePostponed()">🚫 Postponed</button>
       </div>
     </div>
-    <div class="pref-group">
+    <div class="pref-group part-pref-group">
       <span class="pref-group-label">Preferences</span>
       <div class="pref-group-row">
         <div class="pref-pick">
@@ -650,8 +650,8 @@ let prefLocsFull = new Set(), prefLocsLang = new Set(), prefLocsCC = new Set();
 let prefLang = localStorage.getItem('hep-pref-lang') || '';
 let showPast      = localStorage.getItem('hep-show-past') === '1';
 let showPostponed = localStorage.getItem('hep-show-postponed') === '1';
-let isOrgView      = localStorage.getItem('hep-dashboard-view') === 'org';
-let partLayout     = localStorage.getItem('hep-part-layout') || 'cards';
+let isOrgView      = new URLSearchParams(window.location.search).has('org');
+let partLayout     = 'cards';
 let prefCC   = localStorage.getItem('hep-pref-cc')   || '';
 let prefTopic = localStorage.getItem('hep-pref-topic') || '';
 
@@ -1299,34 +1299,16 @@ function togglePostponed() {
   if (isOrgView) {
     document.body.classList.remove('part-view');
     document.body.classList.add('sketch-theme');
-    document.getElementById('view-toggle-btn').textContent = '🔑 Organizer';
-    document.getElementById('view-toggle-btn').classList.add('org-active');
   } else {
     applyLayout();
   }
   updateGlobeTheme();
 })();
 function applyLayout() {
-  const isList = partLayout === 'list';
-  document.body.classList.toggle('part-list', isList);
-  document.getElementById('layout-toggle-btn').textContent = isList ? '⊞ Cards' : '☰ List';
+  document.body.classList.remove('part-list');
 }
-function toggleLayout() {
-  partLayout = partLayout === 'list' ? 'cards' : 'list';
-  localStorage.setItem('hep-part-layout', partLayout);
-  applyLayout();
-}
-function toggleViewMode() {
-  isOrgView = !isOrgView;
-  localStorage.setItem('hep-dashboard-view', isOrgView ? 'org' : 'part');
-  document.body.classList.toggle('part-view', !isOrgView);
-  document.body.classList.toggle('sketch-theme', isOrgView);
-  if (!isOrgView) applyLayout();
-  document.getElementById('view-toggle-btn').textContent = isOrgView ? '🔑 Organizer' : '👤 Participant';
-  document.getElementById('view-toggle-btn').classList.toggle('org-active', isOrgView);
-  updateGlobeTheme();
-  updateLeafletTheme();
-}
+function toggleLayout() {}
+function toggleViewMode() {}
 
 // read filter params from URL on load: ?region=LAC&topic=SAP+Build+Code
 (function() {
@@ -1337,7 +1319,7 @@ function toggleViewMode() {
   if (filters.size) applyFilters();
 })();
 
-Object.assign(window, {toggleMapMode, calNav, calClick, closePanel, togglePast, togglePostponed, toggleViewMode, toggleLayout});
+Object.assign(window, {toggleMapMode, calNav, calClick, closePanel, togglePast, togglePostponed});
 window.addEventListener('resize', () => { clearTimeout(window._calResT); window._calResT = setTimeout(renderCal, 120); });
 
 // ── Agenda column ─────────────────────────────────────────────────────────────
