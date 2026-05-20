@@ -6,6 +6,8 @@
 !Missions/gen_missions.py
 *.png
 *.jpg
+!Agenda_IS_Bellevue_2026/photo_*.jpg
+!docs/Agenda_IS_Bellevue_2026/photo_*.jpg
 __pycache__/
 backup/
 Agenda/

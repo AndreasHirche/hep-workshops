@@ -134,9 +134,10 @@ body:not(.e-mode) .m-card:not(.is-break),body:not(.e-mode) .tc-card:not(.is-brea
 .sp-tiles-bar{background:#f8f9fa;border-bottom:1px solid #e8ebee;padding:10px 16px;display:flex;flex-direction:column;align-items:stretch;min-height:42px}
 .sp-tiles-lbl{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;text-align:center;margin:0 0 8px;flex-shrink:0}
 .sp-tiles-inner{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
-.sp-tile{display:inline-flex;flex-direction:column;align-items:center;gap:3px;padding:8px 6px 7px;border-radius:8px;background:#fff;border:1px solid #e0e4ea;box-shadow:0 1px 2px rgba(0,0,0,.04);flex:1 0 80px;text-align:center}
-.sp-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0}
-.sp-name{font-weight:600;color:#1d2d3e;font-size:.7rem;line-height:1.2;word-break:break-word}
+.sp-tile{display:inline-flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px 8px;border-radius:10px;background:#fff;border:1px solid #e0e4ea;box-shadow:0 1px 2px rgba(0,0,0,.04);flex:1 0 90px;max-width:130px;text-align:center}
+.sp-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden}
+.sp-avatar img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
+.sp-name{font-weight:600;color:#1d2d3e;font-size:.72rem;line-height:1.2;word-break:break-word}
 .sp-role{font-size:.58rem;color:#0064d9;font-weight:600;line-height:1.2;margin-top:1px}
 .sp-desc{font-size:.6rem;color:#74777a;font-weight:400;line-height:1.3}
 /* Edit mode: time and speaker inline editable */
@@ -265,9 +266,6 @@ body:not(.e-mode) .m-card:not(.is-break),body:not(.e-mode) .tc-card:not(.is-brea
       <div id="pdf-modal-time" class="pdf-modal-hdr-time"></div>
       <div id="pdf-modal-title" class="pdf-modal-hdr-title"></div>
       <div id="pdf-modal-meta" class="pdf-modal-hdr-meta"></div>
-      <div class="pdf-modal-actions">
-        <button class="pdf-modal-edit-btn" onclick="modalEditCard()">&#9998; Edit card</button>
-      </div>
     </div>
     <div id="pdf-modal-qa" class="pdf-modal-qa" style="display:none"></div>
     <iframe id="pdf-modal-frame" style="flex:1;border:none;width:100%;display:none"></iframe>
@@ -678,11 +676,11 @@ function closeModal() {
 
 // ── Speaker tiles ──────────────────────────────────────────────────────
 var SPEAKER_PROFILES={
-  'Tushar':    {color:'#0ea5e9', role:'Product Manager, SAP Integration Suite', desc:'Integration Strategy · Integration Flow · B2B · API Management'},
-  'Elijah':    {color:'#d97706', role:'Product Manager, SAP Integration Suite', desc:'Advanced Event Mesh · Edge Integration Cell · Integration Flow Design'},
-  'Gayathri':  {color:'#c2410c', role:'Product Manager, SAP Integration Suite', desc:'AI capabilities · Event-driven architecture'},
-  'Chandresh': {color:'#7c3aed', role:'Partner Ecosystem Success',              desc:'Partner Solution Adoption · BTP Enablement'},
-  'Andreas':   {color:'#16a34a', role:'Product Manager, BTP Adoption Enablement', desc:'SAP BTP · SAP Discovery Center'}
+  'Tushar':    {color:'#0ea5e9', photo:'photo_tushar.jpg',   role:'Product Manager, SAP Integration Suite', desc:'Integration Strategy · Integration Flow · B2B · API Management'},
+  'Elijah':    {color:'#d97706', photo:'photo_elijah.jpg',   role:'Product Manager, SAP Integration Suite', desc:'Advanced Event Mesh · Edge Integration Cell · Integration Flow Design'},
+  'Gayathri':  {color:'#c2410c', photo:'photo_gayathri.jpg', role:'Product Manager, SAP Integration Suite', desc:'AI capabilities · Event-driven architecture'},
+  'Chandresh': {color:'#7c3aed', photo:'photo_chandresh.jpg',role:'Partner Ecosystem Success',              desc:'Partner Solution Adoption · BTP Enablement'},
+  'Andreas':   {color:'#16a34a', photo:'photo_andreas.jpg',  role:'Product Manager, BTP Adoption Enablement', desc:'SAP BTP · SAP Discovery Center'}
 };
 var SP_COLORS=['#2563eb','#0891b2','#059669','#7c3aed','#dc2626','#d97706','#be185d','#1d4ed8','#0f766e','#9333ea'];
 var SP_STOP={the:1,a:1,an:1,to:1,of:1,and:1,with:1,for:1,in:1,from:1,by:1,on:1,or:1,its:1,your:1,sap:1,welcome:1,back:1,recap:1,wrap:1,up:1,day:1,feedback:1,introduction:1,kickoff:1,overview:1,session:1,update:1,value:1,btp:1,the:1};
@@ -713,7 +711,9 @@ function renderSpeakerTiles() {
       return words.slice(0,2).join(' ');
     }).filter(function(t){if(!t||seen[t])return false;seen[t]=true;return true;});
     var prof=SPEAKER_PROFILES[name];
-    return '<div class="sp-tile"><div class="sp-avatar" style="background:'+p.color+'">'+hesc(name.charAt(0).toUpperCase())+'</div>'
+    var avHtml = (prof && prof.photo) ? '<img src="'+prof.photo+'" alt="'+hesc(name)+'" loading="lazy">' : hesc(name.charAt(0).toUpperCase());
+    var avStyle = (prof && prof.photo) ? '' : ' style="background:'+p.color+'"';
+    return '<div class="sp-tile"><div class="sp-avatar"'+avStyle+'>'+avHtml+'</div>'
       +'<span class="sp-name">'+hesc(name)+'</span>'
       +(prof?'<span class="sp-role">'+hesc(prof.role)+'</span><span class="sp-desc">'+hesc(prof.desc)+'</span>':shorts.length?'<span class="sp-desc">'+hesc(shorts.join(', '))+'</span>':'')+'</div>';
   }).join('')+'</div>';
