@@ -295,8 +295,8 @@ body:not(.e-mode) .m-card:not(.is-break),body:not(.e-mode) .tc-card:not(.is-brea
         <div id="pdf-modal-note-txt" class="modal-note-text"></div>
         <textarea id="pdf-modal-note-ta" class="modal-note-textarea" style="display:none" placeholder="Add a note for this session…"></textarea>
         <div id="pdf-modal-note-btns" class="modal-note-actions" style="display:none">
-          <button class="pdf-modal-action-btn" style="background:rgba(0,100,217,0.85);border-color:rgba(0,80,200,0.5);color:#fff;text-shadow:none" onclick="modalNoteSave()">&#10003; Save</button>
-          <button class="pdf-modal-action-btn" onclick="modalNoteCancel()">&#10005; Cancel</button>
+          <button class="pdf-modal-action-btn" style="background:rgba(0,100,217,0.85);border-color:rgba(0,80,200,0.5);color:#fff;text-shadow:none" onclick="modalBothSave()">&#10003; Done</button>
+          <button class="pdf-modal-action-btn" onclick="modalBothCancel()">&#10005; Cancel</button>
         </div>
       </div>
     </div>
@@ -834,6 +834,7 @@ function _modalShowNote(cid){
   if(editBtn)editBtn.style.display='';
 }
 function modalEditCard(){
+  var cid=_modalCid;
   var ov=document.getElementById('pdf-modal-note-ov');
   var ta=document.getElementById('pdf-modal-note-ta');
   var txt=document.getElementById('pdf-modal-note-txt');
@@ -841,26 +842,47 @@ function modalEditCard(){
   var editBtn=document.getElementById('pdf-modal-edit-btn');
   var area=document.getElementById('pdf-modal-attach-area');
   if(!ov) return;
-  var current=(eData.notes&&eData.notes[_modalCid])||'';
+  // Start Q&A edit mode if visible
+  var qaDiv=document.getElementById('pdf-modal-qa');
+  if(qaDiv&&qaDiv.style.display!=='none') startQaModalEdit(cid);
+  // Open note textarea
+  var current=(eData.notes&&eData.notes[cid])||'';
   ta.value=current; txt.style.display='none';
   ta.style.display='block'; btns.style.display='flex';
   ov.style.display='block';
   if(editBtn)editBtn.style.display='none';
   var inner=document.getElementById('pdf-modal-inner');
   if(area&&!inner.classList.contains('has-attach'))area.style.minHeight='160px';
-  ta.focus();
 }
-function modalNoteSave(){
-  var val=document.getElementById('pdf-modal-note-ta').value.trim();
+function modalBothSave(){
+  var cid=_modalCid;
+  // Save note
+  var noteVal=document.getElementById('pdf-modal-note-ta').value.trim();
   if(!eData.notes)eData.notes={};
-  if(val)eData.notes[_modalCid]=val; else delete eData.notes[_modalCid];
+  if(noteVal)eData.notes[cid]=noteVal; else delete eData.notes[cid];
+  // Save Q&A from edit inputs
+  var qaDiv=document.getElementById('pdf-modal-qa');
+  if(qaDiv&&qaDiv.querySelector('.qa-cell-inp')){
+    var rows=[];
+    qaDiv.querySelectorAll('.qa-cell-inp').forEach(function(inp){
+      var idx=parseInt(inp.dataset.qaIdx),field=inp.dataset.qaField;
+      while(rows.length<=idx)rows.push({q:'',a:''});
+      rows[idx][field]=inp.value;
+    });
+    rows=rows.filter(function(r){return (r.q||'').trim()||(r.a||'').trim();});
+    if(!eData.qas)eData.qas={};
+    if(rows.length)eData.qas[cid]=rows; else delete eData.qas[cid];
+  }
   try{eSave();}catch(e){}
   var area=document.getElementById('pdf-modal-attach-area');
   var inner=document.getElementById('pdf-modal-inner');
   if(area&&!inner.classList.contains('has-attach'))area.style.minHeight='';
-  _modalShowNote(_modalCid);
+  if(qaDiv&&qaDiv.dataset.qaCid) renderQaModal(qaDiv.dataset.qaCid);
+  _modalShowNote(cid);
 }
-function modalNoteCancel(){
+function modalBothCancel(){
+  var qaDiv=document.getElementById('pdf-modal-qa');
+  if(qaDiv&&qaDiv.dataset.qaCid) renderQaModal(qaDiv.dataset.qaCid);
   var area=document.getElementById('pdf-modal-attach-area');
   var inner=document.getElementById('pdf-modal-inner');
   if(area&&!inner.classList.contains('has-attach'))area.style.minHeight='';
@@ -894,11 +916,9 @@ function isWrapUpCard(card){
 function renderQaModal(cid){
   var qaDiv=document.getElementById('pdf-modal-qa');if(!qaDiv)return;
   var rows=(eData.qas&&eData.qas[cid])||[];
-  var editBtn='<button class="qa-edit-btn" style="font-size:.72rem;padding:2px 10px" onclick="startQaModalEdit(\''+cid+'\')">&#9998; Edit</button>';
-  var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-    +'<div class="pdf-modal-qa-title">Q &amp; A</div>'+editBtn+'</div>';
+  var html='<div class="pdf-modal-qa-title" style="margin-bottom:8px">Q &amp; A</div>';
   if(rows.length===0){
-    html+='<div class="qa-empty" style="font-size:.8rem;padding:8px 0">No Q&amp;A yet — click Edit to add</div>';
+    html+='<div class="qa-empty" style="font-size:.8rem;padding:8px 0;color:#94a3b8">No Q&amp;A yet — click Edit to add</div>';
   } else {
     var trs=rows.map(function(r){return '<tr><td>'+hesc(r.q||'')+'</td><td>'+hesc(r.a||'')+'</td></tr>';}).join('');
     html+='<table class="qa-modal-tbl"><thead><tr><th>Question</th><th>Answer</th></tr></thead><tbody>'+trs+'</tbody></table>';
@@ -915,7 +935,6 @@ function startQaModalEdit(cid){
 function renderQaModalEditMode(cid,rows){
   var qaDiv=document.getElementById('pdf-modal-qa');if(!qaDiv)return;
   var addBtn='<button class="qa-add-row-btn" onclick="qaModalAddRow(\''+cid+'\')">+ Row</button>';
-  var doneBtn='<button class="qa-edit-btn" style="font-size:.72rem;padding:2px 10px" onclick="endQaModalEdit(\''+cid+'\')">&#10003; Done</button>';
   var trs=rows.map(function(row,i){
     return '<tr><td><input class="qa-cell-inp" data-qa-idx="'+i+'" data-qa-field="q" value="'+hesc(row.q||'')+'" placeholder="Question..."></td>'
       +'<td><input class="qa-cell-inp" data-qa-idx="'+i+'" data-qa-field="a" value="'+hesc(row.a||'')+'" placeholder="Answer..."></td>'
@@ -923,7 +942,7 @@ function renderQaModalEditMode(cid,rows){
   }).join('');
   qaDiv.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
     +'<div class="pdf-modal-qa-title">Q &amp; A</div>'
-    +'<div style="display:flex;gap:6px">'+addBtn+doneBtn+'</div>'
+    +'<div>'+addBtn+'</div>'
     +'</div>'
     +'<table class="qa-modal-tbl qa-tbl-edit"><thead><tr><th>Question</th><th>Answer</th><th></th></tr></thead><tbody>'+trs+'</tbody></table>';
   qaDiv.querySelectorAll('.qa-cell-inp').forEach(function(inp){
