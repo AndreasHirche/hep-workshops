@@ -78,8 +78,13 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 .e-del{top:3px;right:3px;background:#fee2e2;color:#dc2626}.e-del:hover{background:#fca5a5}
 .e-edit{top:3px;right:25px;background:#eff6ff;color:#2563eb}.e-edit:hover{background:#dbeafe}
 .e-pdf{top:3px;right:47px;background:#fef3c7;color:#d97706}.e-pdf:hover{background:#fde68a}.e-pdf.has-pdf{color:#16a34a;background:#dcfce7}
-.card-pdf-ind{position:absolute;bottom:3px;right:4px;font-size:.55rem;font-weight:700;color:#15803d;background:rgba(22,163,74,0.13);padding:1px 4px;border-radius:2px;pointer-events:none;z-index:2;letter-spacing:0}
+.card-pdf-ind{position:absolute;bottom:3px;right:4px;font-size:.55rem;font-weight:700;color:#15803d;background:rgba(22,163,74,0.18);padding:1px 4px;border-radius:2px;pointer-events:none;z-index:2;letter-spacing:0}
 body:not(.e-mode) .m-card:not(.is-break),body:not(.e-mode) .tc-card:not(.is-break){cursor:pointer}
+/* document-frame outline on all clickable cards in view mode */
+body:not(.e-mode) .m-card::after,body:not(.e-mode) .tc-card:not(.is-break)::after{content:'';position:absolute;bottom:4px;right:5px;width:8px;height:10px;border:1.5px solid rgba(100,116,139,0.3);border-radius:1px 0 1px 1px;pointer-events:none;z-index:1}
+body:not(.e-mode) .m-card::before,body:not(.e-mode) .tc-card:not(.is-break)::before{content:'';position:absolute;bottom:11px;right:5px;width:3px;height:3px;border-top:1.5px solid rgba(100,116,139,0.3);border-right:1.5px solid rgba(100,116,139,0.3);border-radius:0 1px 0 0;pointer-events:none;z-index:1}
+/* hide outline when attachment is present (.card-pdf-ind covers the spot) */
+body:not(.e-mode) [data-has-pdf="1"]::after,body:not(.e-mode) [data-has-pdf="1"]::before{display:none}
 .card-pdf-row{display:none;position:absolute;bottom:0;left:0;right:0;background:rgba(22,163,74,0.08);border-top:1px solid rgba(22,163,74,0.2);padding:2px 5px;font-size:.5rem;font-weight:600;color:#15803d;align-items:center;gap:4px;z-index:6;border-radius:0 0 3px 3px;min-height:16px}
 .e-mode .card-pdf-row{display:flex}
 .card-pdf-row-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;opacity:.85}
