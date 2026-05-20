@@ -480,9 +480,10 @@ function attachCtrl(card) {
         if(!eData.pdfs)eData.pdfs={};
         var isImg=file.type.startsWith('image/');
         eData.pdfs[cid]={name:file.name,data:ev.target.result,type:isImg?'image':'pdf'};
-        eSave();pdfBtn.classList.add('has-pdf');
+        pdfBtn.classList.add('has-pdf');
         pdfBtn.title='File attached – replace';
         updatePdfIndicator(card,cid);
+        try { eSave(); } catch(e) { /* localStorage quota exceeded – attachment works this session only */ }
       };
       reader.readAsDataURL(file);
     };inp.click();
