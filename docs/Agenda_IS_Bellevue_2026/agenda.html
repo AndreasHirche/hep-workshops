@@ -175,6 +175,14 @@ body:not(.e-mode) .m-card:not(.is-break),body:not(.e-mode) .tc-card:not(.is-brea
 .qa-modal-add:hover{background:#eff6ff}
 .qa-modal-done{padding:5px 16px;border:none;border-radius:4px;background:#0064d9;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'72',sans-serif}
 .qa-modal-done:hover{background:#0050a9}
+.qa-sec-hdr{display:flex;justify-content:flex-end;align-items:center;margin-bottom:3px}
+.qa-edit-btn{background:none;border:1px solid rgba(2,116,127,0.4);border-radius:3px;color:#02747f;font-size:.55rem;font-weight:700;padding:1px 6px;cursor:pointer;font-family:inherit;line-height:1.5}
+.qa-edit-btn:hover{background:rgba(2,116,127,0.1)}
+.qa-add-row-btn{background:none;border:1px dashed rgba(2,116,127,0.4);border-radius:3px;color:#02747f;font-size:.55rem;font-weight:600;padding:1px 5px;cursor:pointer;font-family:inherit;line-height:1.5;margin-right:4px}
+.qa-add-row-btn:hover{background:rgba(2,116,127,0.08)}
+.qa-tbl-edit td:last-child{width:16px;padding:1px 2px}
+.qa-cell-inp{width:100%;border:1px solid rgba(2,116,127,0.3);border-radius:2px;padding:1px 3px;font-size:.58rem;font-family:'72',sans-serif;outline:none;color:#1d2d3e;background:#fff}
+.qa-cell-inp:focus{border-color:#0064d9;box-shadow:0 0 0 1px #e0eefa}
 </style>
 </head>
 <body>
@@ -794,11 +802,13 @@ function isWrapUpCard(card){
 function renderQaInCard(card,cid){
   var sec=card.querySelector('.qa-section');if(!sec)return;
   var rows=(eData.qas&&eData.qas[cid])||[];
+  var editBtn='<button class="qa-edit-btn" onclick="event.stopPropagation();startQaEdit(\''+cid+'\')">&#9998; Edit</button>';
+  var hdr='<div class="qa-sec-hdr">'+editBtn+'</div>';
   if(rows.length===0){
-    sec.innerHTML='<table class="qa-tbl"><thead><tr><th>Question</th><th>Answer</th></tr></thead></table><div class="qa-empty">Click card to add Q&amp;A</div>';
+    sec.innerHTML=hdr+'<table class="qa-tbl"><thead><tr><th>Question</th><th>Answer</th></tr></thead></table><div class="qa-empty">No Q&amp;A yet</div>';
   } else {
     var trs=rows.map(function(r){return '<tr><td>'+hesc(r.q||'')+'</td><td>'+hesc(r.a||'')+'</td></tr>';}).join('');
-    sec.innerHTML='<table class="qa-tbl"><thead><tr><th>Question</th><th>Answer</th></tr></thead><tbody>'+trs+'</tbody></table>';
+    sec.innerHTML=hdr+'<table class="qa-tbl"><thead><tr><th>Question</th><th>Answer</th></tr></thead><tbody>'+trs+'</tbody></table>';
   }
 }
 function initQaSections(){
@@ -816,61 +826,84 @@ function renderQaModal(cid){
   var qaDiv=document.getElementById('pdf-modal-qa');if(!qaDiv)return;
   var rows=(eData.qas&&eData.qas[cid])||[];
   var html='<div class="pdf-modal-qa-title">Q &amp; A</div>';
-  html+='<table class="qa-modal-tbl"><thead><tr><th>Question</th><th>Answer</th><th></th></tr></thead><tbody>';
-  rows.forEach(function(row,i){
-    html+='<tr><td><input class="qa-modal-inp" data-qa-idx="'+i+'" data-qa-field="q" value="'+hesc(row.q||'')+'" placeholder="Enter question..."></td>';
-    html+='<td><input class="qa-modal-inp" data-qa-idx="'+i+'" data-qa-field="a" value="'+hesc(row.a||'')+'" placeholder="Enter answer..."></td>';
-    html+='<td><button class="qa-modal-del" data-qa-del-idx="'+i+'" title="Delete row">&times;</button></td></tr>';
-  });
-  html+='</tbody></table>';
-  html+='<div class="qa-modal-footer"><button class="qa-modal-add" onclick="qaAddRow(\''+cid+'\')">+ Add Row</button>';
-  html+='<button class="qa-modal-done" onclick="qaModalDone(\''+cid+'\')">&#10003; Done</button></div>';
+  if(rows.length===0){
+    html+='<div class="qa-empty" style="font-size:.8rem;padding:8px 0">No Q&amp;A added — click &#9998; Edit on the card to add.</div>';
+  } else {
+    var trs=rows.map(function(r){return '<tr><td>'+hesc(r.q||'')+'</td><td>'+hesc(r.a||'')+'</td></tr>';}).join('');
+    html+='<table class="qa-modal-tbl"><thead><tr><th>Question</th><th>Answer</th></tr></thead><tbody>'+trs+'</tbody></table>';
+  }
   qaDiv.innerHTML=html;qaDiv.style.display='block';qaDiv.dataset.qaCid=cid;
-  qaDiv.querySelectorAll('.qa-modal-inp').forEach(function(inp){
+}
+function startQaEdit(cid){
+  var card=document.querySelector('[data-cid="'+cid+'"]');
+  var sec=card&&card.querySelector('.qa-section');if(!sec)return;
+  if(!eData.qas)eData.qas={};
+  if(!eData.qas[cid]||!eData.qas[cid].length)eData.qas[cid]=[{q:'',a:''}];
+  renderQaEditMode(sec,cid,eData.qas[cid]);
+  var first=sec.querySelector('.qa-cell-inp');if(first)first.focus();
+}
+function renderQaEditMode(sec,cid,rows){
+  var addBtn='<button class="qa-add-row-btn" onclick="event.stopPropagation();qaAddRowInline(\''+cid+'\')">+ Row</button>';
+  var doneBtn='<button class="qa-edit-btn" onclick="event.stopPropagation();endQaEdit(\''+cid+'\')">&#10003; Done</button>';
+  var trs=rows.map(function(row,i){
+    return '<tr><td><input class="qa-cell-inp" data-qa-idx="'+i+'" data-qa-field="q" value="'+hesc(row.q||'')+'" placeholder="Question..."></td>'
+      +'<td><input class="qa-cell-inp" data-qa-idx="'+i+'" data-qa-field="a" value="'+hesc(row.a||'')+'" placeholder="Answer..."></td>'
+      +'<td><button class="qa-modal-del" onclick="event.stopPropagation();qaDelRowInline(\''+cid+'\','+i+')">&times;</button></td></tr>';
+  }).join('');
+  sec.innerHTML='<div class="qa-sec-hdr">'+addBtn+doneBtn+'</div>'
+    +'<table class="qa-tbl qa-tbl-edit"><thead><tr><th>Question</th><th>Answer</th><th></th></tr></thead><tbody>'+trs+'</tbody></table>';
+  sec.querySelectorAll('.qa-cell-inp').forEach(function(inp){
+    inp.addEventListener('click',function(e){e.stopPropagation();});
     inp.addEventListener('input',function(){
       var idx=parseInt(inp.dataset.qaIdx),field=inp.dataset.qaField;
-      if(!eData.qas)eData.qas={};if(!eData.qas[cid])eData.qas[cid]=[];
-      while(eData.qas[cid].length<=idx)eData.qas[cid].push({q:'',a:''});
+      if(!eData.qas[cid][idx])eData.qas[cid][idx]={q:'',a:''};
       eData.qas[cid][idx][field]=inp.value;
     });
   });
-  qaDiv.querySelectorAll('[data-qa-del-idx]').forEach(function(btn){
-    btn.addEventListener('click',function(){
-      var idx=parseInt(btn.dataset.qaDelIdx);
-      if(eData.qas&&eData.qas[cid]){eData.qas[cid].splice(idx,1);if(!eData.qas[cid].length)delete eData.qas[cid];}
-      renderQaModal(cid);
-      var card=document.querySelector('[data-cid="'+cid+'"]');if(card)renderQaInCard(card,cid);
-      try{eSave();}catch(err){}
-    });
-  });
 }
-function qaAddRow(cid){
-  var qaDiv=document.getElementById('pdf-modal-qa');
-  if(!eData.qas)eData.qas={};if(!eData.qas[cid])eData.qas[cid]=[];
-  if(qaDiv){qaDiv.querySelectorAll('.qa-modal-inp').forEach(function(inp){
+function endQaEdit(cid){
+  var card=document.querySelector('[data-cid="'+cid+'"]');
+  var sec=card&&card.querySelector('.qa-section');if(!sec)return;
+  var rows=[];
+  sec.querySelectorAll('.qa-cell-inp').forEach(function(inp){
     var idx=parseInt(inp.dataset.qaIdx),field=inp.dataset.qaField;
-    while(eData.qas[cid].length<=idx)eData.qas[cid].push({q:'',a:''});
-    eData.qas[cid][idx][field]=inp.value;
-  });}
-  eData.qas[cid].push({q:'',a:''});
-  renderQaModal(cid);
-  var card=document.querySelector('[data-cid="'+cid+'"]');if(card)renderQaInCard(card,cid);
+    while(rows.length<=idx)rows.push({q:'',a:''});
+    rows[idx][field]=inp.value;
+  });
+  rows=rows.filter(function(r){return (r.q||'').trim()||(r.a||'').trim();});
+  if(!eData.qas)eData.qas={};
+  if(rows.length)eData.qas[cid]=rows;else delete eData.qas[cid];
   try{eSave();}catch(err){}
-  if(qaDiv){var inputs=qaDiv.querySelectorAll('.qa-modal-inp[data-qa-field="q"]');var last=inputs[inputs.length-1];if(last)last.focus();}
+  renderQaInCard(card,cid);
 }
-function qaModalDone(cid){
-  var qaDiv=document.getElementById('pdf-modal-qa');
-  if(qaDiv&&eData.qas&&eData.qas[cid]){
-    qaDiv.querySelectorAll('.qa-modal-inp').forEach(function(inp){
-      var idx=parseInt(inp.dataset.qaIdx),field=inp.dataset.qaField;
-      if(eData.qas[cid][idx])eData.qas[cid][idx][field]=inp.value;
-    });
-    eData.qas[cid]=eData.qas[cid].filter(function(r){return (r.q||'').trim()||(r.a||'').trim();});
-    if(!eData.qas[cid].length)delete eData.qas[cid];
-  }
-  var card=document.querySelector('[data-cid="'+cid+'"]');if(card)renderQaInCard(card,cid);
-  try{eSave();}catch(err){}
-  closePdfModal();
+function qaAddRowInline(cid){
+  var card=document.querySelector('[data-cid="'+cid+'"]');
+  var sec=card&&card.querySelector('.qa-section');if(!sec)return;
+  var rows=[];
+  sec.querySelectorAll('.qa-cell-inp').forEach(function(inp){
+    var idx=parseInt(inp.dataset.qaIdx),field=inp.dataset.qaField;
+    while(rows.length<=idx)rows.push({q:'',a:''});
+    rows[idx][field]=inp.value;
+  });
+  rows.push({q:'',a:''});
+  if(!eData.qas)eData.qas={};eData.qas[cid]=rows;
+  renderQaEditMode(sec,cid,rows);
+  var inputs=sec.querySelectorAll('.qa-cell-inp[data-qa-field="q"]');
+  var last=inputs[inputs.length-1];if(last)last.focus();
+}
+function qaDelRowInline(cid,idx){
+  var card=document.querySelector('[data-cid="'+cid+'"]');
+  var sec=card&&card.querySelector('.qa-section');if(!sec)return;
+  var rows=[];
+  sec.querySelectorAll('.qa-cell-inp').forEach(function(inp){
+    var i=parseInt(inp.dataset.qaIdx),field=inp.dataset.qaField;
+    while(rows.length<=i)rows.push({q:'',a:''});
+    rows[i][field]=inp.value;
+  });
+  rows.splice(idx,1);
+  if(!rows.length)rows=[{q:'',a:''}];
+  if(!eData.qas)eData.qas={};eData.qas[cid]=rows;
+  renderQaEditMode(sec,cid,rows);
 }
 
 function updatePdfIndicator(card,cid){
