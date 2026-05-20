@@ -98,7 +98,12 @@ body:not(.e-mode) .m-card:not(.is-break),body:not(.e-mode) .tc-card:not(.is-brea
 .pdf-modal-hdr-title{font-size:.95rem;font-weight:700;color:#1d2d3e;line-height:1.3;margin-bottom:8px}
 .pdf-modal-hdr-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .pdf-modal-hdr-speaker{font-size:.7rem;font-weight:600;color:#475569;background:#eef2f7;border-radius:3px;padding:2px 7px}
-.pdf-modal-close{position:absolute;top:8px;right:10px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:.85rem;font-family:inherit}
+.pdf-modal-close{position:absolute;top:10px;right:12px;z-index:10;padding:4px 14px;border:1px solid rgba(0,0,0,0.35);border-radius:4px;background:rgba(0,0,0,0.18);color:rgba(255,255,255,0.75);font-family:'72',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;box-shadow:inset 0 1px 2px rgba(0,0,0,0.4),inset 0 -1px 1px rgba(255,255,255,0.08);text-shadow:0 1px 2px rgba(0,0,0,0.5)}
+.pdf-modal-close:hover{background:rgba(0,0,0,0.28);color:#fff}
+.pdf-modal-actions{display:flex;gap:6px;margin-top:8px}
+.pdf-modal-action-btn{padding:4px 14px;border:1px solid rgba(0,0,0,0.35);border-radius:4px;background:rgba(0,0,0,0.18);color:rgba(255,255,255,0.75);font-family:'72',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;box-shadow:inset 0 1px 2px rgba(0,0,0,0.4),inset 0 -1px 1px rgba(255,255,255,0.08);text-shadow:0 1px 2px rgba(0,0,0,0.5)}
+.pdf-modal-action-btn:hover{background:rgba(0,0,0,0.28);color:#fff}
+.pdf-modal-action-btn.has-attach{color:#86efac;border-color:rgba(22,163,74,0.5)}
 .e-dialog{background:#fff;border-radius:8px;padding:20px;width:340px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.2)}
 .e-dialog-title{font-size:.9rem;font-weight:700;color:#1d2d3e;margin-bottom:14px}
 .e-field{margin-bottom:10px}.e-field label{display:block;font-size:.72rem;color:#64748b;margin-bottom:3px;font-weight:600}
@@ -133,8 +138,8 @@ body:not(.e-mode) .m-card:not(.is-break),body:not(.e-mode) .tc-card:not(.is-brea
 /* Speaker tiles */
 .sp-tiles-bar{background:#f8f9fa;border-bottom:1px solid #e8ebee;padding:10px 16px;display:flex;flex-direction:column;align-items:stretch;min-height:42px}
 .sp-tiles-lbl{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;text-align:center;margin:0 0 8px;flex-shrink:0}
-.sp-tiles-inner{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
-.sp-tile{display:inline-flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px 8px;border-radius:10px;background:#fff;border:1px solid #e0e4ea;box-shadow:0 1px 2px rgba(0,0,0,.04);flex:1 0 90px;max-width:130px;text-align:center}
+.sp-tiles-inner{display:flex;gap:8px;flex-wrap:nowrap;align-items:flex-start;justify-content:space-evenly}
+.sp-tile{display:inline-flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px 8px;border-radius:10px;background:#fff;border:1px solid #e0e4ea;box-shadow:0 1px 2px rgba(0,0,0,.04);flex:1;text-align:center}
 .sp-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden}
 .sp-avatar img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
 .sp-name{font-weight:600;color:#1d2d3e;font-size:.72rem;line-height:1.2;word-break:break-word}
@@ -266,6 +271,10 @@ body:not(.e-mode) .m-card:not(.is-break),body:not(.e-mode) .tc-card:not(.is-brea
       <div id="pdf-modal-time" class="pdf-modal-hdr-time"></div>
       <div id="pdf-modal-title" class="pdf-modal-hdr-title"></div>
       <div id="pdf-modal-meta" class="pdf-modal-hdr-meta"></div>
+      <div class="pdf-modal-actions">
+        <button id="pdf-modal-attach-btn" class="pdf-modal-action-btn" onclick="modalAttach()">&#128206; Attach</button>
+        <button class="pdf-modal-action-btn" onclick="modalEditCard()">&#9998; Edit</button>
+      </div>
     </div>
     <div id="pdf-modal-qa" class="pdf-modal-qa" style="display:none"></div>
     <iframe id="pdf-modal-frame" style="flex:1;border:none;width:100%;display:none"></iframe>
@@ -795,6 +804,27 @@ function modalEditCard(){
   closePdfModal();
   if(!eMode) toggleEdit();
 }
+function modalAttach(){
+  if(!_modalCid) return;
+  var cid=_modalCid;
+  var inp=document.createElement('input');inp.type='file';inp.accept='application/pdf,.pdf,image/*';
+  inp.onchange=function(){
+    var file=inp.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      if(!eData.pdfs)eData.pdfs={};
+      var isImg=file.type.startsWith('image/');
+      eData.pdfs[cid]={name:file.name,data:ev.target.result,type:isImg?'image':'pdf'};
+      var card=document.querySelector('[data-cid="'+cid+'"]');
+      if(card){updatePdfIndicator(card,cid);var b=card.querySelector('.e-pdf');if(b){b.classList.add('has-pdf');b.title='File attached – replace';}}
+      try{eSave();}catch(e){}
+      closePdfModal();
+      openCardModal(cid);
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
 
 function isWrapUpCard(card){
   return Array.from(card.querySelectorAll('.badge')).some(function(b){return /wrap/i.test(b.textContent);});
@@ -933,7 +963,9 @@ function deletePdf(cid,card){
   updatePdfIndicator(card,cid);
 }
 var _pdfBlobUrl=null;
+var _modalCid=null;
 function openCardModal(cid){
+  _modalCid=cid;
   var card=document.querySelector('[data-cid="'+cid+'"]');
   var pdf=eData.pdfs&&eData.pdfs[cid];
   // Populate header
@@ -995,6 +1027,9 @@ function openCardModal(cid){
     if(qaDiv2){qaDiv2.style.display='none';qaDiv2.innerHTML='';}
   }
   var ov=document.getElementById('pdf-modal-ov');
+  // Update attach button state
+  var attachBtn=document.getElementById('pdf-modal-attach-btn');
+  if(attachBtn) attachBtn.classList.toggle('has-attach',!!(eData.pdfs&&eData.pdfs[cid]));
   ov.style.display='flex';
   ov.addEventListener('click',function(e){if(e.target===ov)closePdfModal();},{once:true});
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closePdfModal();},{once:true});
