@@ -78,7 +78,8 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 .e-del{top:3px;right:3px;background:#fee2e2;color:#dc2626}.e-del:hover{background:#fca5a5}
 .e-edit{top:3px;right:25px;background:#eff6ff;color:#2563eb}.e-edit:hover{background:#dbeafe}
 .e-pdf{top:3px;right:47px;background:#fef3c7;color:#d97706}.e-pdf:hover{background:#fde68a}.e-pdf.has-pdf{color:#16a34a;background:#dcfce7}
-.card-pdf-ind{position:absolute;bottom:3px;right:4px;font-size:.55rem;font-weight:700;color:#d97706;opacity:.7;pointer-events:none;z-index:1;letter-spacing:0}
+.card-pdf-ind{position:absolute;bottom:3px;right:4px;font-size:.55rem;font-weight:700;color:#15803d;background:rgba(22,163,74,0.13);padding:1px 4px;border-radius:2px;pointer-events:none;z-index:2;letter-spacing:0}
+body:not(.e-mode) .m-card:not(.is-break),body:not(.e-mode) .tc-card:not(.is-break){cursor:pointer}
 .card-pdf-row{display:none;position:absolute;bottom:0;left:0;right:0;background:rgba(22,163,74,0.08);border-top:1px solid rgba(22,163,74,0.2);padding:2px 5px;font-size:.5rem;font-weight:600;color:#15803d;align-items:center;gap:4px;z-index:6;border-radius:0 0 3px 3px;min-height:16px}
 .e-mode .card-pdf-row{display:flex}
 .card-pdf-row-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;opacity:.85}
@@ -91,7 +92,13 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 .drag-over{outline:2px dashed #0064d9!important;outline-offset:-2px;background:#eff6ff!important}.dragging{opacity:.4}.card-fade{opacity:0;transition:opacity .15s}
 #e-modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;align-items:center;justify-content:center}
 #pdf-modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:700;align-items:center;justify-content:center}
-.pdf-modal-inner{position:relative;width:92vw;height:92vh;background:#fff;border-radius:8px;overflow:hidden;display:flex;flex-direction:column}
+.pdf-modal-inner{position:relative;width:92vw;max-height:92vh;background:#fff;border-radius:8px;overflow:hidden;display:flex;flex-direction:column}
+.pdf-modal-inner.has-attach{height:92vh}
+.pdf-modal-hdr{padding:14px 52px 12px 16px;border-bottom:1px solid #e8ebee;flex-shrink:0;background:#f8f9fa}
+.pdf-modal-hdr-time{font-size:.7rem;font-weight:700;color:#8b9db0;margin-bottom:4px}
+.pdf-modal-hdr-title{font-size:.95rem;font-weight:700;color:#1d2d3e;line-height:1.3;margin-bottom:8px}
+.pdf-modal-hdr-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pdf-modal-hdr-speaker{font-size:.7rem;font-weight:600;color:#475569;background:#eef2f7;border-radius:3px;padding:2px 7px}
 .pdf-modal-close{position:absolute;top:8px;right:10px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:.85rem;font-family:inherit}
 .e-dialog{background:#fff;border-radius:8px;padding:20px;width:340px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.2)}
 .e-dialog-title{font-size:.9rem;font-weight:700;color:#1d2d3e;margin-bottom:14px}
@@ -215,9 +222,15 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 
 
 <div id="pdf-modal-ov">
-  <div class="pdf-modal-inner">
-    <button class="pdf-modal-close" onclick="closePdfModal()">&#10005; Close</button>
-    <iframe id="pdf-modal-frame" style="flex:1;border:none;width:100%;height:100%"></iframe>
+  <div class="pdf-modal-inner" id="pdf-modal-inner">
+    <div class="pdf-modal-hdr" id="pdf-modal-hdr">
+      <button class="pdf-modal-close" onclick="closePdfModal()">&#10005; Close</button>
+      <div id="pdf-modal-time" class="pdf-modal-hdr-time"></div>
+      <div id="pdf-modal-title" class="pdf-modal-hdr-title"></div>
+      <div id="pdf-modal-meta" class="pdf-modal-hdr-meta"></div>
+    </div>
+    <iframe id="pdf-modal-frame" style="flex:1;border:none;width:100%;display:none"></iframe>
+    <div id="pdf-modal-imgwrap" style="flex:1;display:none;align-items:center;justify-content:center;overflow:auto;background:#f1f5f9;padding:12px"><img id="pdf-modal-img" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px" alt=""></div>
   </div>
 </div>
 
@@ -456,19 +469,20 @@ function attachCtrl(card) {
   edt.onclick=function(e) { e.stopPropagation(); startInlineEdit(card.querySelector('.m-card-title'),cid); };
   var pdfBtn=document.createElement('button');
   pdfBtn.className='e-pdf'+(eData.pdfs&&eData.pdfs[cid]?' has-pdf':'');
-  pdfBtn.title=eData.pdfs&&eData.pdfs[cid]?'PDF attached - replace':'Attach PDF';
+  pdfBtn.title=eData.pdfs&&eData.pdfs[cid]?'File attached – replace':'Attach file (PDF or image)';
   pdfBtn.innerHTML='&#128196;';
   pdfBtn.onclick=function(e){
     e.stopPropagation();
-    var inp=document.createElement('input');inp.type='file';inp.accept='application/pdf,.pdf';
+    var inp=document.createElement('input');inp.type='file';inp.accept='application/pdf,.pdf,image/*';
     inp.onchange=function(){
       var file=inp.files[0];if(!file)return;
       var reader=new FileReader();
       reader.onload=function(ev){
         if(!eData.pdfs)eData.pdfs={};
-        eData.pdfs[cid]={name:file.name,data:ev.target.result};
+        var isImg=file.type.startsWith('image/');
+        eData.pdfs[cid]={name:file.name,data:ev.target.result,type:isImg?'image':'pdf'};
         eSave();pdfBtn.classList.add('has-pdf');
-        pdfBtn.title='PDF attached - replace';
+        pdfBtn.title='File attached – replace';
         updatePdfIndicator(card,cid);
       };
       reader.readAsDataURL(file);
@@ -739,7 +753,9 @@ function updatePdfIndicator(card,cid){
   var old=card.querySelector('.card-pdf-ind');if(old)old.remove();
   var oldRow=card.querySelector('.card-pdf-row');if(oldRow)oldRow.remove();
   if(eData.pdfs&&eData.pdfs[cid]){
-    var ind=document.createElement('span');ind.className='card-pdf-ind';ind.textContent='PDF';
+    var att=eData.pdfs[cid];
+    var ind=document.createElement('span');ind.className='card-pdf-ind';
+    ind.textContent=att.type==='image'?'IMG':'PDF';
     card.appendChild(ind);card.dataset.hasPdf='1';
     attachPdfRow(card,cid);
   } else { delete card.dataset.hasPdf; }
@@ -750,7 +766,9 @@ function applyPdfIndicators(){
     var el=document.querySelector('[data-cid="'+cid+'"]');if(!el)return;
     el.dataset.hasPdf='1';
     if(!el.querySelector('.card-pdf-ind')){
-      var ind=document.createElement('span');ind.className='card-pdf-ind';ind.textContent='PDF';
+      var att=eData.pdfs[cid];
+      var ind=document.createElement('span');ind.className='card-pdf-ind';
+      ind.textContent=att.type==='image'?'IMG':'PDF';
       el.appendChild(ind);
     }
     if(!el.querySelector('.card-pdf-row'))attachPdfRow(el,cid);
@@ -760,13 +778,13 @@ function attachPdfRow(card,cid){
   var pdf=eData.pdfs&&eData.pdfs[cid];if(!pdf)return;
   var row=document.createElement('div');row.className='card-pdf-row';
   var name=document.createElement('span');name.className='card-pdf-row-name';
-  name.title=pdf.name;name.textContent='📄 '+pdf.name;
+  name.title=pdf.name;name.textContent=(pdf.type==='image'?'🖼 ':'📄 ')+pdf.name;
   name.onclick=function(e){
     e.stopPropagation();
     var btn=card.querySelector('.e-pdf');if(btn)btn.click();
   };
   var del=document.createElement('button');del.className='card-pdf-row-del';
-  del.textContent='×';del.title='Remove PDF';
+  del.textContent='×';del.title='Remove attachment';
   del.onclick=function(e){e.stopPropagation();deletePdf(cid,card);};
   row.appendChild(name);row.appendChild(del);
   card.appendChild(row);
@@ -776,25 +794,64 @@ function deletePdf(cid,card){
   delete eData.pdfs[cid];
   eSave();
   var btn=card.querySelector('.e-pdf');
-  if(btn){btn.classList.remove('has-pdf');btn.title='Attach PDF';}
+  if(btn){btn.classList.remove('has-pdf');btn.title='Attach file (PDF or image)';}
   updatePdfIndicator(card,cid);
 }
 var _pdfBlobUrl=null;
-function openPdfModal(cid){
-  var pdf=eData.pdfs&&eData.pdfs[cid];if(!pdf)return;
+function openCardModal(cid){
+  var card=document.querySelector('[data-cid="'+cid+'"]');
+  var pdf=eData.pdfs&&eData.pdfs[cid];
+  // Populate header
+  var timeDiv=document.getElementById('pdf-modal-time');
+  var titleDiv=document.getElementById('pdf-modal-title');
+  var metaDiv=document.getElementById('pdf-modal-meta');
+  var tcTime=card&&card.querySelector('.tc-time');
+  timeDiv.textContent=tcTime?tcTime.textContent:'';
+  timeDiv.style.display=tcTime?'block':'none';
+  var titleNode=card&&card.querySelector('.m-card-title');
+  titleDiv.textContent=titleNode?titleNode.textContent:'';
+  metaDiv.innerHTML='';
+  if(card){
+    card.querySelectorAll('.m-card-badges .badge').forEach(function(b){
+      metaDiv.appendChild(b.cloneNode(true));
+    });
+    var spNode=card.querySelector('.tc-speaker:not(.e-add-sp)');
+    if(spNode&&spNode.textContent.trim()){
+      var sp=document.createElement('span');
+      sp.className='pdf-modal-hdr-speaker';
+      sp.textContent=spNode.textContent.trim();
+      metaDiv.appendChild(sp);
+    }
+  }
+  // Show attachment if any
   var frame=document.getElementById('pdf-modal-frame');
-  try {
-    var parts=pdf.data.split(',');
-    var mime=parts[0].split(':')[1].split(';')[0];
-    var bytes=atob(parts[1]);
-    var ab=new ArrayBuffer(bytes.length);
-    var ia=new Uint8Array(ab);
-    for(var i=0;i<bytes.length;i++)ia[i]=bytes.charCodeAt(i);
-    var blob=new Blob([ab],{type:mime});
-    if(_pdfBlobUrl)URL.revokeObjectURL(_pdfBlobUrl);
-    _pdfBlobUrl=URL.createObjectURL(blob);
-    frame.src=_pdfBlobUrl;
-  } catch(err){ frame.src=pdf.data; }
+  var imgwrap=document.getElementById('pdf-modal-imgwrap');
+  var img=document.getElementById('pdf-modal-img');
+  var inner=document.getElementById('pdf-modal-inner');
+  frame.style.display='none'; frame.src='';
+  imgwrap.style.display='none'; img.src='';
+  inner.classList.remove('has-attach');
+  if(pdf){
+    inner.classList.add('has-attach');
+    if(pdf.type==='image'){
+      img.src=pdf.data;
+      imgwrap.style.display='flex';
+    } else {
+      try {
+        var parts=pdf.data.split(',');
+        var mime=parts[0].split(':')[1].split(';')[0];
+        var bytes=atob(parts[1]);
+        var ab=new ArrayBuffer(bytes.length);
+        var ia=new Uint8Array(ab);
+        for(var i=0;i<bytes.length;i++)ia[i]=bytes.charCodeAt(i);
+        var blob=new Blob([ab],{type:mime});
+        if(_pdfBlobUrl)URL.revokeObjectURL(_pdfBlobUrl);
+        _pdfBlobUrl=URL.createObjectURL(blob);
+        frame.src=_pdfBlobUrl;
+      } catch(err){ frame.src=pdf.data; }
+      frame.style.display='block';
+    }
+  }
   var ov=document.getElementById('pdf-modal-ov');
   ov.style.display='flex';
   ov.addEventListener('click',function(e){if(e.target===ov)closePdfModal();},{once:true});
@@ -803,16 +860,19 @@ function openPdfModal(cid){
 function closePdfModal(){
   document.getElementById('pdf-modal-ov').style.display='none';
   var frame=document.getElementById('pdf-modal-frame');
-  frame.src='';
+  frame.src=''; frame.style.display='none';
+  var img=document.getElementById('pdf-modal-img');
+  img.src=''; document.getElementById('pdf-modal-imgwrap').style.display='none';
+  document.getElementById('pdf-modal-inner').classList.remove('has-attach');
   if(_pdfBlobUrl){URL.revokeObjectURL(_pdfBlobUrl);_pdfBlobUrl=null;}
 }
 document.addEventListener('click',function(e){
   if(eMode)return;
   var card=e.target.closest('.m-card,.tc-card');
-  if(!card||!card.dataset.hasPdf)return;
+  if(!card||card.classList.contains('is-break'))return;
   if(e.target.closest('.cbtn'))return;
   e.stopPropagation();
-  openPdfModal(card.dataset.cid);
+  openCardModal(card.dataset.cid);
 });
 
 (function(){
