@@ -79,6 +79,12 @@ body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363
 .e-edit{top:3px;right:25px;background:#eff6ff;color:#2563eb}.e-edit:hover{background:#dbeafe}
 .e-pdf{top:3px;right:47px;background:#fef3c7;color:#d97706}.e-pdf:hover{background:#fde68a}.e-pdf.has-pdf{color:#16a34a;background:#dcfce7}
 .card-pdf-ind{position:absolute;bottom:3px;right:4px;font-size:.55rem;font-weight:700;color:#d97706;opacity:.7;pointer-events:none;z-index:1;letter-spacing:0}
+.card-pdf-row{display:none;position:absolute;bottom:0;left:0;right:0;background:rgba(22,163,74,0.08);border-top:1px solid rgba(22,163,74,0.2);padding:2px 5px;font-size:.5rem;font-weight:600;color:#15803d;align-items:center;gap:4px;z-index:6;border-radius:0 0 3px 3px;min-height:16px}
+.e-mode .card-pdf-row{display:flex}
+.card-pdf-row-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;opacity:.85}
+.card-pdf-row-name:hover{opacity:1;text-decoration:underline}
+.card-pdf-row-del{background:none;border:none;color:#dc2626;cursor:pointer;font-size:.7rem;padding:0 2px;line-height:1;flex-shrink:0;font-weight:700}
+.card-pdf-row-del:hover{color:#b91c1c}
 .e-mode .cbtn{opacity:.25;pointer-events:none}
 .e-add-btn{display:block;width:100%;margin-top:6px;padding:7px;border:1px dashed #c5cbd3;border-radius:4px;background:none;color:#94a3b8;font-size:.75rem;cursor:pointer;text-align:center;font-family:'72',sans-serif}
 .e-add-btn:hover{background:#f5f6f7;color:#0064d9;border-color:#0064d9;border-style:solid}
@@ -731,9 +737,11 @@ applyPdfIndicators();
 
 function updatePdfIndicator(card,cid){
   var old=card.querySelector('.card-pdf-ind');if(old)old.remove();
+  var oldRow=card.querySelector('.card-pdf-row');if(oldRow)oldRow.remove();
   if(eData.pdfs&&eData.pdfs[cid]){
     var ind=document.createElement('span');ind.className='card-pdf-ind';ind.textContent='PDF';
     card.appendChild(ind);card.dataset.hasPdf='1';
+    attachPdfRow(card,cid);
   } else { delete card.dataset.hasPdf; }
 }
 function applyPdfIndicators(){
@@ -745,7 +753,31 @@ function applyPdfIndicators(){
       var ind=document.createElement('span');ind.className='card-pdf-ind';ind.textContent='PDF';
       el.appendChild(ind);
     }
+    if(!el.querySelector('.card-pdf-row'))attachPdfRow(el,cid);
   });
+}
+function attachPdfRow(card,cid){
+  var pdf=eData.pdfs&&eData.pdfs[cid];if(!pdf)return;
+  var row=document.createElement('div');row.className='card-pdf-row';
+  var name=document.createElement('span');name.className='card-pdf-row-name';
+  name.title=pdf.name;name.textContent='📄 '+pdf.name;
+  name.onclick=function(e){
+    e.stopPropagation();
+    var btn=card.querySelector('.e-pdf');if(btn)btn.click();
+  };
+  var del=document.createElement('button');del.className='card-pdf-row-del';
+  del.textContent='×';del.title='Remove PDF';
+  del.onclick=function(e){e.stopPropagation();deletePdf(cid,card);};
+  row.appendChild(name);row.appendChild(del);
+  card.appendChild(row);
+}
+function deletePdf(cid,card){
+  if(!eData.pdfs)return;
+  delete eData.pdfs[cid];
+  eSave();
+  var btn=card.querySelector('.e-pdf');
+  if(btn){btn.classList.remove('has-pdf');btn.title='Attach PDF';}
+  updatePdfIndicator(card,cid);
 }
 var _pdfBlobUrl=null;
 function openPdfModal(cid){
