@@ -209,7 +209,7 @@
   .view-toggle.org-active{background:#1e293b;border-color:#f59e0b;color:#fde68a}
 
   /* ── PARTICIPANT MODE ── */
-  body.part-view .tbl-wrap{display:none}
+  body.part-view .tbl-wrap{display:block}
   body.part-view.part-list .tbl-wrap{display:block}
 
   /* ── LAYOUT TOGGLE ── */
@@ -222,8 +222,7 @@
 
   /* ── CARD GRID ── */
   #part-grid{display:none}
-  body.part-view #part-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-    background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;gap:0}
+  body.part-view #part-grid{display:none}
   body.part-view.part-list #part-grid{display:none}
   .sap-pills-hidden{display:none}
   .sap-card{padding:20px;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;
@@ -354,7 +353,7 @@
     <h1>Workshops</h1>
   </div>
   <div class="top-links">
-    <div class="pref-group" style="border-left:none;padding-left:0;margin-left:0">
+    <div class="pref-group org-col" style="border-left:none;padding-left:0;margin-left:0">
       <span class="pref-group-label">Mode</span>
       <div class="pref-group-row">
         <button id="past-toggle-btn" class="phase-toggle org-col" onclick="togglePast()">📅 Past</button>
