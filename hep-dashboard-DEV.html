@@ -209,6 +209,8 @@
   .view-toggle.org-active{background:#1e293b;border-color:#f59e0b;color:#fde68a}
   .org-url-btn{display:none}
   body.org-url .org-url-btn{display:inline-flex}
+  .org-url-group{display:none}
+  body.org-url .org-url-group{display:flex}
 
   /* ── PARTICIPANT MODE ── */
   body.part-view .tbl-wrap{display:block}
@@ -355,10 +357,10 @@
     <h1>Workshops</h1>
   </div>
   <div class="top-links">
-    <button id="view-toggle-btn" class="view-toggle org-url-btn org-active" onclick="toggleViewMode()">🔑 Organizer</button>
-    <div class="pref-group org-col" style="border-left:none;padding-left:0;margin-left:0">
+    <div class="pref-group org-url-group" style="border-left:none;padding-left:0;margin-left:0">
       <span class="pref-group-label">Mode</span>
       <div class="pref-group-row">
+        <button id="view-toggle-btn" class="view-toggle org-active" onclick="toggleViewMode()">🔑 Organizer</button>
         <button id="past-toggle-btn" class="phase-toggle org-col" onclick="togglePast()">+Past</button>
         <button id="postponed-toggle-btn" class="phase-toggle org-col" onclick="togglePostponed()">+Postponed</button>
       </div>
