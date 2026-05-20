@@ -207,6 +207,8 @@
     transition:background .12s;flex-shrink:0}
   .view-toggle:hover{background:#fbbf24;border-color:#fbbf24;color:#0f172a}
   .view-toggle.org-active{background:#1e293b;border-color:#f59e0b;color:#fde68a}
+  .org-url-btn{display:none}
+  body.org-url .org-url-btn{display:inline-flex}
 
   /* ── PARTICIPANT MODE ── */
   body.part-view .tbl-wrap{display:block}
@@ -344,7 +346,7 @@
   }
 </style>
 </head>
-<body class="part-view"><script>(function(){var org=new URLSearchParams(window.location.search).has('org');if(org){document.body.classList.remove('part-view');document.body.classList.add('sketch-theme');}else{document.body.classList.add('part-view');}})();</script>
+<body class="part-view"><script>(function(){var org=new URLSearchParams(window.location.search).has('org');if(org){document.body.classList.remove('part-view');document.body.classList.add('sketch-theme','org-url');}else{document.body.classList.add('part-view');}})();</script>
 
 <header id="site-header">
 <div class="top-bar">
@@ -353,11 +355,12 @@
     <h1>Workshops</h1>
   </div>
   <div class="top-links">
+    <button id="view-toggle-btn" class="view-toggle org-url-btn org-active" onclick="toggleViewMode()">🔑 Organizer</button>
     <div class="pref-group org-col" style="border-left:none;padding-left:0;margin-left:0">
       <span class="pref-group-label">Mode</span>
       <div class="pref-group-row">
-        <button id="past-toggle-btn" class="phase-toggle org-col" onclick="togglePast()">📅 Past</button>
-        <button id="postponed-toggle-btn" class="phase-toggle org-col" onclick="togglePostponed()">🚫 Postponed</button>
+        <button id="past-toggle-btn" class="phase-toggle org-col" onclick="togglePast()">+Past</button>
+        <button id="postponed-toggle-btn" class="phase-toggle org-col" onclick="togglePostponed()">+Postponed</button>
       </div>
     </div>
     <div class="pref-group part-pref-group">
@@ -1307,7 +1310,16 @@ function applyLayout() {
   document.body.classList.remove('part-list');
 }
 function toggleLayout() {}
-function toggleViewMode() {}
+function toggleViewMode() {
+  isOrgView = !isOrgView;
+  document.body.classList.toggle('part-view', !isOrgView);
+  document.body.classList.toggle('sketch-theme', isOrgView);
+  const btn = document.getElementById('view-toggle-btn');
+  btn.textContent = isOrgView ? '🔑 Organizer' : '👤 Participant';
+  btn.classList.toggle('org-active', isOrgView);
+  updateGlobeTheme();
+  updateLeafletTheme();
+}
 
 // read filter params from URL on load: ?region=LAC&topic=SAP+Build+Code
 (function() {
@@ -1318,7 +1330,7 @@ function toggleViewMode() {}
   if (filters.size) applyFilters();
 })();
 
-Object.assign(window, {toggleMapMode, calNav, calClick, closePanel, togglePast, togglePostponed});
+Object.assign(window, {toggleMapMode, calNav, calClick, closePanel, togglePast, togglePostponed, toggleViewMode});
 window.addEventListener('resize', () => { clearTimeout(window._calResT); window._calResT = setTimeout(renderCal, 120); });
 
 // ── Agenda column ─────────────────────────────────────────────────────────────
