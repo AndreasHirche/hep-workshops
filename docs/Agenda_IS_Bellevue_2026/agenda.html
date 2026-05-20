@@ -1038,6 +1038,7 @@ document.addEventListener('click',function(e){
   var card=e.target.closest('.m-card,.tc-card');
   if(!card||card.classList.contains('is-break'))return;
   if(e.target.closest('.cbtn'))return;
+  if(e.target.closest('.qa-section'))return;
   e.stopPropagation();
   openCardModal(card.dataset.cid);
 });

@@ -350,7 +350,8 @@
       <div class="pref-group-row">
         <button id="view-toggle-btn" class="view-toggle" onclick="toggleViewMode()">👤 Participant</button>
         <button id="layout-toggle-btn" class="layout-toggle part-only" onclick="toggleLayout()">☰ List</button>
-        <button id="all-toggle-btn" class="phase-toggle org-col" onclick="toggleAllUpcoming()">📅 Upcoming</button>
+        <button id="past-toggle-btn" class="phase-toggle org-col" onclick="togglePast()">📅 Past</button>
+        <button id="postponed-toggle-btn" class="phase-toggle org-col" onclick="togglePostponed()">🚫 Postponed</button>
       </div>
     </div>
     <div class="pref-group">
@@ -643,9 +644,8 @@ cards.sort((a, b) => (a.dataset.start || '2099').localeCompare(b.dataset.start |
 cards.forEach(c => partGrid.appendChild(c));
 let prefLocsFull = new Set(), prefLocsLang = new Set(), prefLocsCC = new Set();
 let prefLang = localStorage.getItem('hep-pref-lang') || '';
-let showAll       = localStorage.getItem('hep-show-all') === '1';
-let showPast      = showAll;
-let showPostponed = showAll;
+let showPast      = localStorage.getItem('hep-show-past') === '1';
+let showPostponed = localStorage.getItem('hep-show-postponed') === '1';
 let isOrgView      = localStorage.getItem('hep-dashboard-view') === 'org';
 let partLayout     = localStorage.getItem('hep-part-layout') || 'cards';
 let prefCC   = localStorage.getItem('hep-pref-cc')   || '';
@@ -785,9 +785,9 @@ function markerColor(d) {
   if (d.loc === loc) return '#f59e0b';
   if (prefLocsFull.has(d.loc) || prefLocsLang.has(d.loc)) return '#60a5fa';
   if (prefLocsCC.has(d.loc)) return '#4ade80';
-  if (d.postponed > 0 && d.upcoming === 0) return showAll ? (d.color || '#3b82f6') : '#64748b';
+  if (d.postponed > 0 && d.upcoming === 0) return showPostponed ? (d.color || '#3b82f6') : '#64748b';
   if (d.upcoming > 0) return d.color || '#3b82f6';
-  return showAll ? (d.color || '#3b82f6') : '#64748b';
+  return showPast ? (d.color || '#3b82f6') : '#64748b';
 }
 function markerRadius(d) {
   return Math.max(0.28, Math.min(1.4, 0.18 + d.count * 0.18));
@@ -1008,7 +1008,7 @@ function renderMonthGrid(wsMap, prefMap, today, active, yr, mo) {
     const cls  = 'cal-day' + (role ? ` cal-ws-${role}` : '') + (iso === today ? ' cal-today' : '') + (iso === active ? ' cal-active' : '') + prefCls;
     let styleAttr = '';
     if (role && iso !== active) {
-      const c = (showAll || ws.upcoming) ? (ws.color || '#3b82f6') : '#64748b';
+      const c = (ws.upcoming || showPast || showPostponed) ? (ws.color || '#3b82f6') : '#64748b';
       styleAttr = ` style="background:${c}40;color:${c}"`;
     }
     h += `<span class="${cls}"${styleAttr} ${role ? `onclick="calClick('${iso}')"` : ''}>${d}</span>`;
@@ -1225,25 +1225,29 @@ document.addEventListener('click', e => { if (!e.target.closest('.pref-pick')) d
 })();
 
 (function initPhase() {
-  const btn = document.getElementById('all-toggle-btn');
-  if (showAll) { btn.classList.add('active'); btn.textContent = '📅 + Past & Postponed'; }
+  if (showPast) document.getElementById('past-toggle-btn').classList.add('active');
+  if (showPostponed) document.getElementById('postponed-toggle-btn').classList.add('active');
   applyFilters();
 })();
-function toggleAllUpcoming() {
-  showAll = !showAll;
-  showPast = showAll;
-  showPostponed = showAll;
-  localStorage.setItem('hep-show-all', showAll ? '1' : '0');
-  const btn = document.getElementById('all-toggle-btn');
-  btn.classList.toggle('active', showAll);
-  btn.textContent = showAll ? '📅 + Past & Postponed' : '📅 Upcoming';
+function togglePast() {
+  showPast = !showPast;
+  localStorage.setItem('hep-show-past', showPast ? '1' : '0');
+  document.getElementById('past-toggle-btn').classList.toggle('active', showPast);
   applyFilters();
   syncMarkers();
   renderCal();
-  if (showAll) {
+  if (showPast) {
     const first = trows.find(tr => !tr.classList.contains('row-hidden'));
     if (first) first.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+}
+function togglePostponed() {
+  showPostponed = !showPostponed;
+  localStorage.setItem('hep-show-postponed', showPostponed ? '1' : '0');
+  document.getElementById('postponed-toggle-btn').classList.toggle('active', showPostponed);
+  applyFilters();
+  syncMarkers();
+  renderCal();
 }
 (function initView() {
   if (isOrgView) {
@@ -1287,7 +1291,7 @@ function toggleViewMode() {
   if (filters.size) applyFilters();
 })();
 
-Object.assign(window, {toggleMapMode, calNav, calClick, closePanel, toggleAllUpcoming, toggleViewMode, toggleLayout});
+Object.assign(window, {toggleMapMode, calNav, calClick, closePanel, togglePast, togglePostponed, toggleViewMode, toggleLayout});
 window.addEventListener('resize', () => { clearTimeout(window._calResT); window._calResT = setTimeout(renderCal, 120); });
 
 // ── Agenda column ─────────────────────────────────────────────────────────────
