@@ -109,6 +109,12 @@ body:not(.e-mode) .m-card:not(.is-break),body:not(.e-mode) .tc-card:not(.is-brea
 .pdf-modal-action-btn{padding:4px 14px;border:1px solid rgba(0,0,0,0.35);border-radius:4px;background:rgba(0,0,0,0.18);color:rgba(255,255,255,0.75);font-family:'72',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;box-shadow:inset 0 1px 2px rgba(0,0,0,0.4),inset 0 -1px 1px rgba(255,255,255,0.08);text-shadow:0 1px 2px rgba(0,0,0,0.5)}
 .pdf-modal-action-btn:hover{background:rgba(0,0,0,0.28);color:#fff}
 .pdf-modal-action-btn.has-attach{color:#86efac;border-color:rgba(22,163,74,0.5)}
+#pdf-modal-attach-area{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.modal-note-ov{position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,0.96);backdrop-filter:blur(6px);border-top:2px solid #c5cbd3;padding:10px 14px;z-index:10}
+.modal-note-text{font-size:.82rem;color:#1d2d3e;white-space:pre-wrap;line-height:1.55}
+.modal-note-textarea{width:100%;min-height:90px;max-height:220px;border:1px solid #c5cbd3;border-radius:4px;padding:8px;font-size:.82rem;font-family:'72',sans-serif;resize:vertical;outline:none;color:#1d2d3e;background:#fff}
+.modal-note-textarea:focus{border-color:#0064d9;box-shadow:0 0 0 2px #e0eefa}
+.modal-note-actions{display:flex;gap:6px;margin-top:6px;justify-content:flex-end}
 .e-dialog{background:#fff;border-radius:8px;padding:20px;width:340px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.2)}
 .e-dialog-title{font-size:.9rem;font-weight:700;color:#1d2d3e;margin-bottom:14px}
 .e-field{margin-bottom:10px}.e-field label{display:block;font-size:.72rem;color:#64748b;margin-bottom:3px;font-weight:600}
@@ -278,12 +284,22 @@ body:not(.e-mode) .m-card:not(.is-break),body:not(.e-mode) .tc-card:not(.is-brea
       <div id="pdf-modal-meta" class="pdf-modal-hdr-meta"></div>
       <div class="pdf-modal-actions">
         <button id="pdf-modal-attach-btn" class="pdf-modal-action-btn" onclick="modalAttach()">&#128206; Attach</button>
-        <button class="pdf-modal-action-btn" onclick="modalEditCard()">&#9998; Edit</button>
+        <button id="pdf-modal-edit-btn" class="pdf-modal-action-btn" onclick="modalEditCard()">&#9998; Edit</button>
       </div>
     </div>
     <div id="pdf-modal-qa" class="pdf-modal-qa" style="display:none"></div>
-    <iframe id="pdf-modal-frame" style="flex:1;border:none;width:100%;display:none"></iframe>
-    <div id="pdf-modal-imgwrap" style="flex:1;display:none;align-items:center;justify-content:center;overflow:auto;background:#f1f5f9;padding:12px"><img id="pdf-modal-img" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px" alt=""></div>
+    <div id="pdf-modal-attach-area">
+      <iframe id="pdf-modal-frame" style="flex:1;border:none;width:100%;display:none"></iframe>
+      <div id="pdf-modal-imgwrap" style="flex:1;display:none;align-items:center;justify-content:center;overflow:auto;background:#f1f5f9;padding:12px"><img id="pdf-modal-img" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px" alt=""></div>
+      <div id="pdf-modal-note-ov" class="modal-note-ov" style="display:none">
+        <div id="pdf-modal-note-txt" class="modal-note-text"></div>
+        <textarea id="pdf-modal-note-ta" class="modal-note-textarea" style="display:none" placeholder="Add a note for this session…"></textarea>
+        <div id="pdf-modal-note-btns" class="modal-note-actions" style="display:none">
+          <button class="pdf-modal-action-btn" style="background:rgba(0,100,217,0.85);border-color:rgba(0,80,200,0.5);color:#fff;text-shadow:none" onclick="modalNoteSave()">&#10003; Save</button>
+          <button class="pdf-modal-action-btn" onclick="modalNoteCancel()">&#10005; Cancel</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -805,9 +821,50 @@ function startSpeakerEdit(spEl,cid,card,isNew) {
 eApply(); restoreState(); updateAll(); renderSpeakerTiles();
 applyPdfIndicators();
 
+function _modalShowNote(cid){
+  var ov=document.getElementById('pdf-modal-note-ov');
+  var ta=document.getElementById('pdf-modal-note-ta');
+  var txt=document.getElementById('pdf-modal-note-txt');
+  var btns=document.getElementById('pdf-modal-note-btns');
+  var editBtn=document.getElementById('pdf-modal-edit-btn');
+  var val=(eData.notes&&eData.notes[cid])||'';
+  ta.style.display='none'; btns.style.display='none';
+  if(val){txt.textContent=val;txt.style.display='block';ov.style.display='block';}
+  else{txt.style.display='none';ov.style.display='none';}
+  if(editBtn)editBtn.style.display='';
+}
 function modalEditCard(){
-  closePdfModal();
-  if(!eMode) toggleEdit();
+  var ov=document.getElementById('pdf-modal-note-ov');
+  var ta=document.getElementById('pdf-modal-note-ta');
+  var txt=document.getElementById('pdf-modal-note-txt');
+  var btns=document.getElementById('pdf-modal-note-btns');
+  var editBtn=document.getElementById('pdf-modal-edit-btn');
+  var area=document.getElementById('pdf-modal-attach-area');
+  if(!ov) return;
+  var current=(eData.notes&&eData.notes[_modalCid])||'';
+  ta.value=current; txt.style.display='none';
+  ta.style.display='block'; btns.style.display='flex';
+  ov.style.display='block';
+  if(editBtn)editBtn.style.display='none';
+  var inner=document.getElementById('pdf-modal-inner');
+  if(area&&!inner.classList.contains('has-attach'))area.style.minHeight='160px';
+  ta.focus();
+}
+function modalNoteSave(){
+  var val=document.getElementById('pdf-modal-note-ta').value.trim();
+  if(!eData.notes)eData.notes={};
+  if(val)eData.notes[_modalCid]=val; else delete eData.notes[_modalCid];
+  try{eSave();}catch(e){}
+  var area=document.getElementById('pdf-modal-attach-area');
+  var inner=document.getElementById('pdf-modal-inner');
+  if(area&&!inner.classList.contains('has-attach'))area.style.minHeight='';
+  _modalShowNote(_modalCid);
+}
+function modalNoteCancel(){
+  var area=document.getElementById('pdf-modal-attach-area');
+  var inner=document.getElementById('pdf-modal-inner');
+  if(area&&!inner.classList.contains('has-attach'))area.style.minHeight='';
+  _modalShowNote(_modalCid);
 }
 function modalAttach(){
   if(!_modalCid) return;
@@ -1035,6 +1092,8 @@ function openCardModal(cid){
   // Update attach button state
   var attachBtn=document.getElementById('pdf-modal-attach-btn');
   if(attachBtn) attachBtn.classList.toggle('has-attach',!!(eData.pdfs&&eData.pdfs[cid]));
+  // Show saved note
+  _modalShowNote(cid);
   ov.style.display='flex';
   ov.addEventListener('click',function(e){if(e.target===ov)closePdfModal();},{once:true});
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closePdfModal();},{once:true});
@@ -1049,6 +1108,12 @@ function closePdfModal(){
   if(_pdfBlobUrl){URL.revokeObjectURL(_pdfBlobUrl);_pdfBlobUrl=null;}
   var qaDiv=document.getElementById('pdf-modal-qa');
   if(qaDiv){qaDiv.style.display='none';qaDiv.innerHTML='';}
+  var noteOv=document.getElementById('pdf-modal-note-ov');
+  if(noteOv)noteOv.style.display='none';
+  var area=document.getElementById('pdf-modal-attach-area');
+  if(area)area.style.minHeight='';
+  var editBtn=document.getElementById('pdf-modal-edit-btn');
+  if(editBtn)editBtn.style.display='';
 }
 document.addEventListener('click',function(e){
   if(eMode)return;
