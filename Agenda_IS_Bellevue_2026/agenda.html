@@ -145,6 +145,14 @@ body:not(.e-mode) .m-card:not(.is-break),body:not(.e-mode) .tc-card:not(.is-brea
 .e-mode .tc-speaker{cursor:text;border-radius:2px}.e-mode .tc-speaker:hover{background:#dbeafe;outline:1px dashed #3b82f6}
 .tc-time[contenteditable="true"],.tc-speaker[contenteditable="true"]{outline:2px solid #0064d9;border-radius:2px;padding:0 3px;background:#fff;cursor:text}
 .e-add-sp{cursor:pointer!important;opacity:.4;font-size:.57rem!important;font-weight:700!important;color:#0064d9!important;background:#eff6ff!important}.e-mode .e-add-sp{display:inline-block}.e-add-sp:hover{opacity:.9!important}
+/* Q&A section on Wrap-Up cards */
+.qa-section{display:flex;align-items:center;gap:5px;margin-top:5px;padding-top:4px;border-top:1px solid rgba(2,116,127,0.2);flex-shrink:0}
+.qa-label{font-size:.58rem;font-weight:700;letter-spacing:.09em;color:#02747f;text-transform:uppercase}
+.e-mode .qa-section{opacity:.45;pointer-events:none}
+/* Modal edit button */
+.pdf-modal-actions{display:flex;justify-content:flex-end;margin-top:10px}
+.pdf-modal-edit-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 14px;border:1px solid #0064d9;border-radius:4px;background:#fff;color:#0064d9;font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s,box-shadow .15s}
+.pdf-modal-edit-btn:hover{background:#eff6ff;box-shadow:0 0 0 2px #e0eefa}
 </style>
 </head>
 <body>
@@ -227,6 +235,9 @@ body:not(.e-mode) .m-card:not(.is-break),body:not(.e-mode) .tc-card:not(.is-brea
       <div id="pdf-modal-time" class="pdf-modal-hdr-time"></div>
       <div id="pdf-modal-title" class="pdf-modal-hdr-title"></div>
       <div id="pdf-modal-meta" class="pdf-modal-hdr-meta"></div>
+      <div class="pdf-modal-actions">
+        <button class="pdf-modal-edit-btn" onclick="modalEditCard()">&#9998; Edit card</button>
+      </div>
     </div>
     <iframe id="pdf-modal-frame" style="flex:1;border:none;width:100%;display:none"></iframe>
     <div id="pdf-modal-imgwrap" style="flex:1;display:none;align-items:center;justify-content:center;overflow:auto;background:#f1f5f9;padding:12px"><img id="pdf-modal-img" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px" alt=""></div>
@@ -747,7 +758,33 @@ function startSpeakerEdit(spEl,cid,card,isNew) {
 }
 
 eApply(); restoreState(); updateAll(); renderSpeakerTiles();
-applyPdfIndicators();
+applyPdfIndicators(); initQaSections();
+
+function modalEditCard(){
+  closePdfModal();
+  if(!eMode) toggleEdit();
+}
+
+function initQaSections(){
+  var QA_SVG='<svg class="qa-svg" width="28" height="18" viewBox="0 0 28 18" fill="none">'+
+    '<rect x="13" y="5" width="13" height="9" rx="2" fill="#d0f0f2" stroke="#46a8b0" stroke-width="1"/>'+
+    '<polygon points="15,14 13,17.5 18,14" fill="#d0f0f2" stroke="#46a8b0" stroke-width="1" stroke-linejoin="round"/>'+
+    '<text x="19.5" y="12.5" font-size="5.5" font-weight="900" fill="#026b74" text-anchor="middle" font-family="Arial,sans-serif">A</text>'+
+    '<rect x="1" y="1" width="14" height="9" rx="2" fill="#e0f5f7" stroke="#46a8b0" stroke-width="1"/>'+
+    '<polygon points="3,10 1,14 6.5,10" fill="#e0f5f7" stroke="#46a8b0" stroke-width="1" stroke-linejoin="round"/>'+
+    '<text x="8" y="8.5" font-size="5.5" font-weight="900" fill="#026b74" text-anchor="middle" font-family="Arial,sans-serif">Q</text>'+
+    '</svg>';
+  document.querySelectorAll('.m-card,.tc-card').forEach(function(card){
+    if(card.classList.contains('is-break'))return;
+    if(card.querySelector('.qa-section'))return;
+    var isWrapUp=Array.from(card.querySelectorAll('.badge')).some(function(b){return /wrap/i.test(b.textContent);});
+    if(!isWrapUp)return;
+    var sec=document.createElement('div');
+    sec.className='qa-section';
+    sec.innerHTML=QA_SVG+'<span class="qa-label">Q &amp; A</span>';
+    card.appendChild(sec);
+  });
+}
 
 function updatePdfIndicator(card,cid){
   var old=card.querySelector('.card-pdf-ind');if(old)old.remove();
