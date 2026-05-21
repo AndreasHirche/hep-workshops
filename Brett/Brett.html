@@ -34,6 +34,23 @@ video{width:100%;display:block;border-radius:0}
   color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.8);min-width:28px;text-align:center;
 }
 
+/* Loading spinner */
+#loader{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.55);z-index:5;
+  transition:opacity .25s;
+}
+#loader.hidden{opacity:0;pointer-events:none}
+#loader-ring{
+  width:42px;height:42px;
+  border:3px solid rgba(255,255,255,0.15);
+  border-top-color:rgba(255,255,255,0.85);
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 /* Hint */
 #hint{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
@@ -56,6 +73,7 @@ video{width:100%;display:block;border-radius:0}
 
 <div id="video-wrap">
   <video id="vid" playsinline preload="auto" src="Brett0.mp4"></video>
+  <div id="loader"><div id="loader-ring"></div></div>
 </div>
 
 <div id="meter-wrap">
@@ -68,6 +86,7 @@ video{width:100%;display:block;border-radius:0}
 
 <script>
 var vid       = document.getElementById('vid');
+var loader    = document.getElementById('loader');
 var wrap      = document.getElementById('meter-wrap');
 var fill      = document.getElementById('meter-fill');
 var label     = document.getElementById('meter-label');
@@ -158,6 +177,7 @@ function endPress(e) {
 
   // Load and play the right video
   if (vid.getAttribute('src') !== videoFile) {
+    loader.classList.remove('hidden');
     vid.src = videoFile;
     vid.load();
   }
@@ -173,6 +193,9 @@ document.addEventListener('mouseup',   endPress);
 document.addEventListener('touchstart', startPress, {passive: false});
 document.addEventListener('touchend',   endPress,   {passive: false});
 document.addEventListener('touchcancel',endPress,   {passive: false});
+
+// Hide loader once first frame is ready
+vid.addEventListener('canplay', function() { loader.classList.add('hidden'); });
 
 // Pause video when it ends, show hint again
 vid.addEventListener('ended', function() {
