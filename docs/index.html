@@ -1349,29 +1349,6 @@ function toggleViewMode() {
 
 Object.assign(window, {toggleMapMode, calNav, calClick, closePanel, togglePast, togglePostponed, toggleViewMode});
 window.addEventListener('resize', () => { clearTimeout(window._calResT); window._calResT = setTimeout(renderCal, 120); });
-
-// ── Agenda column ─────────────────────────────────────────────────────────────
-(function(){
-  const AGENDAS = {
-    '2026-04-28_us': 'Agenda_AI_PaloAlto_2026/agenda.html',
-    '2026-05-19_us': 'Agenda_IS_Bellevue_2026/agenda.html',
-    '2026-06-11_fi': 'Agenda_AI_Helsinki_2026/Agenda_AI_Helsinki_2026.html'
-  };
-  document.querySelectorAll('#tbody tr').forEach(tr => {
-    const regTd = tr.querySelector('.td-reg');
-    if (!regTd) return;
-    const td = document.createElement('td');
-    td.className = 'td-agenda';
-    const url = AGENDAS[tr.dataset.start + '_' + (tr.dataset.cc || '')];
-    if (url) {
-      const a = document.createElement('a');
-      a.href = url; a.target = '_blank'; a.className = 'agenda-link';
-      a.textContent = 'Agenda ↗';
-      td.appendChild(a);
-    }
-    regTd.after(td);
-  });
-})();
 </script>
 <script>
 if ('serviceWorker' in navigator) {
