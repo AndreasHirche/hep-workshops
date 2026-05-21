@@ -67,6 +67,8 @@ body.e-mode .tc-card.is-break{pointer-events:auto}
 .cbtn{background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;margin-top:1px;line-height:0;transition:transform .1s}
 .cbtn:hover{transform:scale(1.15)}
 .cbtn:active{transform:scale(.9)}
+.dc-check-all{background:none;border:none;cursor:pointer;padding:0;line-height:0;flex-shrink:0;margin-left:auto;transition:transform .1s;opacity:.5}
+.dc-check-all:hover{transform:scale(1.2);opacity:1}
 .side-col.col-locked .b-col-hdr{opacity:.6}
 .side-col.col-locked .m-card{opacity:.35;filter:grayscale(1);pointer-events:none}
 .dc-hdr.col-locked{opacity:.6}
@@ -343,6 +345,32 @@ function updateAll() {
     const locked = !prevDone;
     getColEls(id).forEach(el => el.classList.toggle('col-locked', locked));
     prevDone = allDone;
+    var dcb=document.querySelector('.dc-check-all[data-col="'+id+'"]');
+    if(dcb){dcb.innerHTML=allDone?J_DN:J_MT;dcb.title=allDone?'All done – click to uncheck all':'Mark all cards in this day as complete';}
+  });
+}
+function initDayCheckers(){
+  document.querySelectorAll('.dc-hdr[data-col]').forEach(function(hdr){
+    var col=parseInt(hdr.dataset.col);
+    if(col<1||hdr.querySelector('.dc-check-all'))return;
+    var btn=document.createElement('button');
+    btn.className='dc-check-all'; btn.dataset.col=col;
+    var cds=getColCards(col);
+    var ad=cds.length>0&&cds.every(function(c){return c.classList.contains('done');});
+    btn.innerHTML=ad?J_DN:J_MT;
+    btn.title=ad?'All done – click to uncheck all':'Mark all cards in this day as complete';
+    btn.addEventListener('click',function(e){
+      e.stopPropagation();
+      var cards=getColCards(col);
+      var allDone=cards.length>0&&cards.every(function(c){return c.classList.contains('done');});
+      cards.forEach(function(card){
+        if(allDone)card.classList.remove('done'); else card.classList.add('done');
+        var cb=card.querySelector('.cbtn');
+        if(cb){cb.innerHTML=allDone?J_MT:J_DN;cb.title=allDone?'Mark as complete':'Completed – click to undo';}
+      });
+      updateAll();saveState();
+    });
+    hdr.appendChild(btn);
   });
 }
 function saveState() {
@@ -874,7 +902,7 @@ function startSpeakerEdit(spEl,cid,card,isNew) {
 }
 
 
-eApply(); restoreState(); updateAll(); renderSpeakerTiles();
+eApply(); restoreState(); updateAll(); renderSpeakerTiles(); initDayCheckers();
 // Load PDFs from IndexedDB async; migrate legacy localStorage pdfs on first run
 (function() {
   var legacy = eData._legacyPdfs; delete eData._legacyPdfs;
@@ -917,6 +945,9 @@ function modalEditCard(){
   if(editBtn)editBtn.style.display='none';
   var inner=document.getElementById('pdf-modal-inner');
   if(area&&!inner.classList.contains('has-attach'))area.style.minHeight='160px';
+  var titleDiv=document.getElementById('pdf-modal-title');
+  if(titleDiv){titleDiv.dataset.origTitle=titleDiv.textContent;titleDiv.contentEditable='true';
+    titleDiv.style.cssText='border:1px solid #c5cbd3;border-radius:4px;padding:4px 8px;outline:none;background:#fff;cursor:text;display:block';}
 }
 function modalBothSave(){
   var cid=_modalCid;
@@ -941,6 +972,18 @@ function modalBothSave(){
   if(area&&!inner.classList.contains('has-attach'))area.style.minHeight='';
   if(qaDiv&&qaDiv.dataset.qaCid) renderQaModal(qaDiv.dataset.qaCid);
   _modalShowNote(cid);
+  var titleDiv=document.getElementById('pdf-modal-title');
+  if(titleDiv&&titleDiv.contentEditable==='true'){
+    var newTitle=titleDiv.textContent.trim();
+    titleDiv.contentEditable='false';titleDiv.style.cssText='';
+    if(newTitle){var tcard=document.querySelector('[data-cid="'+cid+'"]');
+      var tnode=tcard&&tcard.querySelector('.m-card-title');
+      if(tnode&&newTitle!==tnode.textContent){tnode.textContent=newTitle;
+        if(!eData.overrides)eData.overrides={};
+        if(!eData.overrides[cid])eData.overrides[cid]={};
+        eData.overrides[cid].title=newTitle;
+        try{eSave();}catch(e2){}}}
+  }
 }
 function modalBothCancel(){
   var qaDiv=document.getElementById('pdf-modal-qa');
@@ -949,6 +992,10 @@ function modalBothCancel(){
   var inner=document.getElementById('pdf-modal-inner');
   if(area&&!inner.classList.contains('has-attach'))area.style.minHeight='';
   _modalShowNote(_modalCid);
+  var titleDiv=document.getElementById('pdf-modal-title');
+  if(titleDiv&&titleDiv.contentEditable==='true'){
+    titleDiv.textContent=titleDiv.dataset.origTitle||titleDiv.textContent;
+    titleDiv.contentEditable='false';titleDiv.style.cssText='';}
 }
 function modalAttach(){
   if(!_modalCid) return;
@@ -1112,12 +1159,8 @@ function openCardModal(cid){
       metaDiv.appendChild(b.cloneNode(true));
     });
     var spNode=card.querySelector('.tc-speaker:not(.e-add-sp)');
-    if(spNode&&spNode.textContent.trim()){
-      var sp=document.createElement('span');
-      sp.className='pdf-modal-hdr-speaker';
-      sp.textContent=spNode.textContent.trim();
-      metaDiv.appendChild(sp);
-    }
+    if(spNode){var spText=spNode.dataset.speakerText||spNode.textContent.trim();
+    if(spText){var sp=document.createElement('span');sp.className='pdf-modal-hdr-speaker';sp.textContent=spText;metaDiv.appendChild(sp);}}
   }
   var frame=document.getElementById('pdf-modal-frame');
   var imgwrap=document.getElementById('pdf-modal-imgwrap');
