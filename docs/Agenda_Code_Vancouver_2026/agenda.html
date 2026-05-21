@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAP Build Code Workshop 2026 – Vancouver</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'><rect width='40' height='20' fill='%231a4b8a'/><text x='20' y='15' font-family='Arial' font-size='14' font-weight='900' fill='white' text-anchor='middle' letter-spacing='1'>HEP</text></svg>">
+<style>
+@font-face{font-family:'72';src:url('https://ui5.sap.com/resources/sap/ui/core/themes/sap_fiori_3/fonts/72-Regular.woff2') format('woff2');font-weight:400}
+@font-face{font-family:'72';src:url('https://ui5.sap.com/resources/sap/ui/core/themes/sap_fiori_3/fonts/72-Bold.woff2') format('woff2');font-weight:700}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'72',Arial,Helvetica,sans-serif;background:#f5f6f7;color:#32363a;font-size:14px;-webkit-font-smoothing:antialiased}
+.sh-bar{height:44px;background:#fff;border-bottom:1px solid #d9d9d9;display:flex;align-items:center;padding:0 16px;position:sticky;top:0;z-index:200}
+.sh-sep{width:1px;height:24px;background:rgba(0,0,0,.15);margin:0 12px;flex-shrink:0}
+.sh-app{color:#1d2d3e;font-size:.925rem;font-weight:700;white-space:nowrap}
+.sh-spacer{flex:1}
+.sh-icon{background:none;border:none;cursor:pointer;color:#32363a;width:36px;height:44px;display:flex;align-items:center;justify-content:center}
+.sh-icon:hover{background:rgba(0,0,0,.05)}
+.sh-avatar{width:28px;height:28px;border-radius:50%;background:#0064d9;color:#fff;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin-left:4px;cursor:pointer;flex-shrink:0}
+.breadcrumb{background:#fff;border-bottom:1px solid #e8ebee;padding:0 16px;height:36px;display:flex;align-items:center;gap:3px;font-size:.8rem;color:#74777a}
+.breadcrumb a{color:#0064d9;text-decoration:none}
+.breadcrumb a:hover{text-decoration:underline}
+.bc-sep{color:#c5cbd3;margin:0 2px}
+.m-header{background:#e8f0ff;border-bottom:1px solid #d9d9d9;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.m-title{font-size:1.15rem;font-weight:700;color:#1d2d3e}
+.m-meta{display:flex;gap:32px;flex-wrap:wrap;margin-top:6px}
+.m-info-col{display:flex;flex-direction:column;gap:3px;font-size:.78rem}
+.m-lbl{color:#74777a}
+.m-val{color:#1d2d3e}
+.board-wrap{overflow-x:auto;padding:12px 16px 48px}
+.board{display:flex;gap:10px;align-items:flex-start;min-width:max-content}
+.side-col{width:220px;flex-shrink:0}
+.b-col-hdr{border-bottom:1px solid #e8ebee;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;transition:opacity .25s}
+.b-col-title{font-size:.7rem;font-weight:700;color:#1d2d3e;letter-spacing:.5px;text-transform:uppercase}
+.b-col-cards{padding:8px;display:flex;flex-direction:column;gap:8px;position:relative}
+.days-area{display:flex;flex-direction:column}
+.days-hdrs{display:flex;gap:10px}
+.axis-spacer-hdr{width:52px;flex-shrink:0}
+.dc-hdr{width:270px;flex-shrink:0;border-bottom:1px solid #e8ebee;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;transition:opacity .25s}
+.days-tl{display:flex;gap:10px}
+.time-axis{width:52px;flex-shrink:0;position:relative;background:#f5f6f7}
+.axis-mark{position:absolute;right:8px;transform:translateY(-50%);font-size:.6rem;font-weight:600;color:#94a3b8;white-space:nowrap}
+.day-timeline{width:270px;flex-shrink:0;position:relative;overflow:hidden;transition:opacity .25s}
+.h-line{position:absolute;left:0;right:0;border-top:1px solid #c8d4de;pointer-events:none;z-index:0}
+.now-line{position:absolute;left:0;right:0;border-top:2px solid #e63939;pointer-events:none;z-index:5}
+.now-line::before{content:'';position:absolute;left:-1px;top:-4px;width:6px;height:6px;background:#e63939;border-radius:50%}
+.tc-card{position:absolute;left:4px;right:4px;border-radius:4px;padding:5px 8px;background:#fff;border:1px solid #e8ebee;box-shadow:0 1px 2px rgba(0,0,0,.04);z-index:1;overflow:hidden;transition:box-shadow .15s,opacity .25s,filter .25s}
+.tc-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.tc-card.is-break{background:#f5f6f7;border-color:#e0e0e0;box-shadow:none;pointer-events:none}
+.tc-card.is-break .m-card-title{color:#74777a;font-style:italic}
+body.e-mode .tc-card.is-break{pointer-events:auto}
+.tc-right-col{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.tc-speaker{font-size:.57rem;font-weight:700;color:#8b9db0;background:#eef2f7;border-radius:3px;padding:1px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
+.m-card{background:#fff;border:1px solid #d9d9d9;border-radius:4px;padding:10px 12px;box-shadow:0 1px 2px rgba(0,0,0,.05);transition:box-shadow .15s,opacity .25s,filter .25s;position:relative;z-index:1}
+.m-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.m-card-badges{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px}
+.badge{font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap}
+.m-card-row{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.m-card-title{font-size:.76rem;color:#1d2d3e;line-height:1.4;flex:1}
+.m-card-done{display:none}
+.m-card.done,.tc-card.done{background:#f0faf4;border-color:#a7d7b8}
+.cbtn{background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;margin-top:1px;line-height:0;transition:transform .1s}
+.cbtn:hover{transform:scale(1.15)}
+.cbtn:active{transform:scale(.9)}
+.side-col.col-locked .b-col-hdr{opacity:.6}
+.side-col.col-locked .m-card{opacity:.35;filter:grayscale(1);pointer-events:none}
+.dc-hdr.col-locked{opacity:.6}
+.day-timeline.col-locked .tc-card{opacity:.35;filter:grayscale(1);pointer-events:none}
+.sap-footer{background:#fff;border-top:1px solid #d9d9d9;padding:16px 24px;display:flex;align-items:flex-start;gap:48px;flex-wrap:wrap}
+.f-logo{flex-shrink:0;opacity:.65}
+.f-section{display:flex;flex-direction:column;gap:5px}
+.f-head{font-size:.72rem;font-weight:700;color:#32363a;margin-bottom:3px}
+.f-link{font-size:.72rem;color:#74777a;cursor:pointer}
+.f-link:hover{color:#0064d9}
+.e-bar{background:#fff;border-bottom:1px solid #e8ebee;padding:6px 16px;display:flex;justify-content:flex-end}
+.e-toggle{padding:4px 14px;border:none;border-radius:4px;background:#0064d9;color:#fff;font-family:'72',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer}
+.e-toggle:hover{background:#0057bc}
+.e-mode .e-toggle{background:#0b6e3a}
+.e-del,.e-edit{position:absolute;width:18px;height:18px;border:none;border-radius:3px;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:.8rem;z-index:20;padding:0;line-height:1}
+.e-mode .e-del,.e-mode .e-edit{display:flex}
+.e-del{top:3px;right:3px;background:#fee2e2;color:#dc2626}.e-del:hover{background:#fca5a5}
+.e-edit{top:3px;right:25px;background:#eff6ff;color:#2563eb}.e-edit:hover{background:#dbeafe}
+.e-mode .cbtn{opacity:.25;pointer-events:none}
+.e-add-btn{display:block;width:100%;margin-top:6px;padding:7px;border:1px dashed #c5cbd3;border-radius:4px;background:none;color:#94a3b8;font-size:.75rem;cursor:pointer;text-align:center;font-family:'72',sans-serif}
+.e-add-btn:hover{background:#f5f6f7;color:#0064d9;border-color:#0064d9;border-style:solid}
+.drag-over{outline:2px dashed #0064d9!important;outline-offset:-2px;background:#eff6ff!important}.dragging{opacity:.4}.card-fade{opacity:0;transition:opacity .15s}
+#e-modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;align-items:center;justify-content:center}
+.e-dialog{background:#fff;border-radius:8px;padding:20px;width:340px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.e-dialog-title{font-size:.9rem;font-weight:700;color:#1d2d3e;margin-bottom:14px}
+.e-field{margin-bottom:10px}.e-field label{display:block;font-size:.72rem;color:#64748b;margin-bottom:3px;font-weight:600}
+.e-input{width:100%;padding:5px 9px;border:1px solid #c5cbd3;border-radius:4px;font-size:.82rem;font-family:'72',sans-serif;outline:none;color:#1d2d3e}
+.e-input:focus{border-color:#0064d9;box-shadow:0 0 0 2px #e0eefa}
+.e-dialog-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.e-btn-sec{padding:4px 12px;border:1px solid #c5cbd3;border-radius:4px;background:#fff;color:#32363a;font-size:.8rem;cursor:pointer;font-family:'72',sans-serif}
+.e-btn-pri{padding:4px 14px;border:none;border-radius:4px;background:#0064d9;color:#fff;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'72',sans-serif}
+.e-mode .m-card-title,.e-mode .tc-card .m-card-title{cursor:text}
+.m-card-title[contenteditable="true"],.tc-card .m-card-title[contenteditable="true"]{outline:2px solid #0064d9;border-radius:2px;padding:1px 3px;background:#fff;white-space:pre-wrap;cursor:text}
+.e-mode .badge:not(.e-add-badge-btn){cursor:pointer}.e-mode .badge:not(.e-add-badge-btn):hover{opacity:.75}
+.badge[contenteditable="true"]{outline:2px solid #0064d9;outline-offset:1px;cursor:text;min-width:16px;display:inline-block}
+.e-add-badge-btn{opacity:.55!important}.e-add-badge-btn:hover{opacity:1!important}
+.e-mode .tc-card:not(.is-break){cursor:grab}
+.day-timeline .e-add-btn{position:absolute;left:4px;right:4px;margin-top:0;z-index:10}
+.tc-top-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
+.tc-time{font-size:.6rem;font-weight:700;color:#8b9db0;white-space:nowrap;flex-shrink:0}
+.tc-top-row .m-card-badges{margin-bottom:0;flex:1;min-width:0}
+.header-wrap{position:relative;display:flex;align-items:stretch;width:100%;border-bottom:2px solid #14387a;overflow:hidden}
+.header-left-color{flex-shrink:0;width:320px;height:189px;background:#1a4b8a;display:block}
+.header-overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:18px 28px;pointer-events:none}
+.header-overlay h1{font-size:1.3rem;font-weight:700;color:#ffffff;line-height:1.2;margin:0}
+.header-overlay p{font-size:.8rem;color:rgba(255,255,255,0.85);margin:4px 0 0}
+.header-mid{flex:1 1 0;min-width:0;height:189px;background:#1a4b8a}
+.header-right{flex-shrink:0;width:auto;height:189px;display:block}
+.sp-tiles-bar{background:#f8f9fa;border-bottom:1px solid #e8ebee;padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:42px}
+.sp-tiles-lbl{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-right:4px;flex-shrink:0}
+.sp-tile{display:inline-flex;align-items:center;gap:5px;padding:3px 10px 3px 4px;border-radius:20px;background:#fff;border:1px solid #e0e4ea;font-size:.72rem;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.sp-avatar{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;color:#fff;flex-shrink:0}
+.sp-name{font-weight:600;color:#1d2d3e}
+.sp-desc{font-size:.68rem;color:#74777a;font-weight:400}
+.e-mode .tc-time{cursor:text;border-radius:2px}.e-mode .tc-time:hover{background:#fef9c3;outline:1px dashed #f59e0b}
+.e-mode .tc-speaker{cursor:text;border-radius:2px}.e-mode .tc-speaker:hover{background:#dbeafe;outline:1px dashed #3b82f6}
+.tc-time[contenteditable="true"],.tc-speaker[contenteditable="true"]{outline:2px solid #0064d9;border-radius:2px;padding:0 3px;background:#fff;cursor:text}
+.e-add-sp{cursor:pointer!important;opacity:.4;font-size:.57rem!important;font-weight:700!important;color:#0064d9!important;background:#eff6ff!important}.e-mode .e-add-sp{display:inline-block}.e-add-sp:hover{opacity:.9!important}
+</style>
+</head>
+<body>
+
+<div class="header-wrap">
+  <div class="header-left-color"></div>
+  <div class="header-mid"></div>
+  <div class="header-overlay">
+    <h1>SAP Build Code Workshop 2026 &#8211; Vancouver</h1>
+    <p>&#128205; Vancouver, BC &nbsp;&middot;&nbsp; &#128197; June 2026 &nbsp;&middot;&nbsp; 3-day Hands-on Workshop</p>
+  </div>
+</div>
+
+<div class="e-bar">
+  <button id="eBtn" class="e-toggle" onclick="toggleEdit()">&#9998; Edit</button>
+</div>
+
+<div id="spTilesBar" class="sp-tiles-bar"></div>
+
+<div class="board-wrap">
+  <div class="board">
+
+    <div class="b-col side-col" data-col="0"><div class="b-col-hdr" style="background:#f0f4ff"><span class="b-col-title">PREPARE</span></div><div class="b-col-cards" style="background:#edf1fb;min-height:1575px"><div class="m-card" data-col="0" data-cid="0"><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#d0f0f2">Check</span><span class="badge" style="color:#c0392b;background:#fde8e6">Important</span></div><div class="m-card-row"><div class="m-card-title">Check Prerequisites</div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+<div class="m-card" data-col="0" data-cid="1"><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#d0f0f2">Check</span></div><div class="m-card-row"><div class="m-card-title">BTP Trial Account &amp; Development Environment</div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+</div></div>
+
+    <div class="days-area"><div class="days-hdrs"><div class="axis-spacer-hdr"></div>
+<div class="dc-hdr col-locked" data-col="1" style="background:#fff"><span class="b-col-title">DAY 1 &#8211; GET STARTED</span></div>
+<div class="dc-hdr col-locked" data-col="2" style="background:#fff"><span class="b-col-title">DAY 2 &#8211; DEVELOP APPS</span></div>
+<div class="dc-hdr col-locked" data-col="3" style="background:#fff"><span class="b-col-title">DAY 3 &#8211; DEVELOP EFFICIENTLY</span></div>
+</div><div class="days-tl" style="background:linear-gradient(to bottom, transparent 0px,#c8d4de 0px,#c8d4de 1px,transparent 1px,transparent 180px,#c8d4de 180px,#c8d4de 181px,transparent 181px,transparent 360px,#c8d4de 360px,#c8d4de 361px,transparent 361px,transparent 540px,#c8d4de 540px,#c8d4de 541px,transparent 541px,transparent 720px,#c8d4de 720px,#c8d4de 721px,transparent 721px,transparent 900px,#c8d4de 900px,#c8d4de 901px,transparent 901px,transparent 1080px,#c8d4de 1080px,#c8d4de 1081px,transparent 1081px,transparent 1260px,#c8d4de 1260px,#c8d4de 1261px,transparent 1261px,transparent 1440px,#c8d4de 1440px,#c8d4de 1441px,transparent 1441px)"><div class="time-axis" style="height:1530px"><div class="axis-mark" style="top:0px">09:00</div><div class="axis-mark" style="top:180px">10:00</div><div class="axis-mark" style="top:360px">11:00</div><div class="axis-mark" style="top:540px">12:00</div><div class="axis-mark" style="top:720px">13:00</div><div class="axis-mark" style="top:900px">14:00</div><div class="axis-mark" style="top:1080px">15:00</div><div class="axis-mark" style="top:1260px">16:00</div><div class="axis-mark" style="top:1440px">17:00</div></div>
+
+<div class="day-timeline col-locked" data-col="1" style="background:#f8f9fa;height:1530px"><div class="h-line" style="top:0px"></div><div class="h-line" style="top:180px"></div><div class="h-line" style="top:360px"></div><div class="h-line" style="top:540px"></div><div class="h-line" style="top:720px"></div><div class="h-line" style="top:900px"></div><div class="h-line" style="top:1080px"></div><div class="h-line" style="top:1260px"></div><div class="h-line" style="top:1440px"></div>
+<div class="tc-card" data-col="1" data-cid="6" data-time="09:30" style="top:90px;height:88px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">09:30</span><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#e0f5f7">Introduction</span></div><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Welcome - Agenda</div></div>
+<div class="tc-card" data-col="1" data-cid="7" data-time="10:00" style="top:180px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">10:00</span><div class="m-card-badges"><span class="badge" style="color:#c0392b;background:#fde8e6">Important</span></div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Credentials / Landingpage / URLs used in this workshop</div></div>
+<div class="tc-card" data-col="1" data-cid="8" data-time="10:15" style="top:225px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">10:15</span><div class="m-card-badges"><span class="badge" style="color:#c0392b;background:#fde8e6">Important</span></div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Check again the prerequisites</div></div>
+<div class="tc-card" data-col="1" data-cid="9" data-time="10:30" style="top:270px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">10:30</span><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">BTP Technology Overview and SAP Build Strategy update</div></div>
+<div class="tc-card" data-col="1" data-cid="10" data-time="10:45" style="top:315px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">10:45</span><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><span class="tc-speaker">Florian</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">SAP Build overview</div></div>
+<div class="tc-card" data-col="1" data-cid="11" data-time="11:00" style="top:360px;height:28px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">11:00</span><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><span class="tc-speaker">Florian</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">SAP Build Hands-on Overview</div></div>
+<div class="tc-card" data-col="1" data-cid="12" data-time="11:10" style="top:390px;height:148px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">11:10</span><div class="m-card-badges"><span class="badge" style="color:#9b1a6e;background:#fce4f3">Demo</span></div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Joule Work</div></div>
+<div class="tc-card is-break" data-col="1" data-cid="13" style="top:540px;height:178px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">12:00</span><div class="m-card-title">Lunch</div></div></div>
+<div class="tc-card" data-col="1" data-cid="14" data-time="13:00" style="top:720px;height:178px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">13:00</span><div class="m-card-badges"><span class="badge" style="color:#9b1a6e;background:#fce4f3">Demo</span></div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Joule Studio (2.0), relation to SAP Build</div></div>
+<div class="tc-card is-break" data-col="1" data-cid="15" style="top:900px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">14:00</span><div class="m-card-title">Break</div></div></div>
+<div class="tc-card" data-col="1" data-cid="16" data-time="14:15" style="top:945px;height:88px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">14:15</span><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">SAP Build Code overview</div></div>
+<div class="tc-card" data-col="1" data-cid="17" data-time="14:45" style="top:1035px;height:403px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">14:45</span><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Exercise</span></div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">AI-powered development with SAP Build Code</div></div>
+<div class="tc-card" data-col="1" data-cid="18" data-time="17:00" style="top:1440px;height:88px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">17:00</span><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#e0f5f7">Wrap-Up</span></div><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Wrap-up, Parking Lot, End</div></div>
+</div>
+
+<div class="day-timeline col-locked" data-col="2" style="background:#f8f9fa;height:1530px"><div class="h-line" style="top:0px"></div><div class="h-line" style="top:180px"></div><div class="h-line" style="top:360px"></div><div class="h-line" style="top:540px"></div><div class="h-line" style="top:720px"></div><div class="h-line" style="top:900px"></div><div class="h-line" style="top:1080px"></div><div class="h-line" style="top:1260px"></div><div class="h-line" style="top:1440px"></div>
+<div class="tc-card" data-col="2" data-cid="19" data-time="09:00" style="top:0px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">09:00</span><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#e0f5f7">Introduction</span></div><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Welcome back recap</div></div>
+<div class="tc-card" data-col="2" data-cid="20" data-time="09:15" style="top:45px;height:178px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">09:15</span><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><span class="tc-speaker">Oliver</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Building Modern Web Applications with SAPUI5</div></div>
+<div class="tc-card" data-col="2" data-cid="21" data-time="10:15" style="top:225px;height:88px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">10:15</span><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Exercise</span></div><span class="tc-speaker">Oliver</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Extend an SAP app as a Key User</div></div>
+<div class="tc-card is-break" data-col="2" data-cid="22" style="top:315px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">10:45</span><div class="m-card-title">Break</div></div></div>
+<div class="tc-card" data-col="2" data-cid="23" data-time="11:00" style="top:360px;height:133px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">11:00</span><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><span class="tc-speaker">Andre</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Clean Core Extensibility for SAP S/4HANA with ABAP Cloud Side-by-Side</div></div>
+<div class="tc-card" data-col="2" data-cid="24" data-time="11:45" style="top:495px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">11:45</span><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Exercise</span></div><span class="tc-speaker">Andre</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Setup your ABAP Development Environment</div></div>
+<div class="tc-card is-break" data-col="2" data-cid="25" style="top:540px;height:178px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">12:00</span><div class="m-card-title">Lunch</div></div></div>
+<div class="tc-card" data-col="2" data-cid="26" data-time="13:00" style="top:720px;height:178px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">13:00</span><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Exercise</span></div><span class="tc-speaker">Andre</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Side-by-side extensibility for SAP S/4HANA with SAP BTP ABAP Environment</div></div>
+<div class="tc-card is-break" data-col="2" data-cid="27" style="top:900px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">14:00</span><div class="m-card-title">Break</div></div></div>
+<div class="tc-card" data-col="2" data-cid="28" data-time="14:15" style="top:945px;height:178px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">14:15</span><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Exercise</span></div><span class="tc-speaker">Andre</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Extend an SAP app as a Developer</div></div>
+<div class="tc-card is-break" data-col="2" data-cid="29" style="top:1125px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">15:15</span><div class="m-card-title">Break</div></div></div>
+<div class="tc-card" data-col="2" data-cid="30" data-time="15:30" style="top:1170px;height:178px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">15:30</span><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Exercise</span></div><span class="tc-speaker">Andre</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Develop your own APIs to call OData services in SAP S/4HANA Cloud</div></div>
+<div class="tc-card" data-col="2" data-cid="31" data-time="17:00" style="top:1440px;height:88px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">17:00</span><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#e0f5f7">Wrap-Up</span></div><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Wrap-up, Parking Lot, End</div></div>
+</div>
+
+<div class="day-timeline col-locked" data-col="3" style="background:#f8f9fa;height:1530px"><div class="h-line" style="top:0px"></div><div class="h-line" style="top:180px"></div><div class="h-line" style="top:360px"></div><div class="h-line" style="top:540px"></div><div class="h-line" style="top:720px"></div><div class="h-line" style="top:900px"></div><div class="h-line" style="top:1080px"></div><div class="h-line" style="top:1260px"></div><div class="h-line" style="top:1440px"></div>
+<div class="tc-card" data-col="3" data-cid="32" data-time="09:00" style="top:0px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">09:00</span><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#e0f5f7">Introduction</span></div><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Welcome back recap</div></div>
+<div class="tc-card" data-col="3" data-cid="33" data-time="09:15" style="top:45px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">09:15</span><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">SAP Discovery Center</div></div>
+<div class="tc-card" data-col="3" data-cid="34" data-time="09:30" style="top:90px;height:133px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">09:30</span><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><span class="tc-speaker">Andre</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Clean Core Extensibility for SAP S/4HANA with ABAP Cloud - On-Stack</div></div>
+<div class="tc-card" data-col="3" data-cid="35" data-time="10:15" style="top:225px;height:133px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">10:15</span><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Exercise</span></div><span class="tc-speaker">Andre</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">On-stack developer extensibility for SAP S/4HANA</div></div>
+<div class="tc-card is-break" data-col="3" data-cid="36" style="top:360px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">11:00</span><div class="m-card-title">Break</div></div></div>
+<div class="tc-card" data-col="3" data-cid="37" data-time="11:15" style="top:405px;height:133px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">11:15</span><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Exercise</span></div><span class="tc-speaker">Oliver</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Develop an SAPUI5 / SAP Fiori elements app - Part 1</div></div>
+<div class="tc-card is-break" data-col="3" data-cid="38" style="top:540px;height:178px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">12:00</span><div class="m-card-title">Lunch</div></div></div>
+<div class="tc-card" data-col="3" data-cid="39" data-time="13:00" style="top:720px;height:88px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">13:00</span><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><span class="tc-speaker">Chandresh</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Partner Models</div></div>
+<div class="tc-card" data-col="3" data-cid="40" data-time="13:30" style="top:810px;height:133px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">13:30</span><div class="m-card-badges"><span class="badge" style="color:#0d6e35;background:#dcf5e5">Exercise</span></div><span class="tc-speaker">Oliver</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Develop an SAPUI5 / SAP Fiori elements app - Part 2</div></div>
+<div class="tc-card is-break" data-col="3" data-cid="41" style="top:945px;height:43px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">14:15</span><div class="m-card-title">Break</div></div></div>
+<div class="tc-card" data-col="3" data-cid="42" data-time="14:30" style="top:990px;height:178px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">14:30</span><div class="m-card-badges"><span class="badge" style="color:#5b21b6;background:#ede9fe">Presentation</span></div><span class="tc-speaker">Florian</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Build centralized access to business applications with SAP Build Work Zone</div></div>
+<div class="tc-card" data-col="3" data-cid="43" data-time="15:30" style="top:1170px;height:88px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">15:30</span><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#e0f5f7">Wrap-Up</span></div><span class="tc-speaker">Andreas</span><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Wrap-up, Parking Lot, End</div></div>
+<div class="tc-card" data-col="3" data-cid="44" data-time="16:00" style="top:1260px;height:88px;left:4.0px;right:4.0px"><div class="tc-top-row"><span class="tc-time">16:00</span><div class="m-card-badges"><span class="badge" style="color:#505050;background:#f2f2f2">Optional</span></div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="m-card-title">Parking Lot 2</div></div>
+</div>
+
+</div></div>
+
+    <div class="b-col side-col col-locked" data-col="4"><div class="b-col-hdr" style="background:#f0f4ff"><span class="b-col-title">FOLLOW-UP</span></div><div class="b-col-cards" style="background:#edf1fb;min-height:1575px"><div class="m-card" data-col="4" data-cid="2"><div class="m-card-badges"><span class="badge" style="color:#505050;background:#e8e8f0">Optional</span></div><div class="m-card-row"><div class="m-card-title">Review Workshop Materials</div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+<div class="m-card" data-col="4" data-cid="3"><div class="m-card-badges"><span class="badge" style="color:#7a00b8;background:#ecdffe">Mission</span></div><div class="m-card-row"><div class="m-card-title">Your Feedback</div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+<div class="m-card" data-col="4" data-cid="4"><div class="m-card-badges"><span class="badge" style="color:#7a00b8;background:#ecdffe">Mission</span></div><div class="m-card-row"><div class="m-card-title">Complete Mission</div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+<div class="m-card" data-col="4" data-cid="5"><div class="m-card-badges"><span class="badge" style="color:#02747f;background:#d0f0f2">Check</span></div><div class="m-card-row"><div class="m-card-title">Get your Badge</div><button class="cbtn" title="Mark as complete"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+</div></div>
+
+  </div>
+</div>
+
+<div class="sap-footer">
+  <svg class="f-logo" width="42" height="21" viewBox="0 0 42 21"><rect width="42" height="21" fill="#001e60"/>
+  <text x="21" y="15.5" font-family="Arial,sans-serif" font-size="14" font-weight="900" fill="white" text-anchor="middle" letter-spacing="1">SAP</text></svg>
+  <div class="f-section"><span class="f-head">Get in Touch</span><span class="f-link">Contact Us</span></div>
+  <div class="f-section"><span class="f-head">Quick Links</span><span class="f-link">SAP Help Portal</span><span class="f-link">SAP Community</span></div>
+  <div class="f-section"><span class="f-head">Site Information</span><span class="f-link">Privacy</span><span class="f-link">Legal Disclosure</span></div>
+  <div class="f-section" style="margin-left:auto;opacity:.55"><span class="f-link" style="font-size:.65rem">v2026-05-21</span></div>
+</div>
+
+<div id="e-modal-ov">
+  <div class="e-dialog">
+    <div id="e-modal-title" class="e-dialog-title"></div>
+    <div id="e-modal-body"></div>
+    <div class="e-dialog-btns">
+      <button class="e-btn-sec" onclick="closeModal()">Cancel</button>
+      <button class="e-btn-pri" onclick="if(_modalOk)_modalOk()">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORE_KEY = 'agenda-build-code-vancouver-v1';
+const COL_IDS = [0,1,2,3,4];
+const PPM_JS = 3;
+const GSTART_JS = 540;
+
+const J_MT = `<svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.75" fill="none" stroke="#c5cbd3" stroke-width="1.5"/><polyline class="ck" points="3.5,6.5 5.7,9 9.5,4.5" stroke="#c5cbd3" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const J_DN = `<svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="6.5" fill="#0b6e3a"/><polyline points="3.5,6.5 5.7,9 9.5,4.5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+function getColEls(id) {
+  return Array.from(document.querySelectorAll(
+    '.dc-hdr[data-col="'+id+'"],.day-timeline[data-col="'+id+'"],.side-col[data-col="'+id+'"]'
+  ));
+}
+function getColCards(id) {
+  return getColEls(id).flatMap(el => Array.from(el.querySelectorAll('.m-card:not(.is-break),.tc-card:not(.is-break)')));
+}
+function updateAll() {
+  let prevDone = true;
+  COL_IDS.forEach(id => {
+    const cards = getColCards(id);
+    const allDone = cards.length > 0 && cards.every(c => c.classList.contains('done'));
+    const locked = !prevDone;
+    getColEls(id).forEach(el => el.classList.toggle('col-locked', locked));
+    prevDone = allDone;
+  });
+}
+function saveState() {
+  const state = Array.from(document.querySelectorAll('.m-card,.tc-card')).map(c => c.classList.contains('done') ? 1 : 0);
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+}
+function restoreState() {
+  const saved = localStorage.getItem(STORE_KEY);
+  if (!saved) return;
+  const state = JSON.parse(saved);
+  document.querySelectorAll('.m-card,.tc-card').forEach((c, i) => {
+    if (state[i]) {
+      c.classList.add('done');
+      const btn = c.querySelector('.cbtn');
+      if (btn) { btn.innerHTML = J_DN; btn.title = 'Completed – click to undo'; }
+    }
+  });
+}
+document.querySelectorAll('.cbtn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const card = btn.closest('.m-card,.tc-card'); if (!card) return;
+    card.classList.toggle('done');
+    const isDone = card.classList.contains('done');
+    btn.innerHTML = isDone ? J_DN : J_MT;
+    btn.title = isDone ? 'Completed – click to undo' : 'Mark as complete';
+    updateAll(); saveState();
+  });
+});
+
+(function() {
+  const now = new Date();
+  const mins = now.getHours()*60 + now.getMinutes();
+  document.querySelectorAll('.day-timeline').forEach(function(tl) {
+    const top = (mins - GSTART_JS) * PPM_JS;
+    if (top >= 0 && top <= parseInt(tl.style.height)) {
+      const line = document.createElement('div');
+      line.className = 'now-line';
+      line.style.top = top + 'px';
+      tl.appendChild(line);
+    }
+  });
+})();
+
+const E_KEY = 'agenda-build-code-vancouver-v1-edit';
+let eMode = false;
+let eData = (function() { try { return JSON.parse(localStorage.getItem(E_KEY)) || {}; } catch(e) { return {}; } })();
+function eSave() { localStorage.setItem(E_KEY, JSON.stringify(eData)); }
+function hesc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+var BADGE_MAP = {
+  'check':['#02747f','#e0f5f7'],'intro':['#02747f','#e0f5f7'],'recap':['#02747f','#e0f5f7'],
+  'introduction':['#02747f','#e0f5f7'],'wrap-up':['#02747f','#e0f5f7'],
+  'presentation':['#5b21b6','#ede9fe'],'exercise':['#0d6e35','#dcf5e5'],'hands-on':['#0d6e35','#dcf5e5'],
+  'game':['#8b4000','#fff3e0'],'optional':['#505050','#f2f2f2'],'demo':['#9b1a6e','#fce4f3'],
+  'highlight':['#7c5100','#fff8e0'],'mission':['#7a00b8','#f5e3ff'],'important':['#c0392b','#fde8e6']
+};
+function getBStyle(k) {
+  var c = BADGE_MAP[(k||'').toLowerCase().trim()] || ['#505050','#f2f2f2'];
+  return 'color:'+c[0]+';background:'+c[1];
+}
+function eApply() {
+  (eData.deleted||[]).forEach(function(cid) { var el=document.querySelector('[data-cid="'+cid+'"]'); if(el) el.remove(); });
+  var cm=eData.cols||{};
+  Object.keys(cm).forEach(function(cid) {
+    var el=document.querySelector('[data-cid="'+cid+'"]'); if(!el) return;
+    var nc=cm[cid];
+    var tgt=document.querySelector('.day-timeline[data-col="'+nc+'"]')||document.querySelector('.side-col[data-col="'+nc+'"] .b-col-cards');
+    if(tgt&&el.parentNode!==tgt) { tgt.appendChild(el); el.dataset.col=nc; }
+    var inTl=!!el.closest('.day-timeline');
+    if(inTl&&el.classList.contains('m-card')) { el.classList.remove('m-card'); el.classList.add('tc-card'); }
+    else if(!inTl&&el.classList.contains('tc-card')) { el.classList.remove('tc-card'); el.classList.add('m-card'); el.style.cssText=''; }
+  });
+  var ov=eData.overrides||{};
+  Object.keys(ov).forEach(function(cid) {
+    var el=document.querySelector('[data-cid="'+cid+'"]'); if(!el) return;
+    var d=ov[cid];
+    if(d.title!=null) { var t=el.querySelector('.m-card-title'); if(t) { var v=d.title; if(el.classList.contains('tc-card')&&el.querySelector('.tc-top-row')) { var mm=v.match(/^(\d{2}:\d{2})\s+([\s\S]*)/); if(mm) { var ts=el.querySelector('.tc-time'); if(ts) ts.textContent=mm[1]; el.dataset.time=mm[1]; v=mm[2]; } } t.textContent=v; } }
+    if(d.time!=null) { var ts2=el.querySelector('.tc-time'); if(ts2) { ts2.textContent=d.time; el.dataset.time=d.time; } }
+    if(d.speaker!=null) { var sp=el.querySelector('.tc-speaker'); if(d.speaker==='') { if(sp) sp.remove(); } else if(sp) { sp.textContent=d.speaker; } else { var nsp=document.createElement('span'); nsp.className='tc-speaker'; nsp.textContent=d.speaker; var tr2=el.querySelector('.tc-top-row'); if(tr2) { var cb2=tr2.querySelector('.cbtn'); tr2.insertBefore(nsp,cb2||null); } } }
+    if(d.badges!=null) { var bd=el.querySelector('.m-card-badges'); if(bd) bd.innerHTML=d.badges; }
+  });
+  var pos=eData.positions||{};
+  Object.keys(pos).forEach(function(cid) {
+    var el=document.querySelector('[data-cid="'+cid+'"]'); if(!el) return;
+    if(el.classList.contains('tc-card')&&!el.style.left) el.style.cssText='top:'+pos[cid]+'px;height:60px;left:4px;right:4px';
+    else el.style.top=pos[cid]+'px';
+  });
+  (eData.added||[]).forEach(function(a) { insertCard(a, false); });
+}
+function _makeCbtn() {
+  var cb=document.createElement('button');
+  cb.className='cbtn'; cb.title='Mark as complete'; cb.innerHTML=J_MT;
+  cb.addEventListener('click',function(e) {
+    e.stopPropagation();
+    var card=e.currentTarget.closest('.m-card,.tc-card'); if(!card) return;
+    card.classList.toggle('done');
+    var isDone=card.classList.contains('done');
+    e.currentTarget.innerHTML=isDone?J_DN:J_MT;
+    e.currentTarget.title=isDone?'Completed – click to undo':'Mark as complete';
+    updateAll(); saveState();
+  });
+  return cb;
+}
+function insertCard(a, withCtrl) {
+  if(a.isTl) {
+    var tl=document.querySelector('.day-timeline[data-col="'+a.col+'"]'); if(!tl) return;
+    var div=document.createElement('div');
+    div.className='tc-card'; div.dataset.cid=a.cid; div.dataset.col=a.col;
+    div.style.cssText='top:'+(a.top||0)+'px;height:60px;left:4px;right:4px';
+    if(a.time) div.dataset.time=a.time;
+    var topRow='<div class="tc-top-row">'+(a.time?'<span class="tc-time">'+hesc(a.time)+'</span>':'')+(a.badge?'<div class="m-card-badges"><span class="badge" style="'+getBStyle(a.badge)+'">'+hesc(a.badge)+'</span></div>':'')+(a.speaker?'<span class="tc-speaker">'+hesc(a.speaker)+'</span>':'')+'</div>';
+    div.innerHTML=topRow+'<div class="m-card-title">'+hesc(a.title)+'</div>';
+    div.querySelector('.tc-top-row').appendChild(_makeCbtn());
+    tl.appendChild(div); if(withCtrl) attachCtrl(div); return;
+  }
+  var container=document.querySelector('.side-col[data-col="'+a.col+'"] .b-col-cards'); if(!container) return;
+  var div=document.createElement('div');
+  div.className='m-card'; div.dataset.cid=a.cid; div.dataset.col=a.col;
+  var inner='';
+  if(a.badge) inner+='<div class="m-card-badges"><span class="badge" style="'+getBStyle(a.badge)+'">'+hesc(a.badge)+'</span></div>';
+  inner+='<div class="m-card-row"><div class="m-card-title">'+hesc(a.title)+'</div></div>';
+  div.innerHTML=inner;
+  div.querySelector('.m-card-row').appendChild(_makeCbtn());
+  var addBtn=container.querySelector('.e-add-btn');
+  container.insertBefore(div, addBtn||null);
+  if(withCtrl) attachCtrl(div);
+}
+function toggleEdit() {
+  eMode=!eMode;
+  document.body.classList.toggle('e-mode',eMode);
+  document.getElementById('eBtn').innerHTML=eMode?'&#10003; Done':'&#9998; Edit';
+  if(eMode) {
+    document.querySelectorAll('.m-card,.tc-card').forEach(attachCtrl);
+    document.querySelectorAll('.side-col .b-col-cards').forEach(function(c) {
+      if(!c.querySelector('.e-add-btn')) {
+        var colId=c.closest('[data-col]').dataset.col;
+        var ab=document.createElement('button');
+        ab.className='e-add-btn'; ab.textContent='+ Add Card';
+        ab.onclick=function() { promptAdd(colId); };
+        c.appendChild(ab);
+      }
+      c.addEventListener('dragover',function(ev) { ev.preventDefault(); });
+      c.addEventListener('drop',function(ev) {
+        if(!_ds) return; ev.preventDefault();
+        var newCol=c.closest('[data-col]').dataset.col;
+        if(_ds.classList.contains('tc-card')) { _ds.classList.remove('tc-card'); _ds.classList.add('m-card'); _ds.style.cssText=''; }
+        c.insertBefore(_ds,c.querySelector('.e-add-btn')||null);
+        if(_ds.dataset.col!==newCol) { _ds.dataset.col=newCol; if(!eData.cols) eData.cols={}; eData.cols[_ds.dataset.cid]=newCol; eSave(); }
+        updateAll();
+      });
+    });
+    document.querySelectorAll('.day-timeline').forEach(function(tl) {
+      if(!tl.querySelector('.e-add-btn')) {
+        var colId=tl.dataset.col;
+        var ab=document.createElement('button');
+        ab.className='e-add-btn'; ab.textContent='+ Add Card';
+        ab.style.top=(parseInt(tl.style.height||0)-44)+'px';
+        ab.onclick=function() { promptAddTc(colId); };
+        tl.appendChild(ab);
+      }
+      tl.addEventListener('dragover',function(ev) { ev.preventDefault(); });
+      tl.addEventListener('drop',function(ev) {
+        ev.preventDefault(); if(!_ds) return;
+        var rect=tl.getBoundingClientRect();
+        var snapped=Math.round(Math.max(0,ev.clientY-rect.top)/PPM_JS/5)*5*PPM_JS;
+        var mins=GSTART_JS+Math.round(snapped/PPM_JS);
+        var hh=String(Math.floor(mins/60)).padStart(2,'0'),mm=String(mins%60).padStart(2,'0');
+        var newTime=hh+':'+mm, newCol=tl.dataset.col;
+        if(_ds.classList.contains('m-card')) { _ds.classList.remove('m-card'); _ds.classList.add('tc-card'); }
+        _ds.style.cssText='top:'+snapped+'px;height:60px;left:4px;right:4px';
+        tl.appendChild(_ds);
+        var tcTime=_ds.querySelector('.tc-time');
+        if(tcTime){tcTime.textContent=newTime;_ds.dataset.time=newTime;}
+        else{var te=_ds.querySelector('.m-card-title');if(te)te.textContent=/^\d{2}:\d{2}/.test(te.textContent)?te.textContent.replace(/^\d{2}:\d{2}/,newTime):newTime+' '+te.textContent;}
+        _ds.dataset.col=newCol;
+        if(!eData.cols) eData.cols={}; eData.cols[_ds.dataset.cid]=newCol;
+        if(!eData.positions) eData.positions={}; eData.positions[_ds.dataset.cid]=snapped;
+        eSave(); updateAll();
+      });
+    });
+  } else {
+    document.querySelectorAll('.e-del,.e-edit,.e-add-btn,.e-add-badge-btn,.e-add-sp').forEach(function(b) { b.remove(); });
+    document.querySelectorAll('[draggable]').forEach(function(el) { el.removeAttribute('draggable'); });
+  }
+}
+function attachCtrl(card) {
+  if(card.querySelector('.e-del')) return;
+  var cid=card.dataset.cid;
+  var del=document.createElement('button');
+  del.className='e-del'; del.title='Delete'; del.innerHTML='&times;';
+  del.onclick=function(e) { e.stopPropagation(); delCard(cid); };
+  var edt=document.createElement('button');
+  edt.className='e-edit'; edt.title='Edit title'; edt.innerHTML='&#9998;';
+  edt.onclick=function(e) { e.stopPropagation(); startInlineEdit(card.querySelector('.m-card-title'),cid); };
+  card.appendChild(del); card.appendChild(edt);
+  var titleEl=card.querySelector('.m-card-title');
+  if(titleEl) titleEl.addEventListener('click',function(e) { if(eMode) { e.stopPropagation(); startInlineEdit(titleEl,cid); } });
+  if(!card.classList.contains('is-break')) attachBadgeEdit(card,cid);
+  if(card.classList.contains('tc-card')) {
+    var timeEl=card.querySelector('.tc-time');
+    if(timeEl) timeEl.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startTimeEdit(timeEl,cid); });
+    var spEl=card.querySelector('.tc-speaker');
+    if(spEl) {
+      spEl.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startSpeakerEdit(spEl,cid,card,false); });
+    } else if(!card.classList.contains('is-break')) {
+      var topRow2=card.querySelector('.tc-top-row');
+      if(topRow2&&!topRow2.querySelector('.e-add-sp')) {
+        var addSpBtn=document.createElement('span');
+        addSpBtn.className='tc-speaker e-add-sp'; addSpBtn.textContent='+ Speaker';
+        var cbtn3=topRow2.querySelector('.cbtn'); topRow2.insertBefore(addSpBtn,cbtn3||null);
+        addSpBtn.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startSpeakerEdit(addSpBtn,cid,card,true); });
+      }
+    }
+  }
+  card.setAttribute('draggable','true');
+  card.addEventListener('dragstart',function(e) { _ds=card; card.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+  card.addEventListener('dragover', function(e) { e.preventDefault(); card.classList.add('drag-over'); });
+  card.addEventListener('dragleave',function()  { card.classList.remove('drag-over'); });
+  card.addEventListener('dragend',  function()  { _ds=null; card.classList.remove('dragging'); document.querySelectorAll('.drag-over').forEach(function(x){ x.classList.remove('drag-over'); }); });
+  if(card.closest('.side-col')) {
+    card.addEventListener('drop',function(e) {
+      e.stopPropagation(); e.preventDefault(); card.classList.remove('drag-over');
+      if(!_ds||_ds===card) return;
+      var p=card.parentNode;
+      var si=Array.from(p.children).indexOf(_ds),ti=Array.from(p.children).indexOf(card);
+      p.insertBefore(_ds,(si===-1||si>ti)?card:card.nextSibling);
+      var newCol=p.closest('[data-col]').dataset.col;
+      if(_ds.dataset.col!==newCol) { _ds.dataset.col=newCol; if(!eData.cols) eData.cols={}; eData.cols[_ds.dataset.cid]=newCol; eSave(); }
+    });
+  }
+}
+var _ds=null, _modalOk=null, _addCol=null, _eCtr=10000;
+function delCard(cid) {
+  if(!eData.deleted) eData.deleted=[];
+  eData.deleted.push(String(cid));
+  var el=document.querySelector('[data-cid="'+cid+'"]');
+  if(el) { el.classList.add('card-fade'); setTimeout(function() { if(el.parentNode) el.remove(); updateAll(); },160); }
+  eSave();
+}
+function startInlineEdit(titleEl,cid) {
+  if(!titleEl||titleEl.contentEditable==='true') return;
+  var original=titleEl.textContent.trim();
+  titleEl.contentEditable='true'; titleEl.focus();
+  var range=document.createRange(); range.selectNodeContents(titleEl);
+  var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  function commit() {
+    var v=titleEl.textContent.trim(); titleEl.contentEditable='false';
+    if(v&&v!==original) { if(!eData.overrides) eData.overrides={}; if(!eData.overrides[cid]) eData.overrides[cid]={}; var _c=titleEl.closest('.m-card,.tc-card'); eData.overrides[cid].title=(_c&&_c.classList.contains('tc-card')&&_c.dataset.time)?_c.dataset.time+' '+v:v; eSave(); }
+    else if(!v) titleEl.textContent=original;
+    titleEl.removeEventListener('blur',commit); titleEl.removeEventListener('keydown',onKey);
+  }
+  function onKey(e) {
+    if(e.key==='Enter') { e.preventDefault(); commit(); }
+    if(e.key==='Escape') { e.preventDefault(); titleEl.textContent=original; titleEl.contentEditable='false'; titleEl.removeEventListener('blur',commit); titleEl.removeEventListener('keydown',onKey); }
+  }
+  titleEl.addEventListener('blur',commit); titleEl.addEventListener('keydown',onKey);
+}
+function attachBadgeEdit(card,cid) {
+  card.querySelectorAll('.badge:not(.e-add-badge-btn)').forEach(function(badge) {
+    badge.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startBadgeEdit(badge,cid,card); });
+  });
+  var bd=card.querySelector('.m-card-badges');
+  if(!bd) { bd=document.createElement('div'); bd.className='m-card-badges'; var tr=card.querySelector('.tc-top-row'); if(tr){var ts=tr.querySelector('.tc-time');tr.insertBefore(bd,ts?ts.nextSibling:tr.firstChild);}else{card.insertBefore(bd,card.firstChild);} }
+  if(bd.querySelector('.e-add-badge-btn')) return;
+  var ab=document.createElement('span');
+  ab.className='badge e-add-badge-btn'; ab.style.cssText='cursor:pointer;background:#f0f0f0;color:#64748b'; ab.textContent='+ Label';
+  ab.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); addBadge(bd,cid,card); });
+  bd.appendChild(ab);
+}
+function startBadgeEdit(badge,cid,card) {
+  if(badge.contentEditable==='true') return;
+  var original=badge.textContent.trim();
+  badge.contentEditable='true'; badge.focus();
+  var range=document.createRange(); range.selectNodeContents(badge);
+  var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  function commit() {
+    badge.contentEditable='false';
+    var v=badge.textContent.trim();
+    if(!v) badge.remove(); else badge.setAttribute('style',getBStyle(v));
+    saveBadges(cid,card);
+    badge.removeEventListener('blur',commit); badge.removeEventListener('keydown',onKey);
+  }
+  function onKey(e) {
+    if(e.key==='Enter') { e.preventDefault(); commit(); }
+    if(e.key==='Escape') { e.preventDefault(); badge.textContent=original; badge.contentEditable='false'; badge.removeEventListener('blur',commit); badge.removeEventListener('keydown',onKey); }
+  }
+  badge.addEventListener('blur',commit); badge.addEventListener('keydown',onKey);
+}
+function addBadge(bd,cid,card) {
+  var span=document.createElement('span');
+  span.className='badge'; span.style.cssText=getBStyle('check'); span.textContent='Label';
+  var addBtn=bd.querySelector('.e-add-badge-btn');
+  bd.insertBefore(span,addBtn||null);
+  span.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startBadgeEdit(span,cid,card); });
+  saveBadges(cid,card); startBadgeEdit(span,cid,card);
+}
+function saveBadges(cid,card) {
+  var bd=card.querySelector('.m-card-badges'); if(!bd) return;
+  var clone=bd.cloneNode(true); var ab=clone.querySelector('.e-add-badge-btn'); if(ab) ab.remove();
+  if(!eData.overrides) eData.overrides={}; if(!eData.overrides[cid]) eData.overrides[cid]={};
+  eData.overrides[cid].badges=clone.innerHTML; eSave();
+}
+function promptAdd(colId) {
+  showModal('Add Card',
+    '<div class="e-field"><label>Title</label><input class="e-input" id="ef-ti" placeholder="Card title"></div>'
+    +'<div class="e-field"><label>Badge</label><input class="e-input" id="ef-ba" placeholder="e.g. check, mission, optional"></div>',
+    function() {
+      var title=document.getElementById('ef-ti').value.trim();
+      if(!title) return;
+      var badge=document.getElementById('ef-ba').value.trim();
+      var cid='e'+(_eCtr++);
+      var a={cid:cid,col:colId,title:title,badge:badge,isTl:false};
+      if(!eData.added) eData.added=[];
+      eData.added.push(a); eSave();
+      insertCard(a,true);
+    }
+  );
+}
+function promptAddTc(colId) {
+  showModal('Add Timeline Card',
+    '<div class="e-field"><label>Time (HH:MM)</label><input class="e-input" id="ef-tm" placeholder="e.g. 10:30"></div>'
+    +'<div class="e-field"><label>Title</label><input class="e-input" id="ef-ti" placeholder="Card title"></div>'
+    +'<div class="e-field"><label>Badge</label><input class="e-input" id="ef-ba" placeholder="e.g. exercise, presentation"></div>'
+    +'<div class="e-field"><label>Speaker</label><input class="e-input" id="ef-sp" placeholder="optional"></div>',
+    function() {
+      var time=document.getElementById('ef-tm').value.trim();
+      var title=document.getElementById('ef-ti').value.trim();
+      if(!title) return;
+      var badge=document.getElementById('ef-ba').value.trim();
+      var speaker=document.getElementById('ef-sp').value.trim();
+      var top=0;
+      if(time) { var p=time.split(':'); top=(parseInt(p[0])*60+parseInt(p[1]||0)-GSTART_JS)*PPM_JS; }
+      var cid='e'+(_eCtr++);
+      var a={cid:cid,col:colId,title:title,badge:badge,speaker:speaker,time:time,top:top,isTl:true};
+      if(!eData.added) eData.added=[];
+      eData.added.push(a); eSave();
+      insertCard(a,true);
+    }
+  );
+  setTimeout(function() { var i=document.getElementById('ef-tm'); if(i) i.focus(); },20);
+}
+function showModal(title,body,ok) {
+  document.getElementById('e-modal-title').textContent=title;
+  document.getElementById('e-modal-body').innerHTML=body;
+  var ov=document.getElementById('e-modal-ov');
+  ov.style.display='flex'; _modalOk=function() { ok(); closeModal(); };
+  ov.addEventListener('click',function(e) { if(e.target===ov) closeModal(); },{once:true});
+  document.addEventListener('keydown',function(e) { if(e.key==='Enter') { if(_modalOk) _modalOk(); } if(e.key==='Escape') closeModal(); },{once:true});
+}
+function closeModal() {
+  document.getElementById('e-modal-ov').style.display='none'; _modalOk=null;
+}
+
+var SP_COLORS=['#2563eb','#0891b2','#059669','#7c3aed','#dc2626','#d97706','#be185d','#1d4ed8','#0f766e','#9333ea'];
+var SP_STOP={the:1,a:1,an:1,to:1,of:1,and:1,with:1,for:1,in:1,from:1,by:1,on:1,or:1,its:1,your:1,sap:1};
+function renderSpeakerTiles() {
+  var bar=document.getElementById('spTilesBar'); if(!bar) return;
+  var colorMap={}, colorIdx=0, personMap={};
+  document.querySelectorAll('.tc-card').forEach(function(card) {
+    var spEl=card.querySelector('.tc-speaker');
+    if(!spEl||spEl.classList.contains('e-add-sp')) return;
+    var raw=spEl.textContent.trim(); if(!raw) return;
+    var titleEl=card.querySelector('.m-card-title');
+    var title=titleEl?titleEl.textContent.trim():'';
+    raw.split(/\s+and\s+|,\s*/i).forEach(function(n) {
+      n=n.trim(); if(!n) return;
+      if(!colorMap[n]){colorMap[n]=SP_COLORS[colorIdx%SP_COLORS.length];colorIdx++;}
+      if(!personMap[n]) personMap[n]={color:colorMap[n],titles:[]};
+      if(title) personMap[n].titles.push(title);
+    });
+  });
+  var people=Object.keys(personMap).sort(function(a,b){return personMap[b].titles.length-personMap[a].titles.length;});
+  bar.innerHTML='<span class="sp-tiles-lbl">Speakers</span>'+people.map(function(name) {
+    var p=personMap[name];
+    var seen={};
+    var shorts=p.titles.map(function(t) {
+      var words=t.replace(/&amp;/g,'&').split(/[\s\-–·&:,]+/).filter(function(w){return w.length>=2&&!SP_STOP[w.toLowerCase()];});
+      return words.slice(0,2).join(' ');
+    }).filter(function(t){if(!t||seen[t])return false;seen[t]=true;return true;});
+    return '<div class="sp-tile"><div class="sp-avatar" style="background:'+p.color+'">'+hesc(name.charAt(0).toUpperCase())+'</div>'
+      +'<span class="sp-name">'+hesc(name)+'</span>'
+      +(shorts.length?'<span class="sp-desc"> &middot; '+hesc(shorts.join(', '))+'</span>':'')+'</div>';
+  }).join('');
+}
+
+function startTimeEdit(timeEl,cid) {
+  if(!timeEl||timeEl.contentEditable==='true') return;
+  var original=timeEl.textContent.trim();
+  timeEl.contentEditable='true'; timeEl.focus();
+  var range=document.createRange(); range.selectNodeContents(timeEl);
+  var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  function commit() {
+    var v=timeEl.textContent.trim(); timeEl.contentEditable='false';
+    if(v&&v!==original) {
+      var card=timeEl.closest('.tc-card'); if(card) card.dataset.time=v;
+      if(!eData.overrides) eData.overrides={}; if(!eData.overrides[cid]) eData.overrides[cid]={};
+      eData.overrides[cid].time=v; eSave();
+    } else if(!v) timeEl.textContent=original;
+    timeEl.removeEventListener('blur',commit); timeEl.removeEventListener('keydown',onKey);
+  }
+  function onKey(e) {
+    if(e.key==='Enter') { e.preventDefault(); commit(); }
+    if(e.key==='Escape') { e.preventDefault(); timeEl.textContent=original; timeEl.contentEditable='false'; timeEl.removeEventListener('blur',commit); timeEl.removeEventListener('keydown',onKey); }
+  }
+  timeEl.addEventListener('blur',commit); timeEl.addEventListener('keydown',onKey);
+}
+
+function startSpeakerEdit(spEl,cid,card,isNew) {
+  if(!spEl||spEl.contentEditable==='true') return;
+  var original=isNew?'':spEl.textContent.trim();
+  if(isNew) spEl.textContent='';
+  spEl.contentEditable='true'; spEl.focus();
+  var range=document.createRange(); range.selectNodeContents(spEl);
+  var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  function commit() {
+    var v=spEl.textContent.trim(); spEl.contentEditable='false';
+    if(isNew) {
+      if(!v) { spEl.remove(); return; }
+      spEl.classList.remove('e-add-sp'); spEl.className='tc-speaker';
+      spEl.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startSpeakerEdit(spEl,cid,card,false); });
+    } else if(!v) {
+      spEl.remove();
+    }
+    if(v!==original) {
+      if(!eData.overrides) eData.overrides={}; if(!eData.overrides[cid]) eData.overrides[cid]={};
+      eData.overrides[cid].speaker=v; eSave(); renderSpeakerTiles();
+    }
+    spEl.removeEventListener('blur',commit); spEl.removeEventListener('keydown',onKey);
+  }
+  function onKey(e) {
+    if(e.key==='Enter') { e.preventDefault(); commit(); }
+    if(e.key==='Escape') {
+      e.preventDefault(); spEl.textContent=original; spEl.contentEditable='false';
+      if(isNew&&!original) spEl.remove();
+      spEl.removeEventListener('blur',commit); spEl.removeEventListener('keydown',onKey);
+    }
+  }
+  spEl.addEventListener('blur',commit); spEl.addEventListener('keydown',onKey);
+}
+
+restoreState(); eApply(); updateAll(); renderSpeakerTiles();
+</script>
+</body>
+</html>
