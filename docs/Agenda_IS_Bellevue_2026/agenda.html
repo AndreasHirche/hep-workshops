@@ -389,8 +389,61 @@ document.querySelectorAll('.cbtn').forEach(btn => {
 // Edit mode
 const E_KEY = 'agenda-is-bellevue-v1-edit';
 let eMode = false;
-let eData = (function() { try { return JSON.parse(localStorage.getItem(E_KEY)) || {}; } catch(e) { return {}; } })();
-function eSave() { localStorage.setItem(E_KEY, JSON.stringify(eData)); }
+let eData = (function() {
+  try {
+    var d = JSON.parse(localStorage.getItem(E_KEY)) || {};
+    var legacy = d.pdfs;          // pdfs from old localStorage format
+    delete d.pdfs;
+    d.pdfs = {};                  // always start empty; filled from IndexedDB below
+    if (legacy) {                 // clean up localStorage immediately
+      d._legacyPdfs = legacy;
+      try { localStorage.setItem(E_KEY, JSON.stringify(d)); } catch(e) {}
+    }
+    return d;
+  } catch(e) { return {pdfs:{}}; }
+})();
+function eSave() {
+  var s = Object.assign({}, eData);
+  delete s.pdfs; delete s._legacyPdfs;
+  localStorage.setItem(E_KEY, JSON.stringify(s));
+}
+
+// PDF storage: IndexedDB avoids the 5 MB localStorage quota
+var _idbPdf = null;
+function _getPdfDb() {
+  return new Promise(function(res, rej) {
+    if (_idbPdf) { res(_idbPdf); return; }
+    var r = indexedDB.open('agenda-bellevue-pdfs', 1);
+    r.onupgradeneeded = function(e) { e.target.result.createObjectStore('p'); };
+    r.onsuccess = function(e) { _idbPdf = e.target.result; res(_idbPdf); };
+    r.onerror = function() { rej(r.error); };
+  });
+}
+function pdfDbSave(cid, obj) {
+  _getPdfDb().then(function(db) {
+    var tx = db.transaction('p', 'readwrite');
+    tx.objectStore('p').put(obj, String(cid));
+  }).catch(function() {});
+}
+function pdfDbDel(cid) {
+  _getPdfDb().then(function(db) {
+    var tx = db.transaction('p', 'readwrite');
+    tx.objectStore('p').delete(String(cid));
+  }).catch(function() {});
+}
+function pdfDbLoadAll() {
+  return _getPdfDb().then(function(db) {
+    return new Promise(function(res) {
+      var tx = db.transaction('p', 'readonly');
+      var result = {}, cur = tx.objectStore('p').openCursor();
+      cur.onsuccess = function(e) {
+        var c = e.target.result;
+        if (c) { result[c.key] = c.value; c.continue(); } else res(result);
+      };
+      cur.onerror = function() { res({}); };
+    });
+  }).catch(function() { return {}; });
+}
 function hesc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 var BADGE_MAP = {
   'check':['#02747f','#e0f5f7'],'intro':['#02747f','#e0f5f7'],'recap':['#02747f','#e0f5f7'],
@@ -553,7 +606,7 @@ function attachCtrl(card) {
         pdfBtn.classList.add('has-pdf');
         pdfBtn.title='File attached – replace';
         updatePdfIndicator(card,cid);
-        try { eSave(); } catch(e) { /* localStorage quota exceeded – attachment works this session only */ }
+        pdfDbSave(cid, eData.pdfs[cid]);
       };
       reader.readAsDataURL(file);
     };inp.click();
@@ -819,7 +872,17 @@ function startSpeakerEdit(spEl,cid,card,isNew) {
 }
 
 eApply(); restoreState(); updateAll(); renderSpeakerTiles();
-applyPdfIndicators();
+// Load PDFs from IndexedDB async; migrate legacy localStorage pdfs on first run
+(function() {
+  var legacy = eData._legacyPdfs; delete eData._legacyPdfs;
+  pdfDbLoadAll().then(function(pdfs) {
+    if (legacy) Object.keys(legacy).forEach(function(cid) {
+      if (!pdfs[cid]) { pdfs[cid] = legacy[cid]; pdfDbSave(cid, legacy[cid]); }
+    });
+    eData.pdfs = pdfs;
+    applyPdfIndicators();
+  });
+})();
 
 function _modalShowNote(cid){
   var ov=document.getElementById('pdf-modal-note-ov');
@@ -901,7 +964,7 @@ function modalAttach(){
       eData.pdfs[cid]={name:file.name,data:ev.target.result,type:isImg?'image':'pdf'};
       var card=document.querySelector('[data-cid="'+cid+'"]');
       if(card){updatePdfIndicator(card,cid);var b=card.querySelector('.e-pdf');if(b){b.classList.add('has-pdf');b.title='File attached – replace';}}
-      try{eSave();}catch(e){}
+      pdfDbSave(cid, eData.pdfs[cid]);
       closePdfModal();
       openCardModal(cid);
     };
@@ -1038,6 +1101,7 @@ function attachPdfRow(card,cid){
 function deletePdf(cid,card){
   if(!eData.pdfs)return;
   delete eData.pdfs[cid];
+  pdfDbDel(cid);
   eSave();
   var btn=card.querySelector('.e-pdf');
   if(btn){btn.classList.remove('has-pdf');btn.title='Attach file (PDF or image)';}
