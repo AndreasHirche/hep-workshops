@@ -83,10 +83,11 @@ body.e-mode .tc-card.is-break{pointer-events:auto}
 .e-toggle{position:absolute;bottom:10px;right:12px;z-index:10;padding:4px 14px;border:1px solid rgba(0,0,0,0.35);border-radius:4px;background:rgba(0,0,0,0.18);color:rgba(255,255,255,0.75);font-family:'72',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;box-shadow:inset 0 1px 2px rgba(0,0,0,0.4),inset 0 -1px 1px rgba(255,255,255,0.08);text-shadow:0 1px 2px rgba(0,0,0,0.5)}
 .e-toggle:hover{background:rgba(0,0,0,0.28);color:#fff}
 .e-mode .e-toggle{background:rgba(0,60,20,0.45);border-color:rgba(0,0,0,0.4);color:rgba(255,255,255,0.85)}
-.e-del,.e-edit,.e-pdf{position:absolute;width:18px;height:18px;border:none;border-radius:3px;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:.8rem;z-index:20;padding:0;line-height:1}
-.e-mode .e-del,.e-mode .e-edit,.e-mode .e-pdf{display:flex}
+.e-del,.e-pdf{position:absolute;width:18px;height:18px;border:none;border-radius:3px;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:.8rem;z-index:20;padding:0;line-height:1}
+.e-mode .e-del,.e-mode .e-pdf{display:flex}
 .e-del{top:3px;right:3px;background:#fee2e2;color:#dc2626}.e-del:hover{background:#fca5a5}
-.e-edit{top:3px;right:25px;background:#eff6ff;color:#2563eb}.e-edit:hover{background:#dbeafe}
+.e-mode .tc-card:not(.is-break) .m-card-title,.e-mode .tc-card:not(.is-break) .tc-time,.e-mode .tc-card:not(.is-break) .tc-speaker:not(.e-add-sp){outline:1px dashed rgba(0,100,217,0.45);border-radius:2px;cursor:text}
+.e-mode .tc-card:not(.is-break) .m-card-title:hover,.e-mode .tc-card:not(.is-break) .tc-time:hover,.e-mode .tc-card:not(.is-break) .tc-speaker:not(.e-add-sp):hover{outline-color:rgba(0,100,217,0.85);background:rgba(0,100,217,0.06)}
 .e-mode .cbtn{opacity:.25;pointer-events:none}
 .e-add-btn{display:block;width:100%;margin-top:6px;padding:7px;border:1px dashed #c5cbd3;border-radius:4px;background:none;color:#94a3b8;font-size:.75rem;cursor:pointer;text-align:center;font-family:'72',sans-serif}
 .e-add-btn:hover{background:#f5f6f7;color:#0064d9;border-color:#0064d9;border-style:solid}
@@ -604,7 +605,7 @@ function toggleEdit() {
       });
     });
   } else {
-    document.querySelectorAll('.e-del,.e-edit,.e-add-btn,.e-add-badge-btn,.e-add-sp').forEach(function(b) { b.remove(); });
+    document.querySelectorAll('.e-del,.e-add-btn,.e-add-badge-btn,.e-add-sp').forEach(function(b) { b.remove(); });
     document.querySelectorAll('[draggable]').forEach(function(el) { el.removeAttribute('draggable'); });
   }
 }
@@ -614,9 +615,6 @@ function attachCtrl(card) {
   var del=document.createElement('button');
   del.className='e-del'; del.title='Delete'; del.innerHTML='&times;';
   del.onclick=function(e) { e.stopPropagation(); delCard(cid); };
-  var edt=document.createElement('button');
-  edt.className='e-edit'; edt.title='Edit title'; edt.innerHTML='&#9998;';
-  edt.onclick=function(e) { e.stopPropagation(); startInlineEdit(card.querySelector('.m-card-title'),cid); };
   var pdfBtn=document.createElement('button');
   pdfBtn.className='e-pdf'+(eData.pdfs&&eData.pdfs[cid]?' has-pdf':'');
   pdfBtn.title=eData.pdfs&&eData.pdfs[cid]?'File attached – replace':'Attach file (PDF or image)';
@@ -639,13 +637,15 @@ function attachCtrl(card) {
       reader.readAsDataURL(file);
     };inp.click();
   };
-  card.appendChild(del); card.appendChild(edt); card.appendChild(pdfBtn);
+  card.appendChild(del); card.appendChild(pdfBtn);
   var titleEl=card.querySelector('.m-card-title');
   if(titleEl) titleEl.addEventListener('click',function(e) { if(eMode) { e.stopPropagation(); startInlineEdit(titleEl,cid); } });
   if(!card.classList.contains('is-break')) attachBadgeEdit(card,cid);
   if(card.classList.contains('tc-card')) {
     var timeEl=card.querySelector('.tc-time');
     if(timeEl) timeEl.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startTimeEdit(timeEl,cid); });
+    var titleEl2=card.querySelector('.m-card-title');
+    if(titleEl2) titleEl2.addEventListener('click',function(e){ if(!eMode) return; e.stopPropagation(); startInlineEdit(titleEl2,cid); });
     var spEl=card.querySelector('.tc-speaker');
     if(spEl) {
       spEl.addEventListener('click',function(e) { if(!eMode) return; e.stopPropagation(); startSpeakerEdit(spEl,cid,card,false); });
