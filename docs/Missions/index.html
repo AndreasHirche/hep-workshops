@@ -33,16 +33,16 @@ header p{color:var(--muted);font-size:0.82rem;margin-top:4px}
 .result-count{font-size:0.75rem;color:var(--muted);white-space:nowrap}
 
 /* Dashboard main: KPI sidebar + charts */
-.dashboard-main{display:grid;grid-template-columns:160px 1fr;gap:20px;margin-bottom:28px;align-items:start}
+.dashboard-main{display:grid;grid-template-columns:140px 1fr;gap:20px;margin-bottom:28px;align-items:stretch}
 @media(max-width:700px){.dashboard-main{grid-template-columns:1fr}}
 
-/* KPI sidebar - vertical */
-.kpis{display:flex;flex-direction:column;gap:10px}
-.kpi{background:var(--glass);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(12px);padding:14px 12px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+/* KPI sidebar - vertical, fills chart height */
+.kpis{display:flex;flex-direction:column;gap:8px}
+.kpi{background:var(--glass);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(12px);padding:0 10px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
 .kpi:hover{background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.22)}
 .kpi.active-kpi{border-color:var(--purple);background:rgba(124,58,237,0.12)}
-.kpi-val{font-size:1.8rem;font-weight:700;line-height:1}
-.kpi-lbl{font-size:0.65rem;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.08em}
+.kpi-val{font-size:1.55rem;font-weight:700;line-height:1}
+.kpi-lbl{font-size:0.6rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.08em}
 .kpi.k-total .kpi-val{color:#e2e8f0}
 .kpi.k-published .kpi-val{color:#4ade80}
 .kpi.k-draft .kpi-val{color:#22d3ee}
@@ -50,7 +50,7 @@ header p{color:var(--muted);font-size:0.82rem;margin-top:4px}
 .kpi.k-idea .kpi-val{color:#a78bfa}
 
 /* Charts panel (right side of dashboard-main) */
-.charts{display:grid;grid-template-columns:260px 1fr 1fr;gap:16px}
+.charts{display:grid;grid-template-columns:240px 1fr 1fr;gap:16px}
 @media(max-width:1100px){.charts{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.charts{grid-template-columns:1fr}}
 .chart-card{background:var(--glass);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(12px);padding:20px}
@@ -175,7 +175,7 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
   </header>
 
   <!-- File sources strip -->
-  <div class="file-sources" id="fileSources" style="display:none">
+  <div class="file-sources" id="fileSources">
     <div class="file-src" id="fsr-portfolio" onclick="triggerFileUpdate('portfolio')" title="Click to reload from file">
       <span class="file-src-name" id="fsn-portfolio">Mission_Portfolio.xlsx</span>
       <span class="file-src-btn">↺</span>
@@ -372,7 +372,7 @@ async function init(){
       return;
     }catch(e){}
   }
-  showFilePicker();
+  showNoData();
 }
 
 function saveCache(portfolio,ucr,jira,fns){
@@ -384,23 +384,14 @@ function clearCache(){
   allMissions=[];filtered=[];
   document.getElementById('fCategory').innerHTML='<option value="">All Categories</option>';
   document.getElementById('fMonth').innerHTML='<option value="">All Months</option>';
-  document.getElementById('fileSources').style.display='none';
-  showFilePicker();
+  renderFileSources({});
+  showNoData();
 }
 
-function showFilePicker(){
+function showNoData(){
   document.getElementById('tableArea').innerHTML=
-    '<div class="loading" id="pickArea">'
-    +'<div style="font-size:1rem;font-weight:600;color:#e2e8f0;margin-bottom:6px">Select files to load</div>'
-    +'<div style="font-size:.8rem;color:#94a3b8;margin-bottom:24px">Files are remembered in this browser after first load</div>'
-    +'<div class="filepick-row"><label class="filepick-lbl"><span>Mission_Portfolio.xlsx</span>'
-    +'<input type="file" id="pickPortfolio" accept=".xlsx,.xls" onchange="checkPicks()"></label></div>'
-    +'<div class="filepick-row" style="margin-top:12px"><label class="filepick-lbl"><span>Use Cases.csv</span>'
-    +'<input type="file" id="pickUCR" accept=".csv,.xlsx,.xls" onchange="checkPicks()"></label></div>'
-    +'<div class="filepick-row" style="margin-top:12px"><label class="filepick-lbl"><span>Jira_Validation.xls <span style="color:#475569;font-size:.75em">(optional)</span></span>'
-    +'<input type="file" id="pickJira" accept=".xls,.xlsx" onchange="checkPicks()"></label></div>'
-    +'<button id="loadBtn" class="load-btn" onclick="loadFromFiles()" disabled>Load &amp; Remember</button>'
-    +'</div>';
+    '<div class="loading"><div style="font-size:.85rem;color:#475569">Click ↺ on a file above to load data.</div></div>';
+  document.getElementById('pagination').style.display='none';
 }
 
 function checkPicks(){
@@ -465,8 +456,6 @@ function parseJira(rows){
 
 // ── File sources strip ─────────────────────────────────────────────────
 function renderFileSources(fns){
-  var strip=document.getElementById('fileSources');
-  strip.style.display='flex';
   ['portfolio','ucr','jira'].forEach(function(k){
     var nameEl=document.getElementById('fsn-'+k);
     var chip=document.getElementById('fsr-'+k);
