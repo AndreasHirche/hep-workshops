@@ -135,6 +135,9 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
 .rev-prog{color:#fbbf24;font-size:.95rem}
 .rev-open{color:#334155;font-size:.95rem}
 
+/* Diff indicator */
+.diff-dot{color:#ef4444;font-size:0.55rem;cursor:help;margin-left:2px;vertical-align:super;line-height:1}
+
 /* Fade in */
 .fade-in{animation:fadeIn .4s ease both}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -362,42 +365,111 @@ async function loadFromFiles(){
   }
 }
 
-function processData(portfolio,ucr){
-    var ucrMap=new Map();
-    ucr.forEach(function(r){
-      var id=String(r['ID']||'').trim();
-      if(id)ucrMap.set(id,r);
-    });
+// ── Diff helpers ───────────────────────────────────────────────────────
+function getF(row){
+  for(var i=1;i<arguments.length;i++){
+    var v=String(row[arguments[i]]||'').trim();
+    if(v)return v;
+  }
+  return'';
+}
+function norm(s){return String(s||'').trim().toLowerCase();}
+function diffDot(tip){return'<sup class="diff-dot" title="'+escHtml(tip)+'">●</sup>';}
 
-    allMissions=portfolio.map(function(r){
-      var ucrId=String(r['UCR ID']||'').trim();
-      var ucr=ucrMap.get(ucrId)||null;
-      var coach=String(r['Coach name(s)']||ucr&&ucr['Coach']||'').trim();
-      var expiry=ucr?ucr['Expiry Date']:null;
-      var revLang=(function(){
-        if(String(r['Date UA']||'').trim())return'done';
-        if(String(r['Name UA']||r['Review by UA']||'').trim())return'inprogress';
-        return'open';
-      })();
-      var revQual=(function(){
-        var q=String(r['Quality Review completed (yes/no)']||'').trim().toLowerCase();
-        if(q==='yes')return'done';
-        if(q&&q!=='no')return'inprogress';
-        return'open';
-      })();
-      var revPM=(function(){
-        if(String(r['Date PE']||'').trim())return'done';
-        if(String(r['Name PE']||r['Review by Platform Exp.']||'').trim())return'inprogress';
-        return'open';
-      })();
-      var modified=ucr?ucr['Last Modified On']||'':'';
-      return Object.assign({},r,{_ucr:ucr,_coach:coach,_ucr_expiry:expiry||'',_ucr_modified:modified,_rev_lang:revLang,_rev_qual:revQual,_rev_pm:revPM});
-    }).filter(function(r){return r['Mission Name']||r['Mission ID']||r['Nr'];});
-    buildCategoryFilter();
-    buildMonthFilter();
-    renderKPIs();
-    renderCharts();
-    applyFilters();
+function processData(portfolio,ucr){
+  var portfolioMap=new Map();
+  portfolio.forEach(function(r){
+    var id=String(r['UCR ID']||'').trim();
+    if(id)portfolioMap.set(id,r);
+  });
+
+  allMissions=ucr.map(function(r){
+    var ucrId=String(r['ID']||'').trim();
+    var p=portfolioMap.get(ucrId)||null;
+
+    // UCR as source of truth
+    var name   =getF(r,'Title','Mission Title','Use Case Title','Name','Mission Name');
+    var status =getF(r,'Status','Lifecycle Status','State');
+    var cat    =getF(r,'Category','Solution Area','Product Area','Line of Business');
+    var author =getF(r,'Author','Created By','Owner','Submitted By');
+    var coach  =getF(r,'Coach','Coach name(s)');
+    var expiry =r['Expiry Date']||'';
+    var modified=r['Last Modified On']||'';
+
+    // Diffs vs Portfolio
+    var diffs={};
+    if(p){
+      var pName  =String(p['Mission Name']||'').trim();
+      var pStatus=String(p['STATUS']||'').trim();
+      var pCat   =String(p['Category']||'').trim();
+      var pAuthor=String(p['Author']||'').trim();
+      var pCoach =String(p['Coach name(s)']||'').trim();
+      if(pName  &&norm(pName)  !==norm(name))  diffs.name  ='Portfolio Mission Name: "'+pName+'"';
+      if(pStatus&&norm(pStatus)!==norm(status)) diffs.status='Portfolio Status: "'+pStatus+'"';
+      if(pCat   &&norm(pCat)   !==norm(cat))   diffs.cat   ='Portfolio Category: "'+pCat+'"';
+      if(pAuthor&&norm(pAuthor)!==norm(author)) diffs.author='Portfolio Author: "'+pAuthor+'"';
+      if(pCoach &&norm(pCoach) !==norm(coach))  diffs.coach ='Portfolio Coach: "'+pCoach+'"';
+    }
+    // Diffs vs Jira
+    var valInfo=VAL_MAP[ucrId]||null;
+    if(valInfo){
+      var ucrValStatus=getF(r,'Validation Status','Content Validation Status','Validated');
+      if(ucrValStatus&&norm(ucrValStatus)!==norm(valInfo.status))
+        diffs.validation='Jira Status: "'+valInfo.status+'"';
+    }
+
+    // Reviews from portfolio
+    var revLang=p?(function(){
+      if(String(p['Date UA']||'').trim())return'done';
+      if(String(p['Name UA']||p['Review by UA']||'').trim())return'inprogress';
+      return'open';
+    })():'open';
+    var revQual=p?(function(){
+      var q=String(p['Quality Review completed (yes/no)']||'').trim().toLowerCase();
+      if(q==='yes')return'done';
+      if(q&&q!=='no')return'inprogress';
+      return'open';
+    })():'open';
+    var revPM=p?(function(){
+      if(String(p['Date PE']||'').trim())return'done';
+      if(String(p['Name PE']||p['Review by Platform Exp.']||'').trim())return'inprogress';
+      return'open';
+    })():'open';
+
+    return{
+      'Mission Name':name,
+      'UCR ID':ucrId,
+      'STATUS':status,
+      'Category':cat,
+      'Author':author,
+      'Coach name(s)':coach,
+      '_ucr':r,
+      '_portfolio':p,
+      '_coach':coach,
+      '_ucr_expiry':expiry,
+      '_ucr_modified':modified,
+      '_diffs':diffs,
+      '_rev_lang':revLang,
+      '_rev_qual':revQual,
+      '_rev_pm':revPM,
+      'Link to Discovery Center':p?String(p['Link to Discovery Center']||'').trim():'',
+      'Link in Mission Manager':p?String(p['Link in Mission Manager']||'').trim():'',
+      'Committed Date':p?p['Committed Date']:'',
+      'Featured Mission?':p?p['Featured Mission?']:'',
+      'Name UA':p?p['Name UA']:'',
+      'Review by UA':p?p['Review by UA']:'',
+      'Quality Review completed (yes/no)':p?p['Quality Review completed (yes/no)']:'',
+      'Name PE':p?p['Name PE']:'',
+      'Review by Platform Exp.':p?p['Review by Platform Exp.']:'',
+      'Date UA':p?p['Date UA']:'',
+      'Date PE':p?p['Date PE']:'',
+    };
+  }).filter(function(r){return r['Mission Name']||r['UCR ID'];});
+  buildCategoryFilter();
+  buildMonthFilter();
+  renderKPIs();
+  renderCharts();
+  applyFilters();
 }
 
 
@@ -582,7 +654,7 @@ function filterByCell(col, value){
     document.getElementById('fStatus').value=value;
   } else if(col==='Category'){
     document.getElementById('fCategory').value=value;
-  } else if(col==='Author'||col==='ucrStatus'){
+  } else if(col==='Author'){
     document.getElementById('search').value=value;
   } else if(col==='_coach'){
     setCoach(value);
@@ -672,7 +744,6 @@ var COLS=[
   {key:'_coach',label:'Coach',sortable:true,filterCol:'coach'},
   {key:'Category',label:'Category',sortable:true},
   {key:'STATUS',label:'Status',sortable:true,filterCol:'status'},
-  {key:'_ucr_status',label:'Status (UCR)',sortable:false},
   {key:'UCR ID',label:'UCR',sortable:true},
   {key:'Author',label:'Author',sortable:true,tdClass:'td-muted'},
   {key:'Committed Date',label:'Committed',sortable:true,tdClass:'td-muted'},
@@ -716,9 +787,10 @@ function renderTable(){
   rows.forEach(function(m){
     var link=String(m['Link to Discovery Center']||m['Link in Mission Manager']||'').trim();
     var name=String(m['Mission Name']||'(unnamed)').trim();
-    var nameCell=link?'<a href="'+link+'" target="_blank" rel="noopener">'+escHtml(name)+'</a>':escHtml(name);
+    var d=m._diffs||{};
+    var nameSuffix=d.name?diffDot(d.name):'';
+    var nameCell=link?'<a href="'+link+'" target="_blank" rel="noopener">'+escHtml(name)+'</a>'+nameSuffix:escHtml(name)+nameSuffix;
 
-    var ucrStatus=m._ucr?String(m._ucr['Status']||'').trim():'';
     var expiry=m._ucr?m._ucr['Expiry Date']:null;
     var expSoon=isExpiringSoon(expiry);
     var expStr=fmtDate(expiry);
@@ -731,8 +803,8 @@ function renderTable(){
       ?'<a href="https://ucr.cfapps.eu10-004.hana.ondemand.com/#/UseCase/view/'+ucrId+'" target="_blank" rel="noopener" style="color:#22d3ee;font-size:.75rem">'+ucrId+'</a>'
       :'<span style="color:#334155">—</span>';
 
-    var coach=String(m['Coach name(s)']||m._ucr&&m._ucr['Coach']||'').trim();
-    var coachCell=coach?escHtml(coach):'<span style="color:#334155">—</span>';
+    var coach=String(m['Coach name(s)']||'').trim();
+    var coachCell=(coach?escHtml(coach):'<span style="color:#334155">—</span>')+(d.coach?diffDot(d.coach):'');
 
     var featured=String(m['Featured Mission?']||'').toLowerCase();
     var isFeatured=featured==='yes'||featured==='true'||featured==='x'||featured==='1';
@@ -741,7 +813,7 @@ function renderTable(){
     var valCell=valInfo
       ?'<a href="https://jira.tools.sap/browse/'+escHtml(valInfo.key)+'" target="_blank" rel="noopener" style="text-decoration:none;display:block"><span class="badge '+valBadgeClass(valInfo.status)+'">'+escHtml(valInfo.key.replace('DISCOVALIDATION-','#'))+'&nbsp;'+escHtml(valInfo.status)+'</span>'
         +(valInfo.assignee?'<br><span style="font-size:.65rem;color:#94a3b8">'+escHtml(valInfo.assignee)+'</span>':'')
-      +'</a>'
+      +'</a>'+(d.validation?diffDot(d.validation):'')
       :'<span style="color:#334155">—</span>';
 
     var cat=String(m['Category']||'').trim();
@@ -750,11 +822,10 @@ function renderTable(){
     html+='<tr>'
       +'<td class="td-name">'+nameCell+'</td>'
       +'<td class="td-muted filterable" title="Filter by coach" onclick="filterByCell(\'_coach\',\''+escHtml(coach)+'\')" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+coachCell+'</td>'
-      +'<td class="filterable" title="Filter by category" onclick="filterByCell(\'Category\',\''+escHtml(cat)+'\')">'+(cat||'<span style="color:#334155">—</span>')+'</td>'
-      +'<td class="filterable" title="Filter by status" onclick="filterByCell(\'STATUS\',\''+escHtml(String(m['STATUS']||'').trim())+'\')">'+(badgeStatus(m['STATUS']))+'</td>'
-      +'<td class="filterable" title="Filter by UCR status" onclick="filterByCell(\'ucrStatus\',\''+escHtml(ucrStatus)+'\')">'+(ucrStatus?'<span class="badge b-neutral">'+escHtml(ucrStatus)+'</span>':'<span style="color:#334155">—</span>')+'</td>'
+      +'<td class="filterable" title="Filter by category" onclick="filterByCell(\'Category\',\''+escHtml(cat)+'\')">'+((cat||'<span style="color:#334155">—</span>')+( d.cat?diffDot(d.cat):''))+'</td>'
+      +'<td class="filterable" title="Filter by status" onclick="filterByCell(\'STATUS\',\''+escHtml(String(m['STATUS']||'').trim())+'\')">'+(badgeStatus(m['STATUS']))+(d.status?diffDot(d.status):'')+'</td>'
       +'<td style="white-space:nowrap">'+ucrLink+'</td>'
-      +'<td class="td-muted filterable" title="Filter by author" onclick="filterByCell(\'Author\',\''+escHtml(author)+'\')">'+escHtml(author||'—')+'</td>'
+      +'<td class="td-muted filterable" title="Filter by author" onclick="filterByCell(\'Author\',\''+escHtml(author)+'\')">'+escHtml(author||'—')+(d.author?diffDot(d.author):'')+'</td>'
       +'<td class="td-muted" style="white-space:nowrap">'+fmtDate(m['Committed Date'])+'</td>'
       +'<td style="white-space:nowrap">'+expCell+'</td>'
       +'<td class="td-muted" style="white-space:nowrap">'+fmtDate(m._ucr_modified)+'</td>'
