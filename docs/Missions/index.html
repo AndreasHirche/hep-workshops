@@ -291,7 +291,7 @@ async function loadCSV(path){
   var resp=await fetch(path);
   if(!resp.ok)throw new Error('Could not load '+path+' ('+resp.status+')');
   var text=await resp.text();
-  var wb=XLSX.read(text,{type:'string'});
+  var wb=XLSX.read(text,{type:'string',cellDates:true});
   return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
 }
 
@@ -317,9 +317,9 @@ function toDate(v){
   if(!v||v==='')return null;
   if(v instanceof Date&&!isNaN(v))return v;
   var s=String(v).trim();
-  if(/^\d{2}\.\d{2}\.\d{4}$/.test(s)){
-    var p=s.split('.');return new Date(+p[2],+p[1]-1,+p[0]);
-  }
+  if(/^\d{2}\.\d{2}\.\d{4}$/.test(s)){var p=s.split('.');return new Date(+p[2],+p[1]-1,+p[0]);}
+  var m=s.match(/^([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})$/);
+  if(m){var mo={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11}[m[1].slice(0,3)];if(mo!==undefined)return new Date(+m[3],mo,+m[2]);}
   var d=new Date(s);return isNaN(d)?null:d;
 }
 
@@ -333,7 +333,7 @@ function isExpiringSoon(v){
 // ── Init ───────────────────────────────────────────────────────────────
 async function init(){
   try{
-    var cached=localStorage.getItem('missions_cache_v2');
+    var cached=localStorage.getItem('missions_cache_v3');
     if(cached){
       var data=JSON.parse(cached);
       if(data.jira)VAL_MAP=parseJira(data.jira);
@@ -364,11 +364,11 @@ async function init(){
 }
 
 function saveCache(portfolio,ucr,jira,fns){
-  try{localStorage.setItem('missions_cache_v2',JSON.stringify({portfolio:portfolio,ucr:ucr,jira:jira||[],fileNames:fns||{}}));}catch(e){}
+  try{localStorage.setItem('missions_cache_v3',JSON.stringify({portfolio:portfolio,ucr:ucr,jira:jira||[],fileNames:fns||{}}));}catch(e){}
 }
 
 function clearCache(){
-  localStorage.removeItem('missions_cache_v2');
+  localStorage.removeItem('missions_cache_v3');
   allMissions=[];filtered=[];
   document.getElementById('fCategory').innerHTML='<option value="">All Categories</option>';
   document.getElementById('fMonth').innerHTML='<option value="">All Months</option>';
@@ -477,7 +477,7 @@ async function handleFileUpdate(which){
   if(!input.files.length)return;
   var f=input.files[0];
   try{
-    var cached=JSON.parse(localStorage.getItem('missions_cache_v2')||'{}');
+    var cached=JSON.parse(localStorage.getItem('missions_cache_v3')||'{}');
     if(which==='portfolio'){
       cached.portfolio=parseExcel(await readFileAsBuffer(f));
     }else if(which==='ucr'){
@@ -493,7 +493,7 @@ async function handleFileUpdate(which){
     }
     if(!cached.fileNames)cached.fileNames={};
     cached.fileNames[which]=f.name;
-    localStorage.setItem('missions_cache_v2',JSON.stringify(cached));
+    localStorage.setItem('missions_cache_v3',JSON.stringify(cached));
     renderFileSources(cached.fileNames);
     if(cached.portfolio&&cached.ucr)processData(cached.portfolio,cached.ucr);
   }catch(e){alert('Failed to load '+f.name+': '+e.message);}
