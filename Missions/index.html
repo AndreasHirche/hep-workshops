@@ -141,6 +141,14 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
 /* Fade in */
 .fade-in{animation:fadeIn .4s ease both}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* File sources strip */
+.file-sources{display:flex;gap:8px;flex-wrap:wrap;padding:6px 0 12px}
+.file-src{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:3px 10px 3px 12px;cursor:pointer;transition:border-color .15s,background .15s}
+.file-src:hover{border-color:rgba(124,58,237,0.5);background:rgba(124,58,237,0.08)}
+.file-src.unloaded{border-style:dashed;opacity:.5}
+.file-src-name{font-size:.72rem;color:#94a3b8;font-family:'Inter',sans-serif}
+.file-src-btn{font-size:.75rem;color:#7c3aed;line-height:1}
 </style>
 </head>
 <body>
@@ -152,6 +160,25 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
     <h1>Missions Dashboard</h1>
     <p>SAP Discovery Center · Mission Portfolio &amp; UCR Status</p>
   </header>
+
+  <!-- File sources strip -->
+  <div class="file-sources" id="fileSources" style="display:none">
+    <div class="file-src" id="fsr-portfolio" onclick="triggerFileUpdate('portfolio')" title="Click to reload from file">
+      <span class="file-src-name" id="fsn-portfolio">Mission_Portfolio.xlsx</span>
+      <span class="file-src-btn">↺</span>
+      <input type="file" id="fsu-portfolio" accept=".xlsx,.xls" style="display:none" onchange="handleFileUpdate('portfolio')">
+    </div>
+    <div class="file-src" id="fsr-ucr" onclick="triggerFileUpdate('ucr')" title="Click to reload from file">
+      <span class="file-src-name" id="fsn-ucr">Use Cases.csv</span>
+      <span class="file-src-btn">↺</span>
+      <input type="file" id="fsu-ucr" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleFileUpdate('ucr')">
+    </div>
+    <div class="file-src unloaded" id="fsr-jira" onclick="triggerFileUpdate('jira')" title="Click to load Jira validation file">
+      <span class="file-src-name" id="fsn-jira">Jira (not loaded)</span>
+      <span class="file-src-btn">↺</span>
+      <input type="file" id="fsu-jira" accept=".xls,.xlsx" style="display:none" onchange="handleFileUpdate('jira')">
+    </div>
+  </div>
 
   <!-- KPI row -->
   <div class="kpis fade-in" id="kpis" style="animation-delay:.05s">
@@ -305,23 +332,30 @@ function isExpiringSoon(v){
 
 // ── Init ───────────────────────────────────────────────────────────────
 async function init(){
-  // Try localStorage cache first
   try{
     var cached=localStorage.getItem('missions_cache_v2');
     if(cached){
       var data=JSON.parse(cached);
-      processData(data.portfolio,data.ucr,true);
+      if(data.jira)VAL_MAP=parseJira(data.jira);
+      renderFileSources(data.fileNames||{});
+      processData(data.portfolio,data.ucr);
       return;
     }
   }catch(e){}
-  // Try fetch (works when served via HTTP)
   if(location.protocol!=='file:'){
     try{
       var results=await Promise.all([
         loadExcel('Mission_Portfolio.xlsx'),
         loadCSV('Use Cases.csv')
       ]);
-      saveCache(results[0],results[1]);
+      var jiraRows=[];
+      try{
+        var jr=await fetch('Jira_Validation.xls');
+        if(jr.ok){jiraRows=parseExcel(await jr.arrayBuffer());VAL_MAP=parseJira(jiraRows);}
+      }catch(e2){}
+      var fns={portfolio:'Mission_Portfolio.xlsx',ucr:'Use Cases.csv',jira:jiraRows.length?'Jira_Validation.xls':''};
+      saveCache(results[0],results[1],jiraRows,fns);
+      renderFileSources(fns);
       processData(results[0],results[1]);
       return;
     }catch(e){}
@@ -329,8 +363,8 @@ async function init(){
   showFilePicker();
 }
 
-function saveCache(portfolio,ucr){
-  try{localStorage.setItem('missions_cache_v2',JSON.stringify({portfolio:portfolio,ucr:ucr}));}catch(e){}
+function saveCache(portfolio,ucr,jira,fns){
+  try{localStorage.setItem('missions_cache_v2',JSON.stringify({portfolio:portfolio,ucr:ucr,jira:jira||[],fileNames:fns||{}}));}catch(e){}
 }
 
 function clearCache(){
@@ -338,18 +372,21 @@ function clearCache(){
   allMissions=[];filtered=[];
   document.getElementById('fCategory').innerHTML='<option value="">All Categories</option>';
   document.getElementById('fMonth').innerHTML='<option value="">All Months</option>';
+  document.getElementById('fileSources').style.display='none';
   showFilePicker();
 }
 
 function showFilePicker(){
   document.getElementById('tableArea').innerHTML=
     '<div class="loading" id="pickArea">'
-    +'<div style="font-size:1rem;font-weight:600;color:#e2e8f0;margin-bottom:6px">Select Excel files to load</div>'
+    +'<div style="font-size:1rem;font-weight:600;color:#e2e8f0;margin-bottom:6px">Select files to load</div>'
     +'<div style="font-size:.8rem;color:#94a3b8;margin-bottom:24px">Files are remembered in this browser after first load</div>'
     +'<div class="filepick-row"><label class="filepick-lbl"><span>Mission_Portfolio.xlsx</span>'
     +'<input type="file" id="pickPortfolio" accept=".xlsx,.xls" onchange="checkPicks()"></label></div>'
     +'<div class="filepick-row" style="margin-top:12px"><label class="filepick-lbl"><span>Use Cases.csv</span>'
     +'<input type="file" id="pickUCR" accept=".csv,.xlsx,.xls" onchange="checkPicks()"></label></div>'
+    +'<div class="filepick-row" style="margin-top:12px"><label class="filepick-lbl"><span>Jira_Validation.xls <span style="color:#475569;font-size:.75em">(optional)</span></span>'
+    +'<input type="file" id="pickJira" accept=".xls,.xlsx" onchange="checkPicks()"></label></div>'
     +'<button id="loadBtn" class="load-btn" onclick="loadFromFiles()" disabled>Load &amp; Remember</button>'
     +'</div>';
 }
@@ -367,18 +404,100 @@ async function loadFromFiles(){
     var p=parseExcel(ab1);
     var u;
     if(f2.name.toLowerCase().endsWith('.csv')){
-      var text=await f2.text();
-      var wb=XLSX.read(text,{type:'string'});
+      var wb=XLSX.read(await f2.text(),{type:'string'});
       u=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
     }else{
       u=parseExcel(await readFileAsBuffer(f2));
     }
-    saveCache(p,u);
+    var jiraRows=[];
+    var fJira=document.getElementById('pickJira').files[0];
+    if(fJira){jiraRows=parseExcel(await readFileAsBuffer(fJira));VAL_MAP=parseJira(jiraRows);}
+    var fns={
+      portfolio:document.getElementById('pickPortfolio').files[0].name,
+      ucr:f2.name,
+      jira:fJira?fJira.name:''
+    };
+    saveCache(p,u,jiraRows,fns);
+    renderFileSources(fns);
     processData(p,u);
   }catch(e){
     document.getElementById('tableArea').innerHTML=
       '<div class="loading"><div class="err">Failed to read files: '+e.message+'</div></div>';
   }
+}
+
+// ── Jira parser ────────────────────────────────────────────────────────
+function parseJira(rows){
+  var map={};
+  rows.forEach(function(r){
+    var ucrId='';
+    Object.keys(r).forEach(function(k){
+      if(!ucrId){var m=String(r[k]||'').match(/UseCase\/view\/(UC[\w]+)/);if(m)ucrId=m[1];}
+    });
+    if(!ucrId)return;
+    var key='';
+    Object.keys(r).forEach(function(k){
+      if(!key&&/^DISCOVALIDATION-\d+/.test(String(r[k]||'')))key=String(r[k]);
+    });
+    if(!key)return;
+    map[ucrId]={
+      key:key,
+      status:String(r['Status']||'').trim(),
+      resol:String(r['Resolution']||'').trim(),
+      version:String(r['Fix Version/s']||r['Fix Version']||'').trim(),
+      assignee:String(r['Assignee']||'').trim()
+    };
+  });
+  return map;
+}
+
+// ── File sources strip ─────────────────────────────────────────────────
+function renderFileSources(fns){
+  var strip=document.getElementById('fileSources');
+  strip.style.display='flex';
+  ['portfolio','ucr','jira'].forEach(function(k){
+    var nameEl=document.getElementById('fsn-'+k);
+    var chip=document.getElementById('fsr-'+k);
+    if(fns&&fns[k]){
+      nameEl.textContent=fns[k];
+      chip.classList.remove('unloaded');
+    }else{
+      nameEl.textContent=k==='jira'?'Jira (not loaded)':k==='ucr'?'Use Cases.csv':'Mission_Portfolio.xlsx';
+      chip.classList.add('unloaded');
+    }
+  });
+}
+
+function triggerFileUpdate(which){
+  document.getElementById('fsu-'+which).click();
+}
+
+async function handleFileUpdate(which){
+  var input=document.getElementById('fsu-'+which);
+  if(!input.files.length)return;
+  var f=input.files[0];
+  try{
+    var cached=JSON.parse(localStorage.getItem('missions_cache_v2')||'{}');
+    if(which==='portfolio'){
+      cached.portfolio=parseExcel(await readFileAsBuffer(f));
+    }else if(which==='ucr'){
+      if(f.name.toLowerCase().endsWith('.csv')){
+        var wb=XLSX.read(await f.text(),{type:'string'});
+        cached.ucr=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      }else{
+        cached.ucr=parseExcel(await readFileAsBuffer(f));
+      }
+    }else if(which==='jira'){
+      cached.jira=parseExcel(await readFileAsBuffer(f));
+      VAL_MAP=parseJira(cached.jira);
+    }
+    if(!cached.fileNames)cached.fileNames={};
+    cached.fileNames[which]=f.name;
+    localStorage.setItem('missions_cache_v2',JSON.stringify(cached));
+    renderFileSources(cached.fileNames);
+    if(cached.portfolio&&cached.ucr)processData(cached.portfolio,cached.ucr);
+  }catch(e){alert('Failed to load '+f.name+': '+e.message);}
+  input.value='';
 }
 
 // ── Diff helpers ───────────────────────────────────────────────────────
