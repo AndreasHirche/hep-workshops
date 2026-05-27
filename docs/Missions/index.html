@@ -220,19 +220,11 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
 
   <!-- Hidden state containers for filters (driven by column header buttons) -->
   <div style="display:none">
-    <select id="fStatus" onchange="applyFilters()">
-      <option value="">All Statuses</option>
-      <option value="Published">Published</option>
-      <option value="Draft">Draft</option>
-      <option value="In Review">In Review</option>
-      <option value="Archived">Archived</option>
-    </select>
-    <select id="fCategory" onchange="applyFilters()">
-      <option value="">All Categories</option>
-    </select>
-    <select id="fMonth" onchange="applyFilters()">
-      <option value="">All Months</option>
-    </select>
+    <select id="fStatus" onchange="applyFilters()"><option value=""></option></select>
+    <select id="fCategory" onchange="applyFilters()"><option value=""></option></select>
+    <select id="fMonth" onchange="applyFilters()"><option value=""></option></select>
+    <select id="fCompany" onchange="applyFilters()"><option value=""></option></select>
+    <select id="fAuthor" onchange="applyFilters()"><option value=""></option></select>
   </div>
 
   <!-- Active filter chips -->
@@ -381,9 +373,8 @@ function saveCache(portfolio,ucr,jira,fns){
 
 function clearCache(){
   localStorage.removeItem('missions_cache_v4');
-  allMissions=[];filtered=[];
-  document.getElementById('fCategory').innerHTML='<option value="">All Categories</option>';
-  document.getElementById('fMonth').innerHTML='<option value="">All Months</option>';
+  allMissions=[];filtered=[];activeCoach='';
+  ['fStatus','fCategory','fMonth','fCompany','fAuthor'].forEach(function(id){document.getElementById(id).value='';});
   renderFileSources({});
   showNoData();
 }
@@ -807,10 +798,14 @@ function renderChips(){
   var cat=document.getElementById('fCategory').value;
   var q=document.getElementById('search').value.trim();
   var fMonth=document.getElementById('fMonth').value;
+  var fCompany=document.getElementById('fCompany').value;
+  var fAuthor=document.getElementById('fAuthor').value;
   if(st) chips.push({label:'Status: '+st, clear:function(){document.getElementById('fStatus').value='';applyFilters();}});
   if(cat) chips.push({label:'Category: '+cat, clear:function(){document.getElementById('fCategory').value='';applyFilters();}});
   if(activeCoach) chips.push({label:'Coach: '+activeCoach, clear:function(){setCoach('');}});
   if(fMonth) chips.push({label:'Modified: '+fMonth, clear:function(){document.getElementById('fMonth').value='';applyFilters();}});
+  if(fCompany) chips.push({label:'Company: '+fCompany, clear:function(){document.getElementById('fCompany').value='';applyFilters();}});
+  if(fAuthor) chips.push({label:'Author: '+fAuthor, clear:function(){document.getElementById('fAuthor').value='';applyFilters();}});
   if(q) chips.push({label:'Search: '+q, clear:function(){document.getElementById('search').value='';applyFilters();}});
   var row=document.getElementById('chipRow');
   if(!chips.length){row.innerHTML='';return;}
@@ -832,10 +827,14 @@ function applyFilters(){
   var st=document.getElementById('fStatus').value;
   var cat=document.getElementById('fCategory').value;
   var fMonth=document.getElementById('fMonth').value;
+  var fCompany=document.getElementById('fCompany').value;
+  var fAuthor=document.getElementById('fAuthor').value;
 
   filtered=allMissions.filter(function(m){
     if(st&&String(m['STATUS']||'').trim()!==st)return false;
     if(cat&&String(m['Category']||'').trim()!==cat)return false;
+    if(fCompany&&String(m['Authoring Company']||'').trim()!==fCompany)return false;
+    if(fAuthor&&String(m['Author']||'').trim()!==fAuthor)return false;
     if(activeCoach){var c=String(m['Coach name(s)']||m._ucr&&m._ucr['Coach']||'').trim();if(c!==activeCoach)return false;}
     if(fMonth){
       var d=toDate(m._ucr_modified);
@@ -879,10 +878,10 @@ function setSort(col){
 // ── Table ──────────────────────────────────────────────────────────────
 var COLS=[
   {key:'Mission Name',label:'Mission',tdClass:'td-name',sortable:true},
-  {key:'Authoring Company',label:'Company',sortable:true,tdClass:'td-muted'},
+  {key:'Authoring Company',label:'Company',sortable:true,tdClass:'td-muted',filterCol:'company'},
   {key:'Category',label:'Category',sortable:true,filterCol:'category'},
   {key:'_coach',label:'Coach',sortable:true,filterCol:'coach'},
-  {key:'Author',label:'Author',sortable:true,tdClass:'td-muted'},
+  {key:'Author',label:'Author',sortable:true,tdClass:'td-muted',filterCol:'author'},
   {key:'STATUS',label:'Status',sortable:true,filterCol:'status'},
   {key:'UCR ID',label:'UCR',sortable:true},
   {key:'_ucr_expiry',label:'Expiry',sortable:true},
@@ -917,6 +916,8 @@ function renderTable(){
       :c.filterCol==='coach'?!!activeCoach
       :c.filterCol==='category'?!!document.getElementById('fCategory').value
       :c.filterCol==='month'?!!document.getElementById('fMonth').value
+      :c.filterCol==='company'?!!document.getElementById('fCompany').value
+      :c.filterCol==='author'?!!document.getElementById('fAuthor').value
       :false;
     var thClass=c.sortable?' class="sortable'+(isActive?' sorted':'')+'"':'';
     var thClick=c.sortable?' onclick="setSort(\''+c.key+'\')"':'';
@@ -1049,6 +1050,18 @@ function openColFilter(col, btn, event){
     allMissions.forEach(function(m){var d=toDate(m._ucr_modified);if(!d)return;var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');months[k]=true;});
     options=[{val:'',label:'(All)'}];
     Object.keys(months).sort().reverse().forEach(function(k){var p=k.split('-');options.push({val:k,label:new Date(+p[0],+p[1]-1,1).toLocaleDateString('de-DE',{month:'long',year:'numeric'})});});
+  }else if(col==='company'){
+    curVal=document.getElementById('fCompany').value;
+    var seen={};
+    allMissions.forEach(function(m){var c=String(m['Authoring Company']||'').trim();if(c&&!seen[c]){seen[c]=true;options.push({val:c,label:c});}});
+    options.sort(function(a,b){return a.label.localeCompare(b.label);});
+    options.unshift({val:'',label:'(All)'});
+  }else if(col==='author'){
+    curVal=document.getElementById('fAuthor').value;
+    var seen={};
+    allMissions.forEach(function(m){var a=String(m['Author']||'').trim();if(a&&!seen[a]){seen[a]=true;options.push({val:a,label:a});}});
+    options.sort(function(a,b){return a.label.localeCompare(b.label);});
+    options.unshift({val:'',label:'(All)'});
   }
   drop.innerHTML=options.map(function(opt){
     var isActive=opt.val===curVal;
@@ -1068,6 +1081,8 @@ function selectColFilter(col, val){
   else if(col==='status'){filterKPI(val);}
   else if(col==='category'){document.getElementById('fCategory').value=val;applyFilters();}
   else if(col==='month'){document.getElementById('fMonth').value=val;applyFilters();}
+  else if(col==='company'){document.getElementById('fCompany').value=val;applyFilters();}
+  else if(col==='author'){document.getElementById('fAuthor').value=val;applyFilters();}
 }
 
 document.addEventListener('click',function(e){
