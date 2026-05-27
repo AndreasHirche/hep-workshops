@@ -274,6 +274,35 @@ var VAL_MAP={"UC10000456": {"key": "DISCOVALIDATION-7", "status": "Inactive", "r
 // <<VAL_MAP_END>>
 
 var STATUS_ORDER=['Published','Draft','In Review','Archived'];
+
+var COMPANY_DOMAINS={
+  'SAP':'sap.com','Accenture':'accenture.com','Amazon':'amazon.com',
+  'Atos':'atos.net','Bosch Global Software Technologies':'bosch.com',
+  'Capgemini':'capgemini.com','Deloitte CE':'deloitte.com','Deloitte ES':'deloitte.com',
+  'KPMG':'kpmg.com','KPS':'kps.com','Microsoft':'microsoft.com','MHP':'mhp.com',
+  'NTT DATA':'nttdata.com','PwC':'pwc.com','Syniti':'syniti.com',
+  'Soprasteria':'soprasteria.com','Figaf':'figaf.com','Rizing':'rizing.com',
+  'Trifork':'trifork.com','Ingentis':'ingentis.com','Innovabee':'innovabee.de',
+  'delaware':'delaware.pro','sovanta':'sovanta.com','Int4':'int4.com',
+  'Semos Cloud':'semoscloud.com','adesso orange':'adesso.de','consolut':'consolut.com',
+  'Pandora':'pandora.net','EPI-USE':'epiuse.com','Avvale':'avvale.eu',
+  'NCS':'ncs.com.sg','MOURI Tech':'mouritech.com','Applexus':'applexus.com',
+  'AEB':'aeb.com','Blueprint':'blueprintsys.com','Bluestonex':'bluestonex.com',
+  'Analysis Prime':'analysisprime.com','Modelyzr':'modelyzr.com',
+  'FLEXSO':'flexso.com','Tesselar':'tesselar.com','Walldorf Consulting':'walldorf-consulting.com',
+  'Dayforce':'dayforce.com','Wiser Technology':'wisertechnology.com.au',
+  'Cordis':'cordis.eu','AsInt':'asint.net','ASAPIO':'asapio.com',
+  'AGILITA':'agilita.ch','Numen':'numen.eu','excelerateds2p':'excelerateds2p.com',
+  'snap':'snap.com','ConvergentIS':'convergentis.com','Kaar':'kaar.com',
+};
+
+function companyCell(company){
+  if(!company)return'<span style="color:#334155">—</span>';
+  var domain=COMPANY_DOMAINS[company];
+  var name=escHtml(company);
+  if(!domain)return'<span class="td-muted">'+name+'</span>';
+  return'<img src="https://logo.clearbit.com/'+domain+'?size=20" style="width:16px;height:16px;border-radius:3px;vertical-align:middle;margin-right:5px;display:inline-block" onerror="this.style.display=\'none\'">'+name;
+}
 var STATUS_COLORS={
   Published:'rgba(74,222,128,0.75)',
   Draft:'rgba(34,211,238,0.75)',
@@ -968,7 +997,7 @@ function renderTable(){
 
     html+='<tr>'
       +'<td class="td-name">'+nameCell+'</td>'
-      +'<td class="td-muted" style="white-space:nowrap">'+escHtml(company||'—')+'</td>'
+      +'<td style="white-space:nowrap">'+companyCell(company)+'</td>'
       +'<td class="filterable" title="Filter by category" onclick="filterByCell(\'Category\',\''+escHtml(cat)+'\')">'+((cat||'<span style="color:#334155">—</span>')+(d.cat?diffDot(d.cat):''))+'</td>'
       +'<td class="td-muted filterable" title="Filter by coach" onclick="filterByCell(\'_coach\',\''+escHtml(coach)+'\')" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+coachCell+'</td>'
       +'<td class="td-muted filterable" title="Filter by author" onclick="filterByCell(\'Author\',\''+escHtml(author)+'\')">'+escHtml(author||'—')+(d.author?diffDot(d.author):'')+'</td>'
