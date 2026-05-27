@@ -218,8 +218,8 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
     </div>
   </div>
 
-  <!-- Filters -->
-  <div class="filters fade-in" style="animation-delay:.15s">
+  <!-- Hidden state containers for filters (driven by column header buttons) -->
+  <div style="display:none">
     <select id="fStatus" onchange="applyFilters()">
       <option value="">All Statuses</option>
       <option value="Published">Published</option>
@@ -880,13 +880,13 @@ function setSort(col){
 var COLS=[
   {key:'Mission Name',label:'Mission',tdClass:'td-name',sortable:true},
   {key:'Authoring Company',label:'Company',sortable:true,tdClass:'td-muted'},
-  {key:'Category',label:'Category',sortable:true},
+  {key:'Category',label:'Category',sortable:true,filterCol:'category'},
   {key:'_coach',label:'Coach',sortable:true,filterCol:'coach'},
   {key:'Author',label:'Author',sortable:true,tdClass:'td-muted'},
   {key:'STATUS',label:'Status',sortable:true,filterCol:'status'},
   {key:'UCR ID',label:'UCR',sortable:true},
   {key:'_ucr_expiry',label:'Expiry',sortable:true},
-  {key:'_ucr_modified',label:'Modified',sortable:true,tdClass:'td-muted'},
+  {key:'_ucr_modified',label:'Modified',sortable:true,tdClass:'td-muted',filterCol:'month'},
   {key:'Featured Mission?',label:'★',sortable:false},
   {key:'_val_status',label:'Validation',sortable:false},
   {key:'_rev_lang',label:'Lang Rev',sortable:false},
@@ -913,7 +913,11 @@ function renderTable(){
   var html='<table><thead><tr>';
   COLS.forEach(function(c){
     var isActive=sortCol===c.key;
-    var isFiltered=c.filterCol==='status'?!!document.getElementById('fStatus').value:c.filterCol==='coach'?!!activeCoach:false;
+    var isFiltered=c.filterCol==='status'?!!document.getElementById('fStatus').value
+      :c.filterCol==='coach'?!!activeCoach
+      :c.filterCol==='category'?!!document.getElementById('fCategory').value
+      :c.filterCol==='month'?!!document.getElementById('fMonth').value
+      :false;
     var thClass=c.sortable?' class="sortable'+(isActive?' sorted':'')+'"':'';
     var thClick=c.sortable?' onclick="setSort(\''+c.key+'\')"':'';
     var icon=c.sortable?'<i class="sort-icon">'+(isActive?(sortDir===1?'↑':'↓'):'↕')+'</i>':'';
@@ -1023,21 +1027,35 @@ function openColFilter(col, btn, event){
   event.stopPropagation();
   var drop=document.getElementById('colFilterDrop');
   var rect=btn.getBoundingClientRect();
-  var options=[];
+  var options=[], curVal='';
   if(col==='coach'){
+    curVal=activeCoach;
     var seen={};
-    allMissions.forEach(function(m){var c=String(m['Coach name(s)']||m._ucr&&m._ucr['Coach']||'').trim();if(c&&!seen[c]){seen[c]=true;options.push(c);}});
-    options.sort(function(a,b){return a.localeCompare(b);});
-    options.unshift('(All)');
+    allMissions.forEach(function(m){var c=String(m['Coach name(s)']||'').trim();if(c&&!seen[c]){seen[c]=true;options.push({val:c,label:c});}});
+    options.sort(function(a,b){return a.label.localeCompare(b.label);});
+    options.unshift({val:'',label:'(All)'});
   }else if(col==='status'){
-    options=['(All)','published','draft','Archived','idea'];
+    curVal=document.getElementById('fStatus').value;
+    options=[{val:'',label:'(All)'},{val:'Published',label:'Published'},{val:'Draft',label:'Draft'},{val:'In Review',label:'In Review'},{val:'Archived',label:'Archived'}];
+  }else if(col==='category'){
+    curVal=document.getElementById('fCategory').value;
+    var seen={};
+    allMissions.forEach(function(m){var c=String(m['Category']||'').trim();if(c&&!seen[c]){seen[c]=true;options.push({val:c,label:c});}});
+    options.sort(function(a,b){return a.label.localeCompare(b.label);});
+    options.unshift({val:'',label:'(All)'});
+  }else if(col==='month'){
+    curVal=document.getElementById('fMonth').value;
+    var months={};
+    allMissions.forEach(function(m){var d=toDate(m._ucr_modified);if(!d)return;var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');months[k]=true;});
+    options=[{val:'',label:'(All)'}];
+    Object.keys(months).sort().reverse().forEach(function(k){var p=k.split('-');options.push({val:k,label:new Date(+p[0],+p[1]-1,1).toLocaleDateString('de-DE',{month:'long',year:'numeric'})});});
   }
   drop.innerHTML=options.map(function(opt){
-    var cur=col==='coach'?activeCoach:document.getElementById('fStatus').value;
-    var isActive=(opt==='(All)'&&!cur)||(opt===cur&&opt!=='(All)');
-    return'<button onclick="selectColFilter(\''+col+'\',\''+opt.replace(/'/g,"\\'")+'\')" style="display:block;width:100%;text-align:left;padding:6px 10px;border:none;background:'+(isActive?'rgba(124,58,237,0.25)':'none')+';color:'+(isActive?'#c4b5fd':'#e2e8f0')+';font-family:Inter,sans-serif;font-size:.78rem;cursor:pointer;border-radius:5px">'+(opt==='(All)'?'<span style="opacity:.6">⊘</span> All':escHtml(opt))+'</button>';
+    var isActive=opt.val===curVal;
+    return'<button onclick="selectColFilter(\''+col+'\',\''+opt.val.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')" style="display:block;width:100%;text-align:left;padding:5px 10px;border:none;background:'+(isActive?'rgba(124,58,237,0.25)':'none')+';color:'+(isActive?'#c4b5fd':'#e2e8f0')+';font-family:Inter,sans-serif;font-size:.78rem;cursor:pointer;border-radius:4px">'+(opt.val===''?'<span style="opacity:.5">⊘</span> ':'')+escHtml(opt.label)+'</button>';
   }).join('');
-  drop.style.left=rect.left+'px';
+  var left=Math.min(rect.left,window.innerWidth-170);
+  drop.style.left=left+'px';
   drop.style.top=(rect.bottom+3)+'px';
   drop.style.display='block';
   colDropTarget=col;
@@ -1046,8 +1064,10 @@ function openColFilter(col, btn, event){
 function selectColFilter(col, val){
   document.getElementById('colFilterDrop').style.display='none';
   colDropTarget=null;
-  if(col==='coach'){setCoach(val==='(All)'?'':val);}
-  else if(col==='status'){filterKPI(val==='(All)'?'':val);}
+  if(col==='coach'){setCoach(val);}
+  else if(col==='status'){filterKPI(val);}
+  else if(col==='category'){document.getElementById('fCategory').value=val;applyFilters();}
+  else if(col==='month'){document.getElementById('fMonth').value=val;applyFilters();}
 }
 
 document.addEventListener('click',function(e){
