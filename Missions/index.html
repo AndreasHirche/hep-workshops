@@ -529,6 +529,7 @@ function processData(portfolio,ucr){
     var cat    =getF(r,'Category','Solution Area','Product Area','Line of Business')||(p?String(p['Category']||'').trim():'');
     var author =getF(r,'Owner','Author','Created By','Submitted By');
     var coach  =getF(r,'Coach','Coach name(s)')||(p?String(p['Coach name(s)']||'').trim():'');
+    var company=getF(r,'Authoring Company','Company','Vendor');
     var expiry =r['Expiry Date']||'';
     var modified=r['Last Modified On']||'';
 
@@ -578,6 +579,7 @@ function processData(portfolio,ucr){
       'STATUS':status,
       'Category':cat,
       'Author':author,
+      'Authoring Company':company,
       'Coach name(s)':coach,
       '_ucr':r,
       '_portfolio':p,
@@ -877,11 +879,12 @@ function setSort(col){
 // ── Table ──────────────────────────────────────────────────────────────
 var COLS=[
   {key:'Mission Name',label:'Mission',tdClass:'td-name',sortable:true},
-  {key:'_coach',label:'Coach',sortable:true,filterCol:'coach'},
+  {key:'Authoring Company',label:'Company',sortable:true,tdClass:'td-muted'},
   {key:'Category',label:'Category',sortable:true},
+  {key:'_coach',label:'Coach',sortable:true,filterCol:'coach'},
+  {key:'Author',label:'Author',sortable:true,tdClass:'td-muted'},
   {key:'STATUS',label:'Status',sortable:true,filterCol:'status'},
   {key:'UCR ID',label:'UCR',sortable:true},
-  {key:'Author',label:'Author',sortable:true,tdClass:'td-muted'},
   {key:'_ucr_expiry',label:'Expiry',sortable:true},
   {key:'_ucr_modified',label:'Modified',sortable:true,tdClass:'td-muted'},
   {key:'Featured Mission?',label:'★',sortable:false},
@@ -953,14 +956,16 @@ function renderTable(){
 
     var cat=String(m['Category']||'').trim();
     var author=String(m['Author']||'').trim();
+    var company=String(m['Authoring Company']||'').trim();
 
     html+='<tr>'
       +'<td class="td-name">'+nameCell+'</td>'
+      +'<td class="td-muted" style="white-space:nowrap">'+escHtml(company||'—')+'</td>'
+      +'<td class="filterable" title="Filter by category" onclick="filterByCell(\'Category\',\''+escHtml(cat)+'\')">'+((cat||'<span style="color:#334155">—</span>')+(d.cat?diffDot(d.cat):''))+'</td>'
       +'<td class="td-muted filterable" title="Filter by coach" onclick="filterByCell(\'_coach\',\''+escHtml(coach)+'\')" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+coachCell+'</td>'
-      +'<td class="filterable" title="Filter by category" onclick="filterByCell(\'Category\',\''+escHtml(cat)+'\')">'+((cat||'<span style="color:#334155">—</span>')+( d.cat?diffDot(d.cat):''))+'</td>'
+      +'<td class="td-muted filterable" title="Filter by author" onclick="filterByCell(\'Author\',\''+escHtml(author)+'\')">'+escHtml(author||'—')+(d.author?diffDot(d.author):'')+'</td>'
       +'<td class="filterable" title="Filter by status" onclick="filterByCell(\'STATUS\',\''+escHtml(String(m['STATUS']||'').trim())+'\')">'+(badgeStatus(m['STATUS']))+(d.status?diffDot(d.status):'')+'</td>'
       +'<td style="white-space:nowrap">'+ucrLink+'</td>'
-      +'<td class="td-muted filterable" title="Filter by author" onclick="filterByCell(\'Author\',\''+escHtml(author)+'\')">'+escHtml(author||'—')+(d.author?diffDot(d.author):'')+'</td>'
       +'<td style="white-space:nowrap">'+expCell+'</td>'
       +'<td class="td-muted" style="white-space:nowrap">'+fmtDate(m._ucr_modified)+'</td>'
       +'<td style="text-align:center">'+(isFeatured?'<span class="star">★</span>':'')+'</td>'
