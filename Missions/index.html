@@ -156,10 +156,10 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
   <!-- KPI row -->
   <div class="kpis fade-in" id="kpis" style="animation-delay:.05s">
     <div class="kpi k-total" onclick="filterKPI('')"><div class="kpi-val" id="kv-total">—</div><div class="kpi-lbl">Total Missions</div></div>
-    <div class="kpi k-published" onclick="filterKPI('published')"><div class="kpi-val" id="kv-published">—</div><div class="kpi-lbl">Published</div></div>
-    <div class="kpi k-draft" onclick="filterKPI('draft')"><div class="kpi-val" id="kv-draft">—</div><div class="kpi-lbl">Draft</div></div>
-    <div class="kpi k-archived" onclick="filterKPI('Archived')"><div class="kpi-val" id="kv-archived">—</div><div class="kpi-lbl">Archived</div></div>
-    <div class="kpi k-idea" onclick="filterKPI('idea')"><div class="kpi-val" id="kv-idea">—</div><div class="kpi-lbl">Ideas</div></div>
+    <div class="kpi k-published" onclick="filterKPI('Published')"><div class="kpi-val" id="kv-published">—</div><div class="kpi-lbl">Published</div></div>
+    <div class="kpi k-draft" onclick="filterKPI('Draft')"><div class="kpi-val" id="kv-draft">—</div><div class="kpi-lbl">Draft</div></div>
+    <div class="kpi k-archived" onclick="filterKPI('In Review')"><div class="kpi-val" id="kv-inreview">—</div><div class="kpi-lbl">In Review</div></div>
+    <div class="kpi k-idea" onclick="filterKPI('Archived')"><div class="kpi-val" id="kv-archived">—</div><div class="kpi-lbl">Archived</div></div>
   </div>
 
   <!-- Charts -->
@@ -183,10 +183,10 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
     <input type="text" id="search" placeholder="Search name, author, tags, ID…" oninput="applyFilters()">
     <select id="fStatus" onchange="applyFilters()">
       <option value="">All Statuses</option>
-      <option value="published">Published</option>
-      <option value="draft">Draft</option>
+      <option value="Published">Published</option>
+      <option value="Draft">Draft</option>
+      <option value="In Review">In Review</option>
       <option value="Archived">Archived</option>
-      <option value="idea">Idea</option>
     </select>
     <select id="fCategory" onchange="applyFilters()">
       <option value="">All Categories</option>
@@ -240,12 +240,12 @@ var PAGE_SIZE=25;
 var VAL_MAP={"UC10000456": {"key": "DISCOVALIDATION-7", "status": "Inactive", "resol": "Won't Fix", "version": "unknown", "assignee": "Manish Kumar"}, "UC10000516": {"key": "DISCOVALIDATION-18", "status": "Completed", "resol": "Fixed", "version": "Feb 26", "assignee": "Shweta"}, "UC10000474": {"key": "DISCOVALIDATION-1", "status": "Completed", "resol": "Fixed", "version": "NOV-25-SPRINT1", "assignee": "Manish Kumar"}, "UC10000446": {"key": "DISCOVALIDATION-8", "status": "Consumed", "resol": "Fixed", "version": "NOV-25-SPRINT1", "assignee": "Shweta"}, "UC10000482": {"key": "DISCOVALIDATION-10", "status": "Completed", "resol": "Fixed", "version": "NOV-25-SPRINT2", "assignee": "Shweta"}, "UC10000477": {"key": "DISCOVALIDATION-2", "status": "Completed", "resol": "Fixed", "version": "DEC-25-SPRINT1", "assignee": "Manish Kumar"}, "UC10000483": {"key": "DISCOVALIDATION-9", "status": "Completed", "resol": "Fixed", "version": "DEC-25-SPRINT1", "assignee": "Manish Kumar"}, "UC10000179": {"key": "DISCOVALIDATION-3", "status": "Consumed", "resol": "Fixed", "version": "Feb 26", "assignee": "Shweta"}, "UC10000496": {"key": "DISCOVALIDATION-12", "status": "Completed", "resol": "Fixed", "version": "Feb 26", "assignee": "Shveta Sharma"}, "UC10000508": {"key": "DISCOVALIDATION-13", "status": "Completed", "resol": "Fixed", "version": "Feb 26", "assignee": "Shveta Sharma"}, "UC10000510": {"key": "DISCOVALIDATION-14", "status": "Consumed", "resol": "Fixed", "version": "Feb 26", "assignee": "Manish Kumar"}, "UC10000352": {"key": "DISCOVALIDATION-4", "status": "Consumed", "resol": "Fixed", "version": "Mar 26", "assignee": "Shweta"}, "UC10000501": {"key": "DISCOVALIDATION-16", "status": "Consumed", "resol": "Fixed", "version": "Mar 26", "assignee": "Shveta Sharma"}, "UC00003969": {"key": "DISCOVALIDATION-17", "status": "Completed", "resol": "Fixed", "version": "Mar 26", "assignee": "Manish Kumar"}, "UC10000531": {"key": "DISCOVALIDATION-20", "status": "Consumed", "resol": "Fixed", "version": "Mar 26", "assignee": "Manish Kumar"}, "UC10000465": {"key": "DISCOVALIDATION-6", "status": "Inactive", "resol": "Won't Fix", "version": "Apr 26", "assignee": "Manish Kumar"}, "UC10000499": {"key": "DISCOVALIDATION-22", "status": "Completed", "resol": "Fixed", "version": "Apr 26", "assignee": "Manish Kumar"}, "UC10000439": {"key": "DISCOVALIDATION-5", "status": "Completed", "resol": "Fixed", "version": "May 26", "assignee": "Shweta"}, "UC10000506": {"key": "DISCOVALIDATION-15", "status": "Completed", "resol": "Fixed", "version": "May 26", "assignee": "Manish Kumar"}, "UC10000413": {"key": "DISCOVALIDATION-21", "status": "Completed", "resol": "Fixed", "version": "May 26", "assignee": "Manish Kumar"}, "UC10000445": {"key": "DISCOVALIDATION-23", "status": "Open", "resol": "Unresolved", "version": "May 26", "assignee": "Shveta Sharma"}, "UC10000488": {"key": "DISCOVALIDATION-24", "status": "Open", "resol": "Unresolved", "version": "Jun 26", "assignee": "Shweta"}, "UC10000542": {"key": "DISCOVALIDATION-34", "status": "Open", "resol": "Unresolved", "version": "Jun 26", "assignee": "Manish Kumar"}, "UC10000561": {"key": "DISCOVALIDATION-35", "status": "Open", "resol": "Unresolved", "version": "Jun 26", "assignee": "Shveta Sharma"}};
 // <<VAL_MAP_END>>
 
-var STATUS_ORDER=['published','draft','Archived','idea'];
+var STATUS_ORDER=['Published','Draft','In Review','Archived'];
 var STATUS_COLORS={
-  published:'rgba(74,222,128,0.75)',
-  draft:'rgba(34,211,238,0.75)',
-  Archived:'rgba(251,191,36,0.75)',
-  idea:'rgba(167,139,250,0.75)'
+  Published:'rgba(74,222,128,0.75)',
+  Draft:'rgba(34,211,238,0.75)',
+  'In Review':'rgba(167,139,250,0.75)',
+  Archived:'rgba(251,191,36,0.75)'
 };
 
 // ── Excel loading ──────────────────────────────────────────────────────
@@ -258,6 +258,14 @@ async function loadExcel(path){
   var resp=await fetch(path);
   if(!resp.ok)throw new Error('Could not load '+path+' ('+resp.status+')');
   return parseExcel(await resp.arrayBuffer());
+}
+
+async function loadCSV(path){
+  var resp=await fetch(path);
+  if(!resp.ok)throw new Error('Could not load '+path+' ('+resp.status+')');
+  var text=await resp.text();
+  var wb=XLSX.read(text,{type:'string'});
+  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
 }
 
 function readFileAsBuffer(file){
@@ -311,7 +319,7 @@ async function init(){
     try{
       var results=await Promise.all([
         loadExcel('Mission_Portfolio.xlsx'),
-        loadExcel('missions_ucr.xlsx')
+        loadCSV('Use Cases.csv')
       ]);
       saveCache(results[0],results[1]);
       processData(results[0],results[1]);
@@ -340,8 +348,8 @@ function showFilePicker(){
     +'<div style="font-size:.8rem;color:#94a3b8;margin-bottom:24px">Files are remembered in this browser after first load</div>'
     +'<div class="filepick-row"><label class="filepick-lbl"><span>Mission_Portfolio.xlsx</span>'
     +'<input type="file" id="pickPortfolio" accept=".xlsx,.xls" onchange="checkPicks()"></label></div>'
-    +'<div class="filepick-row" style="margin-top:12px"><label class="filepick-lbl"><span>missions_ucr.xlsx</span>'
-    +'<input type="file" id="pickUCR" accept=".xlsx,.xls" onchange="checkPicks()"></label></div>'
+    +'<div class="filepick-row" style="margin-top:12px"><label class="filepick-lbl"><span>Use Cases.csv</span>'
+    +'<input type="file" id="pickUCR" accept=".csv,.xlsx,.xls" onchange="checkPicks()"></label></div>'
     +'<button id="loadBtn" class="load-btn" onclick="loadFromFiles()" disabled>Load &amp; Remember</button>'
     +'</div>';
 }
@@ -355,8 +363,16 @@ function checkPicks(){
 async function loadFromFiles(){
   try{
     var ab1=await readFileAsBuffer(document.getElementById('pickPortfolio').files[0]);
-    var ab2=await readFileAsBuffer(document.getElementById('pickUCR').files[0]);
-    var p=parseExcel(ab1), u=parseExcel(ab2);
+    var f2=document.getElementById('pickUCR').files[0];
+    var p=parseExcel(ab1);
+    var u;
+    if(f2.name.toLowerCase().endsWith('.csv')){
+      var text=await f2.text();
+      var wb=XLSX.read(text,{type:'string'});
+      u=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+    }else{
+      u=parseExcel(await readFileAsBuffer(f2));
+    }
     saveCache(p,u);
     processData(p,u);
   }catch(e){
@@ -387,16 +403,16 @@ function processData(portfolio,ucr){
     var ucrId=String(r['ID']||'').trim();
     var p=portfolioMap.get(ucrId)||null;
 
-    // UCR as source of truth
-    var name   =getF(r,'Title','Mission Title','Use Case Title','Name','Mission Name');
+    // UCR as source of truth (CSV fields: ID, Title, Status, Owner, Authoring Company, Last Modified On, Published Channels, Expiry Date)
+    var name   =getF(r,'Title','Mission Title','Name','Mission Name');
     var status =getF(r,'Status','Lifecycle Status','State');
-    var cat    =getF(r,'Category','Solution Area','Product Area','Line of Business');
-    var author =getF(r,'Author','Created By','Owner','Submitted By');
-    var coach  =getF(r,'Coach','Coach name(s)');
+    var cat    =getF(r,'Category','Solution Area','Product Area','Line of Business')||(p?String(p['Category']||'').trim():'');
+    var author =getF(r,'Owner','Author','Created By','Submitted By');
+    var coach  =getF(r,'Coach','Coach name(s)')||(p?String(p['Coach name(s)']||'').trim():'');
     var expiry =r['Expiry Date']||'';
     var modified=r['Last Modified On']||'';
 
-    // Diffs vs Portfolio
+    // Diffs vs Portfolio (only flag when CSV has a value and Portfolio differs)
     var diffs={};
     if(p){
       var pName  =String(p['Mission Name']||'').trim();
@@ -404,11 +420,11 @@ function processData(portfolio,ucr){
       var pCat   =String(p['Category']||'').trim();
       var pAuthor=String(p['Author']||'').trim();
       var pCoach =String(p['Coach name(s)']||'').trim();
-      if(pName  &&norm(pName)  !==norm(name))  diffs.name  ='Portfolio Mission Name: "'+pName+'"';
-      if(pStatus&&norm(pStatus)!==norm(status)) diffs.status='Portfolio Status: "'+pStatus+'"';
-      if(pCat   &&norm(pCat)   !==norm(cat))   diffs.cat   ='Portfolio Category: "'+pCat+'"';
-      if(pAuthor&&norm(pAuthor)!==norm(author)) diffs.author='Portfolio Author: "'+pAuthor+'"';
-      if(pCoach &&norm(pCoach) !==norm(coach))  diffs.coach ='Portfolio Coach: "'+pCoach+'"';
+      if(name   &&pName  &&norm(pName)  !==norm(name))  diffs.name  ='Portfolio Mission Name: "'+pName+'"';
+      if(status &&pStatus&&norm(pStatus)!==norm(status)) diffs.status='Portfolio Status: "'+pStatus+'"';
+      if(cat    &&pCat   &&norm(pCat)   !==norm(cat))   diffs.cat   ='Portfolio Category: "'+pCat+'"';
+      if(author &&pAuthor&&norm(pAuthor)!==norm(author)) diffs.author='Portfolio Author: "'+pAuthor+'"';
+      if(coach  &&pCoach &&norm(pCoach) !==norm(coach))  diffs.coach ='Portfolio Coach: "'+pCoach+'"';
     }
     // Diffs vs Jira
     var valInfo=VAL_MAP[ucrId]||null;
@@ -503,13 +519,13 @@ function buildMonthFilter(){
 
 // ── KPIs ───────────────────────────────────────────────────────────────
 function renderKPIs(){
-  var counts={published:0,draft:0,Archived:0,idea:0};
+  var counts={Published:0,Draft:0,'In Review':0,Archived:0};
   allMissions.forEach(function(m){var s=String(m['STATUS']||'');if(s in counts)counts[s]++;});
   document.getElementById('kv-total').textContent=allMissions.length;
-  document.getElementById('kv-published').textContent=counts.published;
-  document.getElementById('kv-draft').textContent=counts.draft;
+  document.getElementById('kv-published').textContent=counts.Published;
+  document.getElementById('kv-draft').textContent=counts.Draft;
+  document.getElementById('kv-inreview').textContent=counts['In Review'];
   document.getElementById('kv-archived').textContent=counts.Archived;
-  document.getElementById('kv-idea').textContent=counts.idea;
 }
 
 // ── Charts ─────────────────────────────────────────────────────────────
@@ -642,7 +658,7 @@ function setCoach(name){
 function filterKPI(status){
   document.getElementById('fStatus').value=status;
   document.querySelectorAll('.kpi').forEach(function(el){el.classList.remove('active-kpi');});
-  var map={'':'k-total','published':'k-published','draft':'k-draft','Archived':'k-archived','idea':'k-idea'};
+  var map={'':'k-total',Published:'k-published',Draft:'k-draft','In Review':'k-archived',Archived:'k-idea'};
   var cls=map[status];
   if(cls)document.querySelector('.kpi.'+cls).classList.add('active-kpi');
   applyFilters();
@@ -746,7 +762,6 @@ var COLS=[
   {key:'STATUS',label:'Status',sortable:true,filterCol:'status'},
   {key:'UCR ID',label:'UCR',sortable:true},
   {key:'Author',label:'Author',sortable:true,tdClass:'td-muted'},
-  {key:'Committed Date',label:'Committed',sortable:true,tdClass:'td-muted'},
   {key:'_ucr_expiry',label:'Expiry',sortable:true},
   {key:'_ucr_modified',label:'Modified',sortable:true,tdClass:'td-muted'},
   {key:'Featured Mission?',label:'★',sortable:false},
@@ -758,7 +773,7 @@ var COLS=[
 ];
 
 function badgeStatus(s){
-  var map={published:'b-published',draft:'b-draft',Archived:'b-archived',idea:'b-idea'};
+  var map={Published:'b-published',Draft:'b-draft','In Review':'b-idea',Archived:'b-archived'};
   var s2=String(s||'').trim();
   return s2?'<span class="badge '+(map[s2]||'b-neutral')+'">'+s2+'</span>':'<span style="color:#334155">—</span>';
 }
@@ -826,7 +841,6 @@ function renderTable(){
       +'<td class="filterable" title="Filter by status" onclick="filterByCell(\'STATUS\',\''+escHtml(String(m['STATUS']||'').trim())+'\')">'+(badgeStatus(m['STATUS']))+(d.status?diffDot(d.status):'')+'</td>'
       +'<td style="white-space:nowrap">'+ucrLink+'</td>'
       +'<td class="td-muted filterable" title="Filter by author" onclick="filterByCell(\'Author\',\''+escHtml(author)+'\')">'+escHtml(author||'—')+(d.author?diffDot(d.author):'')+'</td>'
-      +'<td class="td-muted" style="white-space:nowrap">'+fmtDate(m['Committed Date'])+'</td>'
       +'<td style="white-space:nowrap">'+expCell+'</td>'
       +'<td class="td-muted" style="white-space:nowrap">'+fmtDate(m._ucr_modified)+'</td>'
       +'<td style="text-align:center">'+(isFeatured?'<span class="star">★</span>':'')+'</td>'
