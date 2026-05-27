@@ -494,7 +494,7 @@ async function handleFileUpdate(which){
     }
     if(!cached.fileNames)cached.fileNames={};
     cached.fileNames[which]=f.name;
-    localStorage.setItem('missions_cache_v4',JSON.stringify(cached));
+    try{localStorage.setItem('missions_cache_v4',JSON.stringify(cached));}catch(e){}
     renderFileSources(cached.fileNames);
     if(cached.portfolio&&cached.ucr)processData(cached.portfolio,cached.ucr);
   }catch(e){alert('Failed to load '+f.name+': '+e.message);}
