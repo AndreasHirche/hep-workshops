@@ -307,7 +307,7 @@ function isExpiringSoon(v){
 async function init(){
   // Try localStorage cache first
   try{
-    var cached=localStorage.getItem('missions_cache');
+    var cached=localStorage.getItem('missions_cache_v2');
     if(cached){
       var data=JSON.parse(cached);
       processData(data.portfolio,data.ucr,true);
@@ -330,11 +330,11 @@ async function init(){
 }
 
 function saveCache(portfolio,ucr){
-  try{localStorage.setItem('missions_cache',JSON.stringify({portfolio:portfolio,ucr:ucr}));}catch(e){}
+  try{localStorage.setItem('missions_cache_v2',JSON.stringify({portfolio:portfolio,ucr:ucr}));}catch(e){}
 }
 
 function clearCache(){
-  localStorage.removeItem('missions_cache');
+  localStorage.removeItem('missions_cache_v2');
   allMissions=[];filtered=[];
   document.getElementById('fCategory').innerHTML='<option value="">All Categories</option>';
   document.getElementById('fMonth').innerHTML='<option value="">All Months</option>';
