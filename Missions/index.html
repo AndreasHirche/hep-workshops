@@ -763,7 +763,7 @@ function renderTable(){
       +'<td style="text-align:center">'+revIcon(m._rev_lang,m['Name UA']||m['Review by UA'])+'</td>'
       +'<td style="text-align:center">'+revIcon(m._rev_qual,m['Quality Review completed (yes/no)'])+'</td>'
       +'<td style="text-align:center">'+revIcon(m._rev_pm,m['Name PE']||m['Review by Platform Exp.'])+'</td>'
-      +'<td style="text-align:center">'+(link?'<a href="'+escHtml(link)+'" target="_blank" rel="noopener" title="Open in Discovery Center" style="color:#22d3ee;font-size:.85rem;text-decoration:none">↗</a>':'<span style="color:#334155">—</span>')+'</td>'
+      +'<td style="text-align:center"><a href="https://discovery-center.cloud.sap/search/'+encodeURIComponent(name)+'" target="_blank" rel="noopener" title="Search in Discovery Center" style="color:#22d3ee;font-size:.85rem;text-decoration:none">↗</a></td>'
       +'</tr>';
   });
 
