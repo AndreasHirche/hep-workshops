@@ -305,18 +305,19 @@ function readFileAsBuffer(file){
 }
 
 function fmtDate(v){
-  if(!v||v==='')return'';
-  if(v instanceof Date&&!isNaN(v))return v.toLocaleDateString('de-DE');
-  var s=String(v).trim();
-  if(/^\d{2}\.\d{2}\.\d{4}$/.test(s))return s;
-  var d=new Date(s);
-  return isNaN(d)?s:d.toLocaleDateString('de-DE');
+  if(!v&&v!==0)return'';
+  var d=toDate(v);
+  if(d)return d.toLocaleDateString('de-DE');
+  return String(v).trim();
 }
 
 function toDate(v){
-  if(!v||v==='')return null;
+  if(!v&&v!==0)return null;
   if(v instanceof Date&&!isNaN(v))return v;
+  // Excel serial number (e.g. 46113 = Sep 25, 2025)
+  if(typeof v==='number'&&v>59){var d=new Date(Math.round((v-25569)*86400000));if(!isNaN(d))return d;}
   var s=String(v).trim();
+  if(!s)return null;
   if(/^\d{2}\.\d{2}\.\d{4}$/.test(s)){var p=s.split('.');return new Date(+p[2],+p[1]-1,+p[0]);}
   var m=s.match(/^([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})$/);
   if(m){var mo={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11}[m[1].slice(0,3)];if(mo!==undefined)return new Date(+m[3],mo,+m[2]);}
@@ -333,7 +334,7 @@ function isExpiringSoon(v){
 // ── Init ───────────────────────────────────────────────────────────────
 async function init(){
   try{
-    var cached=localStorage.getItem('missions_cache_v3');
+    var cached=localStorage.getItem('missions_cache_v4');
     if(cached){
       var data=JSON.parse(cached);
       if(data.jira)VAL_MAP=parseJira(data.jira);
@@ -364,11 +365,11 @@ async function init(){
 }
 
 function saveCache(portfolio,ucr,jira,fns){
-  try{localStorage.setItem('missions_cache_v3',JSON.stringify({portfolio:portfolio,ucr:ucr,jira:jira||[],fileNames:fns||{}}));}catch(e){}
+  try{localStorage.setItem('missions_cache_v4',JSON.stringify({portfolio:portfolio,ucr:ucr,jira:jira||[],fileNames:fns||{}}));}catch(e){}
 }
 
 function clearCache(){
-  localStorage.removeItem('missions_cache_v3');
+  localStorage.removeItem('missions_cache_v4');
   allMissions=[];filtered=[];
   document.getElementById('fCategory').innerHTML='<option value="">All Categories</option>';
   document.getElementById('fMonth').innerHTML='<option value="">All Months</option>';
@@ -404,7 +405,7 @@ async function loadFromFiles(){
     var p=parseExcel(ab1);
     var u;
     if(f2.name.toLowerCase().endsWith('.csv')){
-      var wb=XLSX.read(await f2.text(),{type:'string'});
+      var wb=XLSX.read(await f2.text(),{type:'string',cellDates:true});
       u=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
     }else{
       u=parseExcel(await readFileAsBuffer(f2));
@@ -477,12 +478,12 @@ async function handleFileUpdate(which){
   if(!input.files.length)return;
   var f=input.files[0];
   try{
-    var cached=JSON.parse(localStorage.getItem('missions_cache_v3')||'{}');
+    var cached=JSON.parse(localStorage.getItem('missions_cache_v4')||'{}');
     if(which==='portfolio'){
       cached.portfolio=parseExcel(await readFileAsBuffer(f));
     }else if(which==='ucr'){
       if(f.name.toLowerCase().endsWith('.csv')){
-        var wb=XLSX.read(await f.text(),{type:'string'});
+        var wb=XLSX.read(await f.text(),{type:'string',cellDates:true});
         cached.ucr=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
       }else{
         cached.ucr=parseExcel(await readFileAsBuffer(f));
@@ -493,7 +494,7 @@ async function handleFileUpdate(which){
     }
     if(!cached.fileNames)cached.fileNames={};
     cached.fileNames[which]=f.name;
-    localStorage.setItem('missions_cache_v3',JSON.stringify(cached));
+    localStorage.setItem('missions_cache_v4',JSON.stringify(cached));
     renderFileSources(cached.fileNames);
     if(cached.portfolio&&cached.ucr)processData(cached.portfolio,cached.ucr);
   }catch(e){alert('Failed to load '+f.name+': '+e.message);}
