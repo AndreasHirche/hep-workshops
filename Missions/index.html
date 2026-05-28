@@ -335,11 +335,12 @@ function parseJiraExcel(ab){
     }
     if(headerRow<0)continue;
     var headers=raw[headerRow].map(function(c){return String(c||'').trim();});
+    var keep=['Key','Summary','Status','Resolution','Fix Version/s','Fix Version','Assignee','Reporter','Description'];
     return raw.slice(headerRow+1).map(function(row){
       var obj={};
-      headers.forEach(function(h,i){obj[h]=row[i]!==undefined?row[i]:'';});
+      headers.forEach(function(h,i){if(keep.indexOf(h)>=0)obj[h]=row[i]!==undefined?String(row[i]):'';});
       return obj;
-    }).filter(function(r){return Object.values(r).some(function(v){return String(v||'').trim();});});
+    }).filter(function(r){return keep.some(function(k){return String(r[k]||'').trim();});});
   }
   return[];
 }
@@ -400,7 +401,7 @@ async function init(){
     var cached=localStorage.getItem('missions_cache_v4');
     if(cached){
       var data=JSON.parse(cached);
-      if(data.jira&&data.jira.length)VAL_MAP=parseJira(data.jira);
+      if(data.jira&&data.jira.length){VAL_MAP=parseJira(data.jira);}
       renderFileSources(data.fileNames||{});
       processData(data.portfolio,data.ucr);
       return;
@@ -428,7 +429,11 @@ async function init(){
 }
 
 function saveCache(portfolio,ucr,jira,fns){
-  try{localStorage.setItem('missions_cache_v4',JSON.stringify({portfolio:portfolio,ucr:ucr,jira:jira||[],fileNames:fns||{}}));}catch(e){}
+  try{localStorage.setItem('missions_cache_v4',JSON.stringify({portfolio:portfolio,ucr:ucr,jira:jira||[],fileNames:fns||{}}));}
+  catch(e){
+    // quota exceeded — try without jira rows
+    try{localStorage.setItem('missions_cache_v4',JSON.stringify({portfolio:portfolio,ucr:ucr,jira:[],fileNames:fns||{}}));}catch(e2){}
+  }
 }
 
 function clearCache(){
@@ -549,12 +554,18 @@ async function handleFileUpdate(which){
         cached.ucr=parseExcel(await readFileAsBuffer(f));
       }
     }else if(which==='jira'){
-      cached.jira=parseJiraExcel(await readFileAsBuffer(f));
-      if(cached.jira&&cached.jira.length){VAL_MAP=parseJira(cached.jira);}
+      var jiraRows=parseJiraExcel(await readFileAsBuffer(f));
+      if(jiraRows&&jiraRows.length){VAL_MAP=parseJira(jiraRows);}
+      // store only the slimmed rows (keep/Status/Summary columns only — already slimmed by parseJiraExcel)
+      cached.jira=jiraRows;
     }
     if(!cached.fileNames)cached.fileNames={};
     cached.fileNames[which]=f.name;
-    try{localStorage.setItem('missions_cache_v4',JSON.stringify(cached));}catch(e){}
+    try{localStorage.setItem('missions_cache_v4',JSON.stringify(cached));}
+    catch(e){
+      // quota exceeded — save without jira rows
+      try{var slim=Object.assign({},cached,{jira:[]});localStorage.setItem('missions_cache_v4',JSON.stringify(slim));}catch(e2){}
+    }
     renderFileSources(cached.fileNames);
     if(cached.portfolio&&cached.ucr)processData(cached.portfolio,cached.ucr);
   }catch(e){alert('Failed to load '+f.name+': '+e.message);}
