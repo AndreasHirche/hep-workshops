@@ -204,7 +204,7 @@ td.filterable:hover{background:rgba(124,58,237,0.12)}
     </div>
     <div class="charts fade-in" style="animation-delay:.1s">
       <div class="chart-card">
-        <div class="chart-title">Status Distribution <span style="font-size:.62rem;font-weight:400;color:#475569;margin-left:6px">click to filter</span></div>
+        <div class="chart-title">Status Distribution</div>
         <div class="chart-inner"><canvas id="statusChart"></canvas></div>
       </div>
       <div class="chart-card">
@@ -629,6 +629,8 @@ function processData(portfolio,ucr){
   buildCategoryFilter();
   buildMonthFilter();
   buildStatusFilter();
+  buildCompanyFilter();
+  buildAuthorFilter();
   renderKPIs();
   renderCharts();
   applyFilters();
@@ -639,6 +641,20 @@ function processData(portfolio,ucr){
 function buildStatusFilter(){
   var sel=document.getElementById('fStatus');
   STATUS_ORDER.forEach(function(s){var o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
+}
+
+function buildCompanyFilter(){
+  var seen={};
+  allMissions.forEach(function(m){var c=String(m['Authoring Company']||'').trim();if(c)seen[c]=true;});
+  var sel=document.getElementById('fCompany');
+  Object.keys(seen).sort().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+}
+
+function buildAuthorFilter(){
+  var seen={};
+  allMissions.forEach(function(m){var a=String(m['Author']||'').trim();if(a)seen[a]=true;});
+  var sel=document.getElementById('fAuthor');
+  Object.keys(seen).sort().forEach(function(a){var o=document.createElement('option');o.value=a;o.textContent=a;sel.appendChild(o);});
 }
 
 // ── Category filter ────────────────────────────────────────────────────
@@ -840,7 +856,9 @@ function filterByCell(col, value){
   } else if(col==='Category'){
     document.getElementById('fCategory').value=value;
   } else if(col==='Author'){
-    document.getElementById('search').value=value;
+    document.getElementById('fAuthor').value=value;
+  } else if(col==='company'){
+    document.getElementById('fCompany').value=value;
   } else if(col==='_coach'){
     setCoach(value);
     return;
@@ -1021,7 +1039,7 @@ function renderTable(){
 
     html+='<tr>'
       +'<td class="td-name">'+nameCell+'</td>'
-      +'<td style="white-space:nowrap">'+companyCell(company)+'</td>'
+      +'<td class="filterable" style="white-space:nowrap" onclick="filterByCell(\'company\',\''+escHtml(company)+'\')">'+companyCell(company)+'</td>'
       +'<td class="filterable" title="Filter by category" onclick="filterByCell(\'Category\',\''+escHtml(cat)+'\')">'+((cat||'<span style="color:#334155">—</span>')+(d.cat?diffDot(d.cat):''))+'</td>'
       +'<td class="td-muted filterable" title="Filter by coach" onclick="filterByCell(\'_coach\',\''+escHtml(coach)+'\')" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+coachCell+'</td>'
       +'<td class="td-muted filterable" title="Filter by author" onclick="filterByCell(\'Author\',\''+escHtml(author)+'\')">'+escHtml(author||'—')+(d.author?diffDot(d.author):'')+'</td>'
