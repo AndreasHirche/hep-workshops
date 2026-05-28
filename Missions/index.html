@@ -301,7 +301,7 @@ function companyCell(company){
   var domain=COMPANY_DOMAINS[company];
   var name=escHtml(company);
   if(!domain)return'<span class="td-muted">'+name+'</span>';
-  return'<img src="https://logo.clearbit.com/'+domain+'?size=20" style="width:16px;height:16px;border-radius:3px;vertical-align:middle;margin-right:5px;display:inline-block" onerror="this.style.display=\'none\'">'+name;
+  return'<img src="https://www.google.com/s2/favicons?domain='+domain+'&sz=32" style="width:16px;height:16px;border-radius:3px;vertical-align:middle;margin-right:5px;display:inline-block" onerror="this.style.display=\'none\'">'+name;
 }
 var STATUS_COLORS={
   Published:'rgba(74,222,128,0.75)',
