@@ -732,7 +732,7 @@ function renderCharts(){
             filterKPI(document.getElementById('fStatus').value===st?'':st);
           }
         },
-        tooltip:{callbacks:{label:function(ctx){return' '+ctx.label+': '+ctx.parsed;}}}
+        tooltip:{enabled:false}
       }
     }
   });
