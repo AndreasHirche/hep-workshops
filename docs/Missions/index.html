@@ -372,7 +372,7 @@ async function init(){
     var cached=localStorage.getItem('missions_cache_v4');
     if(cached){
       var data=JSON.parse(cached);
-      if(data.jira)VAL_MAP=parseJira(data.jira);
+      if(data.jira&&data.jira.length)VAL_MAP=parseJira(data.jira);
       renderFileSources(data.fileNames||{});
       processData(data.portfolio,data.ucr);
       return;
@@ -456,6 +456,7 @@ async function loadFromFiles(){
 var VAL_MAP_BY_NAME={};
 function normMissionName(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();}
 function parseJira(rows){
+  if(!rows||!rows.length)return VAL_MAP;
   var map={};
   VAL_MAP_BY_NAME={};
   rows.forEach(function(r){
@@ -520,7 +521,7 @@ async function handleFileUpdate(which){
       }
     }else if(which==='jira'){
       cached.jira=parseExcel(await readFileAsBuffer(f));
-      VAL_MAP=parseJira(cached.jira);
+      if(cached.jira&&cached.jira.length){VAL_MAP=parseJira(cached.jira);}
     }
     if(!cached.fileNames)cached.fileNames={};
     cached.fileNames[which]=f.name;
