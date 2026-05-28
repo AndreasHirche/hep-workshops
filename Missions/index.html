@@ -453,26 +453,32 @@ async function loadFromFiles(){
 }
 
 // ── Jira parser ────────────────────────────────────────────────────────
+var VAL_MAP_BY_NAME={};
+function normMissionName(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();}
 function parseJira(rows){
   var map={};
+  VAL_MAP_BY_NAME={};
   rows.forEach(function(r){
     var ucrId='';
     Object.keys(r).forEach(function(k){
       if(!ucrId){var m=String(r[k]||'').match(/UseCase\/view\/(UC[\w]+)/);if(m)ucrId=m[1];}
     });
-    if(!ucrId)return;
     var key='';
     Object.keys(r).forEach(function(k){
       if(!key&&/^DISCOVALIDATION-\d+/.test(String(r[k]||'')))key=String(r[k]);
     });
     if(!key)return;
-    map[ucrId]={
+    var entry={
       key:key,
       status:String(r['Status']||'').trim(),
       resol:String(r['Resolution']||'').trim(),
       version:String(r['Fix Version/s']||r['Fix Version']||'').trim(),
       assignee:String(r['Assignee']||'').trim()
     };
+    if(ucrId)map[ucrId]=entry;
+    var summary=String(r['Summary']||'').trim();
+    var nameMatch=summary.match(/^Validate\s+Mission\s*[-:]\s*(.+)$/i);
+    if(nameMatch){VAL_MAP_BY_NAME[normMissionName(nameMatch[1])]=entry;}
   });
   return map;
 }
@@ -1026,7 +1032,7 @@ function renderTable(){
     var featured=String(m['Featured Mission?']||'').toLowerCase();
     var isFeatured=featured==='yes'||featured==='true'||featured==='x'||featured==='1';
 
-    var valInfo=VAL_MAP[ucrId]||null;
+    var valInfo=VAL_MAP[ucrId]||VAL_MAP_BY_NAME[normMissionName(name)]||null;
     var valCell=valInfo
       ?'<a href="https://jira.tools.sap/browse/'+escHtml(valInfo.key)+'" target="_blank" rel="noopener" style="text-decoration:none;display:block"><span class="badge '+valBadgeClass(valInfo.status)+'">'+escHtml(valInfo.key.replace('DISCOVALIDATION-','#'))+'&nbsp;'+escHtml(valInfo.status)+'</span>'
         +(valInfo.assignee?'<br><span style="font-size:.65rem;color:#94a3b8">'+escHtml(valInfo.assignee)+'</span>':'')
