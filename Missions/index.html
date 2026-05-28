@@ -578,7 +578,7 @@ function processData(portfolio,ucr){
       if(coach  &&pCoach &&norm(pCoach) !==norm(coach))  diffs.coach ='Portfolio Coach: "'+pCoach+'"';
     }
     // Diffs vs Jira
-    var valInfo=VAL_MAP[ucrId]||null;
+    var valInfo=VAL_MAP[ucrId]||VAL_MAP_BY_NAME[normMissionName(name)]||null;
     if(valInfo){
       var ucrValStatus=getF(r,'Validation Status','Content Validation Status','Validated');
       if(ucrValStatus&&norm(ucrValStatus)!==norm(valInfo.status))
@@ -593,12 +593,20 @@ function processData(portfolio,ucr){
       if(String(p['Name UA']||p['Review by UA']||'').trim())return'inprogress';
       return'open';
     })():'open';
-    var revQual=p?(function(){
-      var q=String(p['Quality Review completed (yes/no)']||'').trim().toLowerCase();
-      if(q==='yes')return'done';
-      if(q&&q!=='no')return'inprogress';
+    var revQual=(function(){
+      if(valInfo){
+        var s=valInfo.status;
+        if(s==='Completed'||s==='Consumed')return'done';
+        if(s==='Open'||s==='In Progress'||s==='Inactive')return'inprogress';
+        if(s)return'inprogress';
+      }
+      if(p){
+        var q=String(p['Quality Review completed (yes/no)']||'').trim().toLowerCase();
+        if(q==='yes')return'done';
+        if(q&&q!=='no')return'inprogress';
+      }
       return'open';
-    })():'open';
+    })();
     var revPM=p?(function(){
       if(String(p['Date PE']||'').trim())return'done';
       if(String(p['Name PE']||p['Review by Platform Exp.']||'').trim())return'inprogress';
@@ -621,6 +629,7 @@ function processData(portfolio,ucr){
       '_diffs':diffs,
       '_rev_lang':revLang,
       '_rev_qual':revQual,
+      '_jira_qual_tip':valInfo?(valInfo.key.replace('DISCOVALIDATION-','#')+' '+valInfo.status+(valInfo.assignee?' · '+valInfo.assignee:'')):null,
       '_rev_pm':revPM,
       'Link to Discovery Center':p?String(p['Link to Discovery Center']||'').trim():'',
       'Link in Mission Manager':p?String(p['Link in Mission Manager']||'').trim():'',
@@ -1059,7 +1068,7 @@ function renderTable(){
       +'<td style="text-align:center">'+(isFeatured?'<span class="star">★</span>':'')+'</td>'
       +'<td style="white-space:nowrap">'+valCell+'</td>'
       +'<td style="text-align:center">'+revIcon(m._rev_lang,m['Name UA']||m['Review by UA'])+'</td>'
-      +'<td style="text-align:center">'+revIcon(m._rev_qual,m['Quality Review completed (yes/no)'])+'</td>'
+      +'<td style="text-align:center">'+revIcon(m._rev_qual,m._jira_qual_tip||m['Quality Review completed (yes/no)'])+'</td>'
       +'<td style="text-align:center">'+revIcon(m._rev_pm,m['Name PE']||m['Review by Platform Exp.'])+'</td>'
       +'<td style="text-align:center"><a href="https://discovery-center.cloud.sap/search/'+encodeURIComponent(name)+'" target="_blank" rel="noopener" title="Search in Discovery Center" style="color:#22d3ee;font-size:.85rem;text-decoration:none">↗</a></td>'
       +'</tr>';
