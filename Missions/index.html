@@ -316,6 +316,34 @@ function parseExcel(ab){
   return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
 }
 
+function parseJiraExcel(ab){
+  var wb;
+  try{wb=XLSX.read(ab,{type:'array',cellDates:true});}catch(e){
+    try{
+      var bytes=new Uint8Array(ab);
+      var bin='';for(var i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
+      wb=XLSX.read(bin,{type:'binary',cellDates:true});
+    }catch(e2){return[];}
+  }
+  for(var si=0;si<wb.SheetNames.length;si++){
+    var ws=wb.Sheets[wb.SheetNames[si]];
+    var raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    var headerRow=-1;
+    for(var i=0;i<Math.min(raw.length,20);i++){
+      var row=raw[i].map(function(c){return String(c||'').trim();});
+      if(row.indexOf('Summary')>=0&&row.indexOf('Status')>=0){headerRow=i;break;}
+    }
+    if(headerRow<0)continue;
+    var headers=raw[headerRow].map(function(c){return String(c||'').trim();});
+    return raw.slice(headerRow+1).map(function(row){
+      var obj={};
+      headers.forEach(function(h,i){obj[h]=row[i]!==undefined?row[i]:'';});
+      return obj;
+    }).filter(function(r){return Object.values(r).some(function(v){return String(v||'').trim();});});
+  }
+  return[];
+}
+
 async function loadExcel(path){
   var resp=await fetch(path);
   if(!resp.ok)throw new Error('Could not load '+path+' ('+resp.status+')');
@@ -369,7 +397,7 @@ function isExpiringSoon(v){
 // ── Init ───────────────────────────────────────────────────────────────
 async function init(){
   try{
-    var cached=localStorage.getItem('missions_cache_v4');
+    var cached=localStorage.getItem('missions_cache_v5');
     if(cached){
       var data=JSON.parse(cached);
       if(data.jira&&data.jira.length)VAL_MAP=parseJira(data.jira);
@@ -387,7 +415,7 @@ async function init(){
       var jiraRows=[];
       try{
         var jr=await fetch('Jira_Validation.xls');
-        if(jr.ok){jiraRows=parseExcel(await jr.arrayBuffer());VAL_MAP=parseJira(jiraRows);}
+        if(jr.ok){jiraRows=parseJiraExcel(await jr.arrayBuffer());VAL_MAP=parseJira(jiraRows);}
       }catch(e2){}
       var fns={portfolio:'Mission_Portfolio.xlsx',ucr:'Use Cases.csv',jira:jiraRows.length?'Jira_Validation.xls':''};
       saveCache(results[0],results[1],jiraRows,fns);
@@ -400,11 +428,11 @@ async function init(){
 }
 
 function saveCache(portfolio,ucr,jira,fns){
-  try{localStorage.setItem('missions_cache_v4',JSON.stringify({portfolio:portfolio,ucr:ucr,jira:jira||[],fileNames:fns||{}}));}catch(e){}
+  try{localStorage.setItem('missions_cache_v5',JSON.stringify({portfolio:portfolio,ucr:ucr,jira:jira||[],fileNames:fns||{}}));}catch(e){}
 }
 
 function clearCache(){
-  localStorage.removeItem('missions_cache_v4');
+  localStorage.removeItem('missions_cache_v5');
   allMissions=[];filtered=[];activeCoach='';
   ['fStatus','fCategory','fMonth','fCompany','fAuthor'].forEach(function(id){document.getElementById(id).value='';});
   renderFileSources({});
@@ -437,7 +465,7 @@ async function loadFromFiles(){
     }
     var jiraRows=[];
     var fJira=document.getElementById('pickJira').files[0];
-    if(fJira){jiraRows=parseExcel(await readFileAsBuffer(fJira));VAL_MAP=parseJira(jiraRows);}
+    if(fJira){jiraRows=parseJiraExcel(await readFileAsBuffer(fJira));VAL_MAP=parseJira(jiraRows);}
     var fns={
       portfolio:document.getElementById('pickPortfolio').files[0].name,
       ucr:f2.name,
@@ -478,7 +506,8 @@ function parseJira(rows){
       reporter:String(r['Reporter']||'').trim()
     };
     if(ucrId)map[ucrId]=entry;
-    var summary=String(r['Summary']||'').trim();
+    var summary=String(r['Summary']||r['summary']||'').trim();
+    if(!summary)return;
     var nameMatch=summary.match(/^Validate\s+Mission\s*[-:]\s*(.+)$/i);
     if(nameMatch){VAL_MAP_BY_NAME[normMissionName(nameMatch[1])]=entry;}
   });
@@ -509,7 +538,7 @@ async function handleFileUpdate(which){
   if(!input.files.length)return;
   var f=input.files[0];
   try{
-    var cached=JSON.parse(localStorage.getItem('missions_cache_v4')||'{}');
+    var cached=JSON.parse(localStorage.getItem('missions_cache_v5')||'{}');
     if(which==='portfolio'){
       cached.portfolio=parseExcel(await readFileAsBuffer(f));
     }else if(which==='ucr'){
@@ -520,12 +549,12 @@ async function handleFileUpdate(which){
         cached.ucr=parseExcel(await readFileAsBuffer(f));
       }
     }else if(which==='jira'){
-      cached.jira=parseExcel(await readFileAsBuffer(f));
+      cached.jira=parseJiraExcel(await readFileAsBuffer(f));
       if(cached.jira&&cached.jira.length){VAL_MAP=parseJira(cached.jira);}
     }
     if(!cached.fileNames)cached.fileNames={};
     cached.fileNames[which]=f.name;
-    try{localStorage.setItem('missions_cache_v4',JSON.stringify(cached));}catch(e){}
+    try{localStorage.setItem('missions_cache_v5',JSON.stringify(cached));}catch(e){}
     renderFileSources(cached.fileNames);
     if(cached.portfolio&&cached.ucr)processData(cached.portfolio,cached.ucr);
   }catch(e){alert('Failed to load '+f.name+': '+e.message);}
