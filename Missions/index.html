@@ -1020,7 +1020,6 @@ var COLS=[
   {key:'_ucr_expiry',label:'Expiry',sortable:true},
   {key:'_ucr_modified',label:'Modified',sortable:true,tdClass:'td-muted',filterCol:'month'},
   {key:'Featured Mission?',label:'★',sortable:false},
-  {key:'_val_status',label:'Validation',sortable:false},
   {key:'_rev_lang',label:'Lang Rev',sortable:false},
   {key:'_rev_qual',label:'Qual Rev',sortable:false},
   {key:'_rev_pm',label:'PM Rev',sortable:false},
@@ -1089,8 +1088,8 @@ function renderTable(){
     var valCell=valInfo
       ?'<a href="https://jira.tools.sap/browse/'+escHtml(valInfo.key)+'" target="_blank" rel="noopener" style="text-decoration:none;display:block"><span class="badge '+valBadgeClass(valInfo.status)+'">'+escHtml(valInfo.key.replace('DISCOVALIDATION-','#'))+'&nbsp;'+escHtml(valInfo.status)+'</span>'
         +(valInfo.assignee?'<br><span style="font-size:.65rem;color:#94a3b8">'+escHtml(valInfo.assignee)+'</span>':'')
-      +'</a>'+(d.validation?diffDot(d.validation):'')
-      :'<span style="color:#334155">—</span>';
+      +'</a>'
+      :'';
 
     var cat=String(m['Category']||'').trim();
     var author=String(m['Author']||'').trim();
@@ -1107,9 +1106,10 @@ function renderTable(){
       +'<td style="white-space:nowrap">'+expCell+'</td>'
       +'<td class="td-muted" style="white-space:nowrap">'+fmtDate(m._ucr_modified)+'</td>'
       +'<td style="text-align:center">'+(isFeatured?'<span class="star">★</span>':'')+'</td>'
-      +'<td style="white-space:nowrap">'+valCell+'</td>'
       +'<td style="text-align:center">'+revIcon(m._rev_lang,m['Name UA']||m['Review by UA'])+'</td>'
-      +'<td style="text-align:center">'+revIcon(m._rev_qual,m._jira_qual_tip||m['Quality Review completed (yes/no)'])+'</td>'
+      +'<td style="white-space:nowrap">'
+        +(valInfo?valCell:revIcon(m._rev_qual,m['Quality Review completed (yes/no)']))+(d.validation?diffDot(d.validation):'')
+      +'</td>'
       +'<td style="text-align:center">'+revIcon(m._rev_pm,m['Name PE']||m['Review by Platform Exp.'])+'</td>'
       +'<td style="text-align:center"><a href="https://discovery-center.cloud.sap/search/'+encodeURIComponent(name)+'" target="_blank" rel="noopener" title="Search in Discovery Center" style="color:#22d3ee;font-size:.85rem;text-decoration:none">↗</a></td>'
       +'</tr>';
