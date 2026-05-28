@@ -473,7 +473,8 @@ function parseJira(rows){
       status:String(r['Status']||'').trim(),
       resol:String(r['Resolution']||'').trim(),
       version:String(r['Fix Version/s']||r['Fix Version']||'').trim(),
-      assignee:String(r['Assignee']||'').trim()
+      assignee:String(r['Assignee']||'').trim(),
+      reporter:String(r['Reporter']||'').trim()
     };
     if(ucrId)map[ucrId]=entry;
     var summary=String(r['Summary']||'').trim();
@@ -582,6 +583,8 @@ function processData(portfolio,ucr){
       var ucrValStatus=getF(r,'Validation Status','Content Validation Status','Validated');
       if(ucrValStatus&&norm(ucrValStatus)!==norm(valInfo.status))
         diffs.validation='Jira Status: "'+valInfo.status+'"';
+      if(valInfo.reporter&&coach&&norm(valInfo.reporter)!==norm(coach))
+        diffs.coach=(diffs.coach?diffs.coach+'; ':'')+'Jira Reporter: "'+valInfo.reporter+'"';
     }
 
     // Reviews from portfolio
