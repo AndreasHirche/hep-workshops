@@ -812,7 +812,8 @@ function filterKPI(status){
 // ── Cell click filter ──────────────────────────────────────────────────
 function filterByCell(col, value){
   if(col==='STATUS'){
-    document.getElementById('fStatus').value=value;
+    filterKPI(value);
+    return;
   } else if(col==='Category'){
     document.getElementById('fCategory').value=value;
   } else if(col==='Author'){
