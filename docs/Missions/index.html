@@ -628,11 +628,18 @@ function processData(portfolio,ucr){
   }).filter(function(r){return r['Mission Name']||r['UCR ID'];});
   buildCategoryFilter();
   buildMonthFilter();
+  buildStatusFilter();
   renderKPIs();
   renderCharts();
   applyFilters();
 }
 
+
+// ── Status filter ─────────────────────────────────────────────────────
+function buildStatusFilter(){
+  var sel=document.getElementById('fStatus');
+  STATUS_ORDER.forEach(function(s){var o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
+}
 
 // ── Category filter ────────────────────────────────────────────────────
 function buildCategoryFilter(){
