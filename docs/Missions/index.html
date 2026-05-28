@@ -678,6 +678,7 @@ function renderCharts(){
   Chart.defaults.color='#94a3b8';
 
   // Status donut
+  if(statusChart)statusChart.destroy();
   var statusCounts=STATUS_ORDER.map(function(s){
     return allMissions.filter(function(m){return String(m['STATUS']||'')===s;}).length;
   });
@@ -806,6 +807,14 @@ function filterKPI(status){
   var map={'':'k-total',Published:'k-published',Draft:'k-draft','In Review':'k-archived',Archived:'k-idea'};
   var cls=map[status];
   if(cls)document.querySelector('.kpi.'+cls).classList.add('active-kpi');
+  if(statusChart){
+    statusChart.data.datasets[0].backgroundColor=STATUS_ORDER.map(function(s){
+      var base=STATUS_COLORS[s]||'rgba(148,163,184,0.5)';
+      if(!status||s===status)return base;
+      return base.replace(/[\d.]+\)$/,'0.18)');
+    });
+    statusChart.update();
+  }
   applyFilters();
 }
 
