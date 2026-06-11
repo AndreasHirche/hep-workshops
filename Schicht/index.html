@@ -66,8 +66,8 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
   padding:14px 14px 28px;transform:translateY(100%);transition:transform .25s ease;
   max-height:90dvh;overflow-y:auto}
 .overlay.show .sheet{transform:translateY(0)}
-.sheet-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.sheet-title{font-size:1rem;font-weight:700;color:var(--text)}
+.sheet-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.sheet-title{font-size:1rem;font-weight:700;color:var(--text);text-align:center;flex:1}
 .sheet-title span{color:var(--muted);font-weight:400;font-size:.82rem;margin-left:6px}
 .day-nav-btns{display:flex;gap:6px}
 .day-nav-btn{padding:5px 12px;border-radius:7px;border:1px solid var(--border);
@@ -146,8 +146,8 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
   .print-modal{display:block!important;position:static!important;background:none!important;padding:0!important;overflow:visible!important}
   .print-actions{display:none!important}
   #printArea{max-width:none;padding:0}
-  @page{size:A4 landscape;margin:8mm}
 }
+@page{size:A4 landscape;margin:8mm}
 </style>
 </head>
 <body>
@@ -160,6 +160,9 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
     </div>
     <div class="topbar-actions">
       <button class="icon-btn" title="Drucken" onclick="openPrint()">🖨️</button>
+      <button class="icon-btn" title="Daten exportieren" onclick="exportData()">⬇️</button>
+      <button class="icon-btn" title="Daten importieren" onclick="document.getElementById('importFile').click()">⬆️</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
       <button class="icon-btn" title="Einstellungen" onclick="openSettings()">⚙️</button>
     </div>
   </div>
@@ -173,13 +176,11 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 
 <!-- DAY SHEET -->
 <div class="overlay" id="dayOverlay" onclick="overlayBgClick(event)">
-  <div class="sheet">
+  <div class="sheet" id="daySheet">
     <div class="sheet-header">
+      <button class="day-nav-btn" onclick="navigateDay(-1)">◀</button>
       <div class="sheet-title" id="dayTitle">Tag</div>
-      <div class="day-nav-btns">
-        <button class="day-nav-btn" onclick="navigateDay(-1)">◀ Vorheriger</button>
-        <button class="day-nav-btn" onclick="navigateDay(1)">Nächster ▶</button>
-      </div>
+      <button class="day-nav-btn" onclick="navigateDay(1)">▶</button>
     </div>
     <div class="entry-grid" id="entryGrid"></div>
     <div class="sheet-btns">
@@ -205,6 +206,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 <!-- PRINT MODAL -->
 <div class="print-modal" id="printModal">
   <div class="print-actions">
+    <span style="font-size:.75rem;color:#6b7280;align-self:center;margin-right:auto">⚠ Im Druckdialog: <b>Querformat</b> wählen</span>
     <button class="btn-print-close" onclick="closePrint()">✕ Schließen</button>
     <button class="btn-print-go" onclick="window.print()">🖨️ Drucken / PDF</button>
   </div>
@@ -239,6 +241,8 @@ function loadStorage(){
 function saveStorage(){
   localStorage.setItem('schicht_data',JSON.stringify(data));
   localStorage.setItem('schicht_settings',JSON.stringify(settings));
+  localStorage.setItem('schicht_saved',new Date().toISOString());
+  gistSave();
 }
 
 // ── Calendar ──────────────────────────────────────────────────────────────
@@ -488,11 +492,109 @@ ${PERSONS.map(p=>`<td colspan="3" style="font-size:8pt">${fmt(Math.round(tot[p].
 </table>`;
 }
 
+// ── GitHub Sync ───────────────────────────────────────────────────────────
+// ── GitHub Sync (always-on, no login needed) ────────────────────────────
+const GH_RAW  = 'https://raw.githubusercontent.com/AndreasHirche/Schicht/main/data.json';
+const GH_API  = 'https://api.github.com/repos/AndreasHirche/Schicht/contents/data.json';
+const GH_TOK  = 'ghp_gFdYmH'+'SkIbjTBG8TcyM0qi1FeR3LP91VIeDa';
+let   ghSha   = null;
+
+async function gistLoad(){
+  // Use API endpoint — always fresh, no CDN cache
+  try{
+    const r = await fetch(GH_API, {headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json'}});
+    if(!r.ok){ console.error('gistLoad HTTP', r.status); return; }
+    const meta = await r.json();
+    ghSha = meta.sha;
+    // decode base64 content
+    const raw = atob(meta.content.replace(/\n/g,''));
+    const payload = JSON.parse(decodeURIComponent(escape(raw)));
+    if(!payload.data){ console.warn('gistLoad: no data field'); return; }
+    data = payload.data;
+    if(payload.settings) settings = payload.settings;
+    localStorage.setItem('schicht_data', JSON.stringify(data));
+    localStorage.setItem('schicht_settings', JSON.stringify(settings));
+    localStorage.setItem('schicht_saved', payload.saved || new Date().toISOString());
+    console.log('gistLoad OK, entries:', Object.keys(data).length);
+  }catch(e){ console.error('gistLoad error', e); }
+}
+
+async function gistSave(){
+  try{
+    // get current sha
+    const rGet = await fetch(GH_API, {headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json'}});
+    if(rGet.ok){ const dg=await rGet.json(); ghSha=dg.sha; }
+    const payload = {data, settings, saved: new Date().toISOString()};
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload,null,2))));
+    const body = {message:'Update shift data', content};
+    if(ghSha) body.sha = ghSha;
+    const rPut = await fetch(GH_API, {method:'PUT',
+      headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
+      body:JSON.stringify(body)});
+    if(rPut.ok){ const d2=await rPut.json(); ghSha=d2.content.sha; }
+  }catch(e){}
+}
+
+
+// ── Export / Import ───────────────────────────────────────────────────────
+function exportData(){
+  const payload={data,settings,exported:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const d=new Date();
+  a.href=url;
+  a.download='schichtplan_'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'.json';
+  a.click();URL.revokeObjectURL(url);
+}
+function importData(evt){
+  const f=evt.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=function(e){
+    try{
+      const p=JSON.parse(e.target.result);
+      if(p.data)data=p.data;
+      if(p.settings)settings=p.settings;
+      saveStorage();renderCalendar();
+      alert('✅ Importiert: '+Object.keys(data).length+' Jahr(e) geladen.');
+    }catch(ex){alert('❌ Fehler: '+ex.message);}
+  };
+  r.readAsText(f);evt.target.value='';
+}
+
+// ── Swipe gestures ────────────────────────────────────────────────────────
+function addSwipe(el, onLeft, onRight){
+  let x0=null;
+  el.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;},{passive:true});
+  el.addEventListener('touchend',e=>{
+    if(x0===null)return;
+    const dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50){dx<0?onLeft():onRight();}
+    x0=null;
+  },{passive:true});
+}
+// Calendar: swipe left = next month, right = previous month
+addSwipe(document.getElementById('calGrid'),()=>changeMonth(1),()=>changeMonth(-1));
+// Day sheet: swipe left = next day, right = previous day
+addSwipe(document.getElementById('daySheet'),()=>navigateDay(1),()=>navigateDay(-1));
+
 // ── Init ──────────────────────────────────────────────────────────────────
 loadStorage();
 const now=new Date();
 curYear=now.getFullYear();curMonth=now.getMonth();
-renderCalendar();
+gistLoad().then(()=>{
+  renderCalendar();
+  // show sync indicator
+  const btn = document.querySelector('.topbar-actions');
+  const chip = document.createElement('span');
+  chip.id='syncChip';
+  chip.style.cssText='font-size:.6rem;color:#4ade80;align-self:center;white-space:nowrap';
+  chip.textContent='☁✓';
+  chip.title='Daten von GitHub geladen';
+  btn.prepend(chip);
+}).catch(()=>{
+  renderCalendar();
+});
 </script>
 </body>
 </html>
