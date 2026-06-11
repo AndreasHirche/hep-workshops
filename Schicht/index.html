@@ -123,19 +123,19 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 .btn-print-go{background:#2563eb;color:#fff}
 .btn-print-close{background:#d1d5db;color:#374151}
 /* the actual printable area */
-#printArea{background:#fff;margin:0 auto;max-width:960px;padding:10px 8px 14px;font-family:Arial,Helvetica,sans-serif}
+#printArea{background:#fff;color:#000;margin:0 auto;max-width:960px;padding:10px 8px 14px;font-family:Arial,Helvetica,sans-serif}
 .plan-title{text-align:center;font-size:11pt;font-weight:bold;margin-bottom:6px;font-family:Arial}
 .plan-table{width:100%;border-collapse:collapse;font-size:7pt;table-layout:fixed}
-.plan-table th,.plan-table td{border:1px solid #888;padding:2px 2px;text-align:center;vertical-align:middle;word-break:break-word}
+.plan-table th,.plan-table td{border:1px solid #888;padding:2px 2px;text-align:center;vertical-align:middle;word-break:break-word;color:#000}
 .plan-table th{font-weight:bold;background:#e5e7eb}
 .plan-table .ph-si{background:#dbeafe;color:#1e40af}
 .plan-table .ph-ma{background:#ffedd5;color:#9a3412}
 .plan-table .ph-sa{background:#dcfce7;color:#14532d}
 .plan-table .sub-th{font-size:6pt;background:#f8fafc}
-.plan-table .sun-row td{background:#f5f5f5;color:#888}
+.plan-table .sun-row td{background:#fef08a;color:#000}
 .plan-table .total-row td{font-weight:bold;background:#f3f4f6}
 .plan-table .col-nr{width:18pt}
-.plan-table .col-wd{width:22pt}
+.plan-table .col-wd{width:42pt}
 .plan-table .col-az{width:52pt}
 .plan-table .col-pa{width:18pt}
 .plan-table .col-st{width:18pt}
@@ -218,6 +218,7 @@ const INITIALS={Silke:'Si',Martina:'Ma',Sandra:'Sa'};
 const SHIFTS=['Urlaub','frei','Früh','Mittel','Spät'];
 const SHIFT_SHORT={Urlaub:'U',frei:'Fr',Früh:'F',Mittel:'M',Spät:'Sp'};
 const WD=['So','Mo','Di','Mi','Do','Fr','Sa'];
+const WD_PRINT=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
 const WD_LONG=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
 const MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const GREY_SHIFTS=new Set(['Urlaub','frei']);
@@ -421,7 +422,7 @@ function buildPrint(){
     const e=md[d]||{};
     PERSONS.forEach(p=>{
       const v=e[p];
-      if(v==='Urlaub')tot[p].u++;
+      if(v==='Urlaub'){tot[p].u++;tot[p].w+=3.33;}
       else if(v&&settings.shifts[v])tot[p].w+=calcHours(v);
     });
   }
@@ -436,7 +437,7 @@ function buildPrint(){
     const isSun=wd===0;
     const cls=isSun?'sun-row':'';
     const e=md[d]||{};
-    rows+=`<tr class="${cls}"><td class="col-nr">${String(d).padStart(2,'0')}</td><td class="col-wd">${WD[wd]}</td>`;
+    rows+=`<tr class="${cls}"><td class="col-nr">${String(d).padStart(2,'0')}</td><td class="col-wd">${WD_PRINT[wd]}</td>`;
     PERSONS.forEach(p=>{
       const v=e[p];
       if(!v){rows+=`<td class="col-az"></td><td class="col-pa"></td><td class="col-st"></td>`;}
@@ -478,9 +479,11 @@ function buildPrint(){
 <tbody>${rows}</tbody>
 <tfoot>
 <tr class="total-row"><td colspan="2">Arbeitsstunden</td>
-${PERSONS.map(p=>`<td colspan="3">${fmt(tot[p].w)}</td>`).join('')}<td></td></tr>
-<tr class="total-row"><td colspan="2">Urlaubstage</td>
-${PERSONS.map(p=>`<td colspan="3">${tot[p].u}</td>`).join('')}<td></td></tr>
+${PERSONS.map(p=>`<td colspan="3">${fmt(Math.round((tot[p].w-tot[p].u*3.33)*100)/100)}</td>`).join('')}<td></td></tr>
+<tr class="total-row"><td colspan="2">Urlaubsstunden</td>
+${PERSONS.map(p=>`<td colspan="3">${fmt(Math.round(tot[p].u*3.33*100)/100)}</td>`).join('')}<td></td></tr>
+<tr class="total-row" style="border-top:2px solid #888"><td colspan="2">Gesamtstunden</td>
+${PERSONS.map(p=>`<td colspan="3" style="font-size:8pt">${fmt(Math.round(tot[p].w*100)/100)}</td>`).join('')}<td></td></tr>
 </tfoot>
 </table>`;
 }
