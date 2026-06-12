@@ -570,8 +570,8 @@ function printNav(delta){
 function closePrint(){document.getElementById('printModal').classList.remove('show');}
 
 function buildPrint(){
-  const dim=new Date(curYear,curMonth+1,0).getDate();
-  const md=(data[curYear]||{})[curMonth]||{};
+  const dim=new Date(printYear,printMonth+1,0).getDate();
+  const md=(data[printYear]||{})[printMonth]||{};
   const tot={Silke:{w:0,u:0},Martina:{w:0,u:0},Sandra:{w:0,u:0}};
   for(let d=1;d<=dim;d++){
     const e=md[d]||{};
@@ -587,7 +587,7 @@ function buildPrint(){
 
   let rows='';
   for(let d=1;d<=dim;d++){
-    const date=new Date(curYear,curMonth,d);
+    const date=new Date(printYear,printMonth,d);
     const wd=date.getDay();
     const isSun=wd===0;
     const cls=isSun?'sun-row':'';
@@ -608,7 +608,7 @@ function buildPrint(){
 
   const navTitle=document.getElementById('printNavTitle');if(navTitle)navTitle.textContent=MONTHS[printMonth]+' '+printYear;
   document.getElementById('printArea').innerHTML=`
-<div class="plan-title">Schichtplan ${MONTHS[curMonth]} ${curYear}</div>
+<div class="plan-title">Schichtplan ${MONTHS[printMonth]} ${printYear}</div>
 <table class="plan-table">
 <colgroup>
   <col class="col-nr"><col class="col-wd">
