@@ -193,9 +193,8 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
       <button class="nav-btn" onclick="changeMonth(1)">Nächster ▶</button>
     </div>
     <div class="topbar-actions">
+      <span id="syncChip" style="font-size:.7rem;color:var(--muted);align-self:center;display:none" title="Sync-Status">☁️</span>
       <button class="icon-btn" title="Drucken" onclick="openPrint()">🖨️</button>
-      <button class="icon-btn" title="Daten als Datei sichern" onclick="exportData()" style="font-size:.65rem;font-weight:700;width:auto;padding:0 8px">💾 Sichern</button>
-      <button class="icon-btn" title="Gesicherte Datei laden" onclick="document.getElementById('importFile').click()" style="font-size:.65rem;font-weight:700;width:auto;padding:0 8px">📂 Laden</button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
       <button class="icon-btn" title="Einstellungen" onclick="openSettings()">⚙️</button>
     </div>
@@ -235,6 +234,14 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
         <button id="themeAuto" onclick="setTheme('')"  style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text);font-size:.8rem;font-weight:600;cursor:pointer">🌓 Auto</button>
         <button id="themeLight" onclick="setTheme('light')" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text);font-size:.8rem;font-weight:600;cursor:pointer">☀️ Hell</button>
         <button id="themeDark"  onclick="setTheme('dark')"  style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text);font-size:.8rem;font-weight:600;cursor:pointer">🌙 Dunkel</button>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Datensicherung</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:8px">Notfall-Backup — nur nötig wenn kein Internet oder Daten verloren gehen.</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="exportData();closeSettings()" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text);font-size:.82rem;font-weight:600;cursor:pointer">💾 Als Datei sichern</button>
+        <button onclick="document.getElementById('importFile').click()" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text);font-size:.82rem;font-weight:600;cursor:pointer">📂 Aus Datei laden</button>
       </div>
     </div>
     <div style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Schichtzeiten</div>
@@ -655,8 +662,11 @@ async function gistSave(){
     const rPut = await fetch(GH_API, {method:'PUT',
       headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
       body:JSON.stringify(body)});
-    if(rPut.ok){ const d2=await rPut.json(); ghSha=d2.content.sha; }
-  }catch(e){}
+    if(rPut.ok){
+      const d2=await rPut.json(); ghSha=d2.content.sha;
+      if(chip){chip.textContent='☁✓';chip.style.color='#22c55e';setTimeout(()=>{if(chip)chip.style.display='none';},3000);}
+    }
+  }catch(e){if(chip){chip.textContent='☁✗';chip.style.color='#ef4444';chip.style.display='inline';}}
 }
 
 
