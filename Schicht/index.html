@@ -391,12 +391,6 @@ function renderCalendar(){
 
     // Time-based shifts: Früh, Mittel, Spät
     PERSONS.forEach(p=>{
-    if(!settings.persons)settings.persons={};
-    settings.persons[p]={
-      name:(document.getElementById('pi_name_'+p)||{}).value||p,
-      vertr:parseFloat((document.getElementById('pi_vertr_'+p)||{}).value)||87,
-      delta:(document.getElementById('pi_delta_'+p)||{}).value||'',
-    };
   });
   ['Früh','Mittel','Spät'].forEach(shift=>{
       const persons=PERSONS.filter(p=>entry[p]===shift);
@@ -520,12 +514,6 @@ function renderEntryGrid(){
   lblS.textContent='Schichten';secS.appendChild(lblS);
   _makeHeader(secS);
   PERSONS.forEach(p=>{
-    if(!settings.persons)settings.persons={};
-    settings.persons[p]={
-      name:(document.getElementById('pi_name_'+p)||{}).value||p,
-      vertr:parseFloat((document.getElementById('pi_vertr_'+p)||{}).value)||87,
-      delta:(document.getElementById('pi_delta_'+p)||{}).value||'',
-    };
   });
   ['Früh','Mittel','Spät'].forEach(shift=>{
     const s=settings.shifts[shift];
@@ -568,12 +556,6 @@ function openSettings(){
   setTimeout(()=>setTheme(t),50);
   const cont=document.getElementById('shiftSettings');cont.innerHTML='';
   PERSONS.forEach(p=>{
-    if(!settings.persons)settings.persons={};
-    settings.persons[p]={
-      name:(document.getElementById('pi_name_'+p)||{}).value||p,
-      vertr:parseFloat((document.getElementById('pi_vertr_'+p)||{}).value)||87,
-      delta:(document.getElementById('pi_delta_'+p)||{}).value||'',
-    };
   });
   ['Früh','Mittel','Spät'].forEach(shift=>{
     const s=settings.shifts[shift];
@@ -593,7 +575,7 @@ function saveSettings(){
   if(!settings.persons)settings.persons={};
   PERSONS.forEach(p=>{
     settings.persons[p]={
-      name:(document.getElementById('pi_name_'+p)||{value:p}).value||p,
+      name:(document.getElementById('pi_name_'+p)||{value:''}).value,
       vertr:parseFloat((document.getElementById('pi_vertr_'+p)||{value:87}).value)||87,
       delta:(document.getElementById('pi_delta_'+p)||{value:''}).value||'',
     };
