@@ -191,19 +191,17 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
       <button class="nav-btn" onclick="changeMonth(-1)">◀ Vorheriger</button>
       <div class="month-title" id="monthTitle"></div>
       <button class="nav-btn" onclick="changeMonth(1)">Nächster ▶</button>
-    </div>
-    <div class="topbar-actions">
-      <span id="syncChip" style="font-size:.7rem;color:var(--muted);align-self:center;display:none" title="Sync-Status">☁️</span>
-      <button class="icon-btn" title="Drucken" onclick="openPrint()">🖨️</button>
-      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
       <button class="icon-btn" title="Einstellungen" onclick="openSettings()">⚙️</button>
     </div>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <div id="syncErr" style="display:none;font-size:.75rem;color:#ef4444;padding:4px 8px;background:rgba(239,68,68,0.1);border-radius:6px;border:1px solid rgba(239,68,68,0.3)"></div>
   </div>
   <div class="cal-wrap">
     <div class="cal-header">
       <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span>
     </div>
     <div class="cal-grid" id="calGrid"></div>
+    <button onclick="openPrint()" style="width:100%;margin-top:6px;padding:12px;border-radius:10px;border:none;background:var(--si);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;flex-shrink:0">🖨️ Drucken / Vorschau</button>
   </div>
 </div>
 
@@ -283,6 +281,14 @@ let settings={shifts:{
   Spät:{start:'13:00',end:'18:15',pause:0.5},
 }};
 let editDay=null,editSelections={};
+
+function showSyncErr(msg){
+  const el=document.getElementById('syncErr');
+  if(!el)return;
+  el.textContent=msg;
+  el.style.display='block';
+  setTimeout(()=>{el.style.display='none';},6000);
+}
 
 function setTheme(t){
   if(t) document.documentElement.setAttribute('data-theme',t);
@@ -662,11 +668,9 @@ async function gistSave(){
     const rPut = await fetch(GH_API, {method:'PUT',
       headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
       body:JSON.stringify(body)});
-    if(rPut.ok){
-      const d2=await rPut.json(); ghSha=d2.content.sha;
-      if(chip){chip.textContent='☁✓';chip.style.color='#22c55e';setTimeout(()=>{if(chip)chip.style.display='none';},3000);}
-    }
-  }catch(e){if(chip){chip.textContent='☁✗';chip.style.color='#ef4444';chip.style.display='inline';}}
+    if(rPut.ok){ const d2=await rPut.json(); ghSha=d2.content.sha; }
+    else throw new Error('HTTP '+rPut.status);
+  }catch(e){ showSyncErr('⚠ Speichern fehlgeschlagen: '+e.message); }
 }
 
 
@@ -717,19 +721,7 @@ loadStorage();
 loadTheme();
 const now=new Date();
 curYear=now.getFullYear();curMonth=now.getMonth();
-gistLoad().then(()=>{
-  renderCalendar();
-  // show sync indicator
-  const btn = document.querySelector('.topbar-actions');
-  const chip = document.createElement('span');
-  chip.id='syncChip';
-  chip.style.cssText='font-size:.6rem;color:#4ade80;align-self:center;white-space:nowrap';
-  chip.textContent='☁✓';
-  chip.title='Daten von GitHub geladen';
-  btn.prepend(chip);
-}).catch(()=>{
-  renderCalendar();
-});
+gistLoad().then(()=>renderCalendar()).catch(()=>renderCalendar());
 </script>
 </body>
 </html>
