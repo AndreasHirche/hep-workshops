@@ -318,21 +318,6 @@ function renderCalendar(){
 
   for(let i=0;i<startOffset;i++){const e=document.createElement('div');e.className='day-cell empty';grid.appendChild(e);}
 
-  // Pre-compute Urlaub band membership per person
-  const urlBand={};
-  PERSONS.forEach(p=>{
-    urlBand[p]={};
-    for(let d=1;d<=dim;d++){
-      const e=((data[curYear]||{})[curMonth]||{})[d]||{};
-      if(e[p]==='Urlaub'){
-        const prev=d>1?((data[curYear]||{})[curMonth]||{})[d-1]||{}:{};
-        const next=d<dim?((data[curYear]||{})[curMonth]||{})[d+1]||{}:{};
-        const hasPrev=prev[p]==='Urlaub', hasNext=next[p]==='Urlaub';
-        urlBand[p][d]=hasPrev&&hasNext?'mid':hasPrev?'end':hasNext?'start':'solo';
-      }
-    }
-  });
-
   for(let d=1;d<=dim;d++){ const _wd=new Date(curYear,curMonth,d).getDay(); if(_wd===0)continue;
     const date=new Date(curYear,curMonth,d);
     const wd=date.getDay();
@@ -352,18 +337,8 @@ function renderCalendar(){
     const urlPers=PERSONS.filter(p=>entry[p]==='Urlaub');
     const freiPers=PERSONS.filter(p=>entry[p]==='frei');
     if(urlPers.length||freiPers.length){
-      // determine band class from all Urlaub persons on this cell
-      let bandCls='';
-      if(urlPers.length){
-        const bands=urlPers.map(p=>urlBand[p]&&urlBand[p][d]||'solo');
-        if(bands.includes('mid'))bandCls=' band-mid';
-        else if(bands.includes('start')&&bands.includes('end'))bandCls=' urlaub-band';
-        else if(bands.includes('start'))bandCls=' urlaub-band band-start';
-        else if(bands.includes('end'))bandCls=' urlaub-band band-end';
-        else bandCls=' urlaub-band';
-      }
       const row=document.createElement('div');
-      row.className='shift-row urlaub-row'+bandCls;
+      row.className='shift-row urlaub-row'+(urlPers.length?' urlaub-band':'');
       const bar=document.createElement('div');bar.className='uf-bar';
       const lbl=document.createElement('span');lbl.className='shift-lbl';lbl.style.fontSize='.6rem';
       lbl.textContent=(urlPers.length&&freiPers.length)?'U/-':urlPers.length?'U':'-';
@@ -484,7 +459,7 @@ function renderEntryGrid(){
   _makeHeader(secUF);
   ['Urlaub','frei'].forEach(shift=>{
     const lbl=document.createElement('div');lbl.className='entry-row-label';
-    lbl.innerHTML=shift+(shift==='Urlaub'?'<span style="font-size:.7rem;color:var(--muted);font-weight:400;display:block">3,33 Std</span>':'';
+    lbl.innerHTML=shift+(shift==='Urlaub'?'<span style="font-size:.7rem;color:var(--muted);font-weight:400;display:block">3,33 Std</span>':'');
     secUF.appendChild(lbl);
     PERSONS.forEach(p=>secUF.appendChild(_makeBtn(shift,p)));
   });
@@ -571,22 +546,7 @@ function buildPrint(){
   const dim=new Date(curYear,curMonth+1,0).getDate();
   const md=(data[curYear]||{})[curMonth]||{};
   const tot={Silke:{w:0,u:0},Martina:{w:0,u:0},Sandra:{w:0,u:0}};
-  // Pre-compute Urlaub band membership per person
-  const urlBand={};
-  PERSONS.forEach(p=>{
-    urlBand[p]={};
-    for(let d=1;d<=dim;d++){
-      const e=((data[curYear]||{})[curMonth]||{})[d]||{};
-      if(e[p]==='Urlaub'){
-        const prev=d>1?((data[curYear]||{})[curMonth]||{})[d-1]||{}:{};
-        const next=d<dim?((data[curYear]||{})[curMonth]||{})[d+1]||{}:{};
-        const hasPrev=prev[p]==='Urlaub', hasNext=next[p]==='Urlaub';
-        urlBand[p][d]=hasPrev&&hasNext?'mid':hasPrev?'end':hasNext?'start':'solo';
-      }
-    }
-  });
-
-  for(let d=1;d<=dim;d++){ const _wd=new Date(curYear,curMonth,d).getDay(); if(_wd===0)continue;
+  for(let d=1;d<=dim;d++){
     const e=md[d]||{};
     PERSONS.forEach(p=>{
       const v=e[p];
@@ -599,22 +559,7 @@ function buildPrint(){
   const fmt=n=>n.toString().replace('.',',');
 
   let rows='';
-  // Pre-compute Urlaub band membership per person
-  const urlBand={};
-  PERSONS.forEach(p=>{
-    urlBand[p]={};
-    for(let d=1;d<=dim;d++){
-      const e=((data[curYear]||{})[curMonth]||{})[d]||{};
-      if(e[p]==='Urlaub'){
-        const prev=d>1?((data[curYear]||{})[curMonth]||{})[d-1]||{}:{};
-        const next=d<dim?((data[curYear]||{})[curMonth]||{})[d+1]||{}:{};
-        const hasPrev=prev[p]==='Urlaub', hasNext=next[p]==='Urlaub';
-        urlBand[p][d]=hasPrev&&hasNext?'mid':hasPrev?'end':hasNext?'start':'solo';
-      }
-    }
-  });
-
-  for(let d=1;d<=dim;d++){ const _wd=new Date(curYear,curMonth,d).getDay(); if(_wd===0)continue;
+  for(let d=1;d<=dim;d++){
     const date=new Date(curYear,curMonth,d);
     const wd=date.getDay();
     const isSun=wd===0;
