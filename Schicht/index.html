@@ -674,15 +674,11 @@ function buildPrint(){
 <tr>
   <th rowspan="2" class="col-nr">#</th>
   <th rowspan="2" class="col-wd">Tag</th>
-  <th colspan="3" class="ph-si">${(settings.persons.Silke.name)}<br><span style="font-weight:400;font-size:5.5pt">Vertr.Std. ${settings.persons.Silke.vertr}&nbsp;&nbsp;+/- Std ${settings.persons.Silke.delta}</span></th>
-  <th colspan="3" class="ph-ma">${(settings.persons.Martina.name)}<br><span style="font-weight:400;font-size:5.5pt">Vertr.Std. ${settings.persons.Martina.vertr}&nbsp;&nbsp;+/- Std ${settings.persons.Martina.delta}</span></th>
-  <th colspan="3" class="ph-sa">${(settings.persons.Sandra.name)}<br><span style="font-weight:400;font-size:5.5pt">Vertr.Std. ${settings.persons.Sandra.vertr}&nbsp;&nbsp;+/- Std ${settings.persons.Sandra.delta}</span></th>
+${PERSONS.map((p,i)=>{const pi=settings.persons&&settings.persons[p]||{name:p,vertr:87,delta:''};const cls=['ph-si','ph-ma','ph-sa'][i];return`<th colspan="3" class="${cls}">${pi.name}<br><span style="font-weight:400;font-size:5.5pt">Vertr.Std. ${pi.vertr}&nbsp;&nbsp;+/- Std ${pi.delta}</span></th>`;}).join('')}
   <th rowspan="2" class="col-son">Sonstiges</th>
 </tr>
 <tr>
-  <th class="sub-th col-az">Arbeitszeit</th><th class="sub-th col-pa">Pause</th><th class="sub-th col-st">Std</th>
-  <th class="sub-th col-az">Arbeitszeit</th><th class="sub-th col-pa">Pause</th><th class="sub-th col-st">Std</th>
-  <th class="sub-th col-az">Arbeitszeit</th><th class="sub-th col-pa">Pause</th><th class="sub-th col-st">Std</th>
+${PERSONS.map(p=>`<th class="sub-th col-az">Arbeitszeit</th><th class="sub-th col-pa">Pause</th><th class="sub-th col-st">Std</th>`).join('')}
 </tr>
 </thead>
 <tbody>${rows}</tbody>
