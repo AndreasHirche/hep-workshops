@@ -227,7 +227,7 @@ const PERSONS=['Silke','Martina','Sandra'];
 const COLORS={Silke:'#3b82f6',Martina:'#f97316',Sandra:'#22c55e'};
 const INITIALS={Silke:'Si',Martina:'Ma',Sandra:'Sa'};
 const SHIFTS=['Urlaub','frei','Früh','Mittel','Spät'];
-const SHIFT_SHORT={Urlaub:'U',frei:'Fr',Früh:'F',Mittel:'M',Spät:'Sp'};
+const SHIFT_SHORT={Urlaub:'U',frei:'-',Früh:'F',Mittel:'M',Spät:'S'};
 const WD=['So','Mo','Di','Mi','Do','Fr','Sa'];
 const WD_PRINT=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
 const WD_LONG=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
@@ -288,7 +288,7 @@ function renderCalendar(){
       const row=document.createElement('div');row.className='shift-row urlaub-row';
       const bar=document.createElement('div');bar.className='uf-bar';
       const lbl=document.createElement('span');lbl.className='shift-lbl';lbl.style.fontSize='.6rem';
-      lbl.textContent=(urlPers.length&&freiPers.length)?'U/Fr':urlPers.length?'U':'Fr';
+      lbl.textContent=(urlPers.length&&freiPers.length)?'U/-':urlPers.length?'U':'-';
       bar.appendChild(lbl);
       urlPers.forEach(p=>{const s=document.createElement('span');s.className='uf-chip urlaub';s.textContent=INITIALS[p];bar.appendChild(s);});
       freiPers.forEach(p=>{const s=document.createElement('span');s.className='uf-chip frei';s.textContent=INITIALS[p];bar.appendChild(s);});
@@ -383,13 +383,35 @@ function _commitDay(){
 function renderEntryGrid(){
   const grid=document.getElementById('entryGrid');
   grid.innerHTML='';
+  // header row
   const blank=document.createElement('div');blank.className='entry-row-label';grid.appendChild(blank);
   PERSONS.forEach(p=>{
     const h=document.createElement('div');
     h.className='entry-col-header';h.style.color=COLORS[p];h.textContent=p;grid.appendChild(h);
   });
-  SHIFTS.forEach(shift=>{
-    const lbl=document.createElement('div');lbl.className='entry-row-label';lbl.textContent=shift;grid.appendChild(lbl);
+  // Urlaub & frei
+  ['Urlaub','frei'].forEach(shift=>{
+    const lbl=document.createElement('div');lbl.className='entry-row-label';lbl.textContent=shift+(shift==='Urlaub'?' (3,33h)':'');grid.appendChild(lbl);
+    PERSONS.forEach(p=>{
+      const btn=document.createElement('div');
+      btn.className='entry-btn';btn.textContent=INITIALS[p];
+      const key=p.slice(0,2).toLowerCase();
+      if(editSelections[p]===shift)btn.classList.add('sel-'+key);
+      btn.onclick=()=>toggleEntry(p,shift);
+      grid.appendChild(btn);
+    });
+  });
+  // separator
+  const sep=document.createElement('div');
+  sep.style.cssText='grid-column:1/-1;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0 2px';
+  grid.appendChild(sep);
+  // Früh, Mittel, Spät with time hint
+  ['Früh','Mittel','Spät'].forEach(shift=>{
+    const s=settings.shifts[shift];
+    const timeHint=s?` ${s.start}–${s.end}`:'';
+    const lbl=document.createElement('div');lbl.className='entry-row-label';
+    lbl.innerHTML=`${shift}<span style="font-size:.6rem;color:#475569;margin-left:4px">${timeHint}</span>`;
+    grid.appendChild(lbl);
     PERSONS.forEach(p=>{
       const btn=document.createElement('div');
       btn.className='entry-btn';btn.textContent=INITIALS[p];
@@ -488,7 +510,7 @@ function buildPrint(){
     PERSONS.forEach(p=>{
       const v=e[p];
       if(!v){rows+=`<td class="col-az"></td><td class="col-pa"></td><td class="col-st"></td>`;}
-      else if(v==='Urlaub'){rows+=`<td class="col-az">U</td><td class="col-pa"></td><td class="col-st"></td>`;}
+      else if(v==='Urlaub'){rows+=`<td class="col-az">U</td><td class="col-pa">-</td><td class="col-st">3,33</td>`;}
       else if(v==='frei'){rows+=`<td class="col-az">frei</td><td class="col-pa"></td><td class="col-st"></td>`;}
       else{
         const s=settings.shifts[v];
