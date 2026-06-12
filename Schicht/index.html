@@ -709,33 +709,28 @@ async function gistLoad(){
     const raw = atob(meta.content.replace(/[^A-Za-z0-9+/=]/g,''));
     const payload = JSON.parse(decodeURIComponent(escape(raw)));
     if(!payload.data) throw new Error('no data');
+    // Only sync shift DATA — never overwrite local settings/persons
     const ghTime  = payload.saved ? new Date(payload.saved).getTime() : 0;
     const locTime = localStorage.getItem('schicht_saved') ? new Date(localStorage.getItem('schicht_saved')).getTime() : 0;
-    if(ghTime >= locTime){
+    if(ghTime > locTime){
       data = payload.data;
-      if(payload.settings){
-        settings = payload.settings;
-        if(!settings.persons) settings.persons={
-          Silke:  {name:'Bunzel-Hirche, Silke', vertr:87, delta:'+51,3'},
-          Martina:{name:'Weger, Martina',       vertr:87, delta:'+27,75'},
-          Sandra: {name:'Jacob, Sandra',        vertr:87, delta:''},
-        };
-      }
       localStorage.setItem('schicht_data', JSON.stringify(data));
-      localStorage.setItem('schicht_settings', JSON.stringify(settings));
-      localStorage.setItem('schicht_saved', payload.saved || new Date().toISOString());
-    } else {
-      gistSave();
+      localStorage.setItem('schicht_saved', payload.saved);
+    } else if(locTime > ghTime){
+      gistSave(); // local is newer — push up
     }
   }catch(e){ showSyncErr('⚠ Laden fehlgeschlagen: '+e.message); }
 }
 
 async function gistSave(){
+  if(!GH_TOK) return;
   try{
-    // get current sha
-    const rGet = await fetch(GH_API, {headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json'}});
-    if(rGet.ok){ const dg=await rGet.json(); ghSha=dg.sha; }
-    const payload = {data, settings, saved: new Date().toISOString()};
+    if(!ghSha){
+      const rGet = await fetch(GH_API, {headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json'}});
+      if(rGet.ok){ const dg=await rGet.json(); ghSha=dg.sha; }
+    }
+    // Only save shift data — NOT settings/persons (those are local config)
+    const payload = {data, saved: new Date().toISOString()};
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload,null,2))));
     const body = {message:'Update shift data', content};
     if(ghSha) body.sha = ghSha;
