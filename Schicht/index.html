@@ -74,23 +74,12 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 .uf-chip{font-size:.62rem;font-weight:800;line-height:1.2;padding:1px 3px;border-radius:3px;color:#fff}
 .uf-chip.urlaub{background:rgba(150,150,150,0.5);color:#d1d5db}
 .uf-chip.frei{background:rgba(55,65,81,0.9);color:#9ca3af}
-/* Connected Urlaub bars across days */
-.urlaub-band{position:relative;overflow:visible}
-.urlaub-band-bar{position:absolute;top:1px;bottom:1px;left:0;right:0;
-  border-top:2px solid rgba(180,180,180,0.65);border-bottom:2px solid rgba(180,180,180,0.65);
-  background:rgba(180,180,180,0.08);pointer-events:none;z-index:0}
-.urlaub-band-bar.band-start{border-left:2px solid rgba(180,180,180,0.65);border-radius:4px 0 0 4px}
-.urlaub-band-bar.band-end{border-right:2px solid rgba(180,180,180,0.65);border-radius:0 4px 4px 0}
-.urlaub-band-bar.band-solo{border:2px solid rgba(180,180,180,0.65);border-radius:4px}
-/* Connected Urlaub bars across days */
-.urlaub-band{position:relative;overflow:visible}
-.urlaub-band-bar{position:absolute;top:2px;bottom:2px;left:0;right:0;
-  border-top:2px solid rgba(180,180,180,0.7);border-bottom:2px solid rgba(180,180,180,0.7);
-  background:rgba(180,180,180,0.1);pointer-events:none;z-index:0}
-.urlaub-band-bar.band-start{left:0;border-left:2px solid rgba(180,180,180,0.7);border-radius:4px 0 0 4px}
-.urlaub-band-bar.band-end{right:0;border-right:2px solid rgba(180,180,180,0.7);border-radius:0 4px 4px 0}
-.urlaub-band-bar.band-solo{border:2px solid rgba(180,180,180,0.7);border-radius:4px}
-.urlaub-band-bar.band-start.band-end{border:2px solid rgba(180,180,180,0.7);border-radius:4px}
+/* Connected Urlaub bar styles */
+.shift-row.urlaub-band{outline:2px solid rgba(180,180,180,0.6);outline-offset:-1px;border-radius:3px}
+.shift-row.band-start{border-radius:3px 0 0 3px;outline-right-color:transparent}
+.shift-row.band-mid{border-radius:0;outline-left-color:transparent;outline-right-color:transparent}
+.shift-row.band-end{border-radius:0 3px 3px 0;outline-left-color:transparent}
+
 /* time rows in calendar */
 .shift-row.time-row .shift-lbl{color:#64748b;font-size:.55rem;font-weight:400}
 
@@ -363,19 +352,19 @@ function renderCalendar(){
     const urlPers=PERSONS.filter(p=>entry[p]==='Urlaub');
     const freiPers=PERSONS.filter(p=>entry[p]==='frei');
     if(urlPers.length||freiPers.length){
+      // determine band class from all Urlaub persons on this cell
+      let bandCls='';
+      if(urlPers.length){
+        const bands=urlPers.map(p=>urlBand[p]&&urlBand[p][d]||'solo');
+        if(bands.includes('mid'))bandCls=' band-mid';
+        else if(bands.includes('start')&&bands.includes('end'))bandCls=' urlaub-band';
+        else if(bands.includes('start'))bandCls=' urlaub-band band-start';
+        else if(bands.includes('end'))bandCls=' urlaub-band band-end';
+        else bandCls=' urlaub-band';
+      }
       const row=document.createElement('div');
-      row.className='shift-row urlaub-row'+(urlPers.length?' urlaub-band':'');
-      // band overlay bars per person in Urlaub
-      urlPers.forEach(p=>{
-        const band=urlBand[p]&&urlBand[p][d]||'solo';
-        const overlay=document.createElement('div');
-        overlay.className='urlaub-band-bar band-'+band;
-        // extend to cell edge on connected sides
-        if(band==='mid'||band==='end')overlay.style.left='-4px';
-        if(band==='mid'||band==='start')overlay.style.right='-4px';
-        row.appendChild(overlay);
-      });
-      const bar=document.createElement('div');bar.className='uf-bar';bar.style.position='relative';bar.style.zIndex='1';
+      row.className='shift-row urlaub-row'+bandCls;
+      const bar=document.createElement('div');bar.className='uf-bar';
       const lbl=document.createElement('span');lbl.className='shift-lbl';lbl.style.fontSize='.6rem';
       lbl.textContent=(urlPers.length&&freiPers.length)?'U/-':urlPers.length?'U':'-';
       bar.appendChild(lbl);
