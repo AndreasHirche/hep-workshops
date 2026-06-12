@@ -105,11 +105,11 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 .entry-section-label{grid-column:1/-1;font-size:.6rem;font-weight:700;letter-spacing:.08em;
   text-transform:uppercase;color:var(--muted);margin-bottom:4px;padding-left:2px}
 .entry-col-header{text-align:center;font-size:.72rem;font-weight:700;padding:4px 2px}
-.entry-row-label{display:flex;align-items:center;font-size:.75rem;color:var(--muted);
-  padding:2px 0;font-weight:600}
-.entry-btn{padding:7px 4px;border-radius:8px;border:2px solid transparent;
-  background:rgba(255,255,255,0.04);text-align:center;font-size:.7rem;font-weight:700;
-  cursor:pointer;color:var(--muted)}
+.entry-row-label{display:flex;flex-direction:column;justify-content:center;font-size:.8rem;
+  color:var(--text);padding:4px 2px;font-weight:600;line-height:1.2}
+.entry-btn{padding:10px 4px;border-radius:8px;border:2px solid transparent;
+  background:rgba(255,255,255,0.04);text-align:center;font-size:.8rem;font-weight:700;
+  cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center}
 .entry-btn.sel-si{border-color:var(--si);background:rgba(59,130,246,0.18);color:var(--si)}
 .entry-btn.sel-ma{border-color:var(--ma);background:rgba(249,115,22,0.18);color:var(--ma)}
 .entry-btn.sel-sa{border-color:var(--sa);background:rgba(34,197,94,0.18);color:var(--sa)}
@@ -452,7 +452,7 @@ function renderEntryGrid(){
   _makeHeader(secUF);
   ['Urlaub','frei'].forEach(shift=>{
     const lbl=document.createElement('div');lbl.className='entry-row-label';
-    lbl.innerHTML=shift+(shift==='Urlaub'?'<span style="font-size:.62rem;color:var(--muted);margin-left:3px">3,33h</span>':'');
+    lbl.innerHTML=shift+(shift==='Urlaub'?'<span style="font-size:.7rem;color:var(--muted);font-weight:400;display:block">3,33 Std</span>':'';
     secUF.appendChild(lbl);
     PERSONS.forEach(p=>secUF.appendChild(_makeBtn(shift,p)));
   });
@@ -466,7 +466,7 @@ function renderEntryGrid(){
   ['Früh','Mittel','Spät'].forEach(shift=>{
     const s=settings.shifts[shift];
     const lbl=document.createElement('div');lbl.className='entry-row-label';
-    lbl.innerHTML=`${shift}<span style="font-size:.62rem;color:var(--muted);margin-left:4px">${s?s.start+'–'+s.end:''}</span>`;
+    lbl.innerHTML=`${shift}${s?'<span style="font-size:.7rem;color:var(--muted);font-weight:400;display:block">'+s.start+'–'+s.end+'</span>':''}`; 
     secS.appendChild(lbl);
     PERSONS.forEach(p=>secS.appendChild(_makeBtn(shift,p)));
   });
