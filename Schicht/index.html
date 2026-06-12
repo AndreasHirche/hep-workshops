@@ -152,10 +152,10 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 .print-modal{position:fixed;inset:0;z-index:300;background:#f0f0f0;
   overflow-y:auto;padding:16px;display:none}
 .print-modal.show{display:block}
-.print-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px}
-.print-actions button{padding:8px 18px;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;border:none}
+.print-actions{display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#1e293b;border-radius:10px;padding:10px 12px}
+.print-actions button{padding:8px 16px;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;border:none}
 .btn-print-go{background:#2563eb;color:#fff}
-.btn-print-close{background:#d1d5db;color:#374151}
+.btn-print-close{background:#334155;color:#e2e8f0}
 /* the actual printable area */
 #printArea{background:#fff;color:#000;margin:0 auto;max-width:960px;padding:10px 8px 14px;font-family:Arial,Helvetica,sans-serif}
 .plan-title{text-align:center;font-size:11pt;font-weight:bold;margin-bottom:6px;font-family:Arial}
@@ -257,7 +257,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
     <button class="btn-print-close" onclick="closePrint()">✕ Schließen</button>
     <div style="display:flex;align-items:center;gap:8px;margin:0 auto">
       <button class="btn-print-close" onclick="printNav(-1)" style="padding:6px 14px;font-size:.9rem">◀</button>
-      <span id="printNavTitle" style="font-size:.9rem;font-weight:700;min-width:140px;text-align:center"></span>
+      <span id="printNavTitle" style="font-size:1.1rem;font-weight:800;min-width:160px;text-align:center;color:#f1f5f9;letter-spacing:-.01em"></span>
       <button class="btn-print-close" onclick="printNav(1)" style="padding:6px 14px;font-size:.9rem">▶</button>
     </div>
     <button class="btn-print-go" onclick="printLandscape()">🖨️ Drucken / PDF</button>
