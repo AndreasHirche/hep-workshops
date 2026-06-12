@@ -341,8 +341,8 @@ function renderCalendar(){
       // always show time row label, chip only if person assigned
       const row=document.createElement('div');row.className='shift-row time-row';
       const lbl=document.createElement('span');lbl.className='shift-lbl';
-      lbl.textContent=s?(s.start.replace(':',' ').slice(0,5)):(SHIFT_SHORT[shift]);
-      lbl.style.fontSize='.55rem';lbl.style.color='#475569';
+      lbl.textContent=SHIFT_SHORT[shift];
+      lbl.style.fontSize='.72rem';lbl.style.color='#475569';lbl.style.fontWeight='700';
       row.appendChild(lbl);
       if(hasData){
         const chips=document.createElement('span');chips.className='shift-persons';
