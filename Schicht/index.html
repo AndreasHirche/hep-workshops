@@ -96,6 +96,14 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 
 /* Entry grid */
 .entry-grid{display:grid;grid-template-columns:64px 1fr 1fr 1fr;gap:4px;margin-bottom:12px}
+.entry-section-uf{grid-column:1/-1;background:rgba(128,128,128,0.08);border:1px solid rgba(128,128,128,0.18);
+  border-radius:10px;padding:8px 8px 6px;margin-bottom:4px;display:grid;
+  grid-template-columns:64px 1fr 1fr 1fr;gap:4px}
+.entry-section-shifts{grid-column:1/-1;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.18);
+  border-radius:10px;padding:8px 8px 6px;margin-top:2px;display:grid;
+  grid-template-columns:64px 1fr 1fr 1fr;gap:4px}
+.entry-section-label{grid-column:1/-1;font-size:.6rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:4px;padding-left:2px}
 .entry-col-header{text-align:center;font-size:.72rem;font-weight:700;padding:4px 2px}
 .entry-row-label{display:flex;align-items:center;font-size:.75rem;color:var(--muted);
   padding:2px 0;font-weight:600}
@@ -418,47 +426,51 @@ function _commitDay(){
   saveStorage();
 }
 
+function _makeBtn(shift,p){
+  const btn=document.createElement('div');
+  btn.className='entry-btn';btn.textContent=INITIALS[p];
+  const key=p.slice(0,2).toLowerCase();
+  if(editSelections[p]===shift)btn.classList.add('sel-'+key);
+  btn.onclick=()=>toggleEntry(p,shift);
+  return btn;
+}
+function _makeHeader(parent){
+  const blank=document.createElement('div');blank.className='entry-row-label';parent.appendChild(blank);
+  PERSONS.forEach(p=>{
+    const h=document.createElement('div');h.className='entry-col-header';
+    h.style.color=COLORS[p];h.textContent=p;parent.appendChild(h);
+  });
+}
 function renderEntryGrid(){
   const grid=document.getElementById('entryGrid');
   grid.innerHTML='';
-  // header row
-  const blank=document.createElement('div');blank.className='entry-row-label';grid.appendChild(blank);
-  PERSONS.forEach(p=>{
-    const h=document.createElement('div');
-    h.className='entry-col-header';h.style.color=COLORS[p];h.textContent=p;grid.appendChild(h);
-  });
-  // Urlaub & frei
+
+  // ── Section: Abwesenheit ─────────────────────────────────
+  const secUF=document.createElement('div');secUF.className='entry-section-uf';
+  const lblUF=document.createElement('div');lblUF.className='entry-section-label';
+  lblUF.textContent='Abwesenheit';secUF.appendChild(lblUF);
+  _makeHeader(secUF);
   ['Urlaub','frei'].forEach(shift=>{
-    const lbl=document.createElement('div');lbl.className='entry-row-label';lbl.textContent=shift+(shift==='Urlaub'?' (3,33h)':'');grid.appendChild(lbl);
-    PERSONS.forEach(p=>{
-      const btn=document.createElement('div');
-      btn.className='entry-btn';btn.textContent=INITIALS[p];
-      const key=p.slice(0,2).toLowerCase();
-      if(editSelections[p]===shift)btn.classList.add('sel-'+key);
-      btn.onclick=()=>toggleEntry(p,shift);
-      grid.appendChild(btn);
-    });
+    const lbl=document.createElement('div');lbl.className='entry-row-label';
+    lbl.innerHTML=shift+(shift==='Urlaub'?'<span style="font-size:.62rem;color:var(--muted);margin-left:3px">3,33h</span>':'');
+    secUF.appendChild(lbl);
+    PERSONS.forEach(p=>secUF.appendChild(_makeBtn(shift,p)));
   });
-  // separator
-  const sep=document.createElement('div');
-  sep.style.cssText='grid-column:1/-1;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0 2px';
-  grid.appendChild(sep);
-  // Früh, Mittel, Spät with time hint
+  grid.appendChild(secUF);
+
+  // ── Section: Schichten ───────────────────────────────────
+  const secS=document.createElement('div');secS.className='entry-section-shifts';
+  const lblS=document.createElement('div');lblS.className='entry-section-label';
+  lblS.textContent='Schichten';secS.appendChild(lblS);
+  _makeHeader(secS);
   ['Früh','Mittel','Spät'].forEach(shift=>{
     const s=settings.shifts[shift];
-    const timeHint=s?` ${s.start}–${s.end}`:'';
     const lbl=document.createElement('div');lbl.className='entry-row-label';
-    lbl.innerHTML=`${shift}<span style="font-size:.6rem;color:#475569;margin-left:4px">${timeHint}</span>`;
-    grid.appendChild(lbl);
-    PERSONS.forEach(p=>{
-      const btn=document.createElement('div');
-      btn.className='entry-btn';btn.textContent=INITIALS[p];
-      const key=p.slice(0,2).toLowerCase();
-      if(editSelections[p]===shift)btn.classList.add('sel-'+key);
-      btn.onclick=()=>toggleEntry(p,shift);
-      grid.appendChild(btn);
-    });
+    lbl.innerHTML=`${shift}<span style="font-size:.62rem;color:var(--muted);margin-left:4px">${s?s.start+'–'+s.end:''}</span>`;
+    secS.appendChild(lbl);
+    PERSONS.forEach(p=>secS.appendChild(_makeBtn(shift,p)));
   });
+  grid.appendChild(secS);
 }
 
 function toggleEntry(person,shift){
