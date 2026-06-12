@@ -254,8 +254,12 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 <!-- PRINT MODAL -->
 <div class="print-modal" id="printModal">
   <div class="print-actions">
-    <span style="font-size:.75rem;color:#6b7280;align-self:center;margin-right:auto">⚠ Im Druckdialog: <b>Querformat</b> wählen</span>
     <button class="btn-print-close" onclick="closePrint()">✕ Schließen</button>
+    <div style="display:flex;align-items:center;gap:8px;margin:0 auto">
+      <button class="btn-print-close" onclick="printNav(-1)" style="padding:6px 14px;font-size:.9rem">◀</button>
+      <span id="printNavTitle" style="font-size:.9rem;font-weight:700;min-width:140px;text-align:center"></span>
+      <button class="btn-print-close" onclick="printNav(1)" style="padding:6px 14px;font-size:.9rem">▶</button>
+    </div>
     <button class="btn-print-go" onclick="printLandscape()">🖨️ Drucken / PDF</button>
   </div>
   <div id="printArea"></div>
@@ -281,6 +285,7 @@ let settings={shifts:{
   Spät:{start:'13:00',end:'18:15',pause:0.5},
 }};
 let editDay=null,editSelections={};
+let printYear,printMonth;
 
 function showSyncErr(msg){
   const el=document.getElementById('syncErr');
@@ -552,7 +557,16 @@ function printLandscape(){
   window.print();
   setTimeout(()=>{const el=document.getElementById('ls');if(el)el.remove();},1000);
 }
-function openPrint(){buildPrint();document.getElementById('printModal').classList.add('show');}
+function openPrint(){
+  printYear=curYear;printMonth=curMonth;
+  buildPrint();document.getElementById('printModal').classList.add('show');
+}
+function printNav(delta){
+  printMonth+=delta;
+  if(printMonth>11){printMonth=0;printYear++;}
+  if(printMonth<0){printMonth=11;printYear--;}
+  buildPrint();
+}
 function closePrint(){document.getElementById('printModal').classList.remove('show');}
 
 function buildPrint(){
@@ -592,6 +606,7 @@ function buildPrint(){
     rows+=`<td class="col-son"></td></tr>`;
   }
 
+  const navTitle=document.getElementById('printNavTitle');if(navTitle)navTitle.textContent=MONTHS[printMonth]+' '+printYear;
   document.getElementById('printArea').innerHTML=`
 <div class="plan-title">Schichtplan ${MONTHS[curMonth]} ${curYear}</div>
 <table class="plan-table">
