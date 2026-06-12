@@ -319,14 +319,26 @@ function loadTheme(){
   if(t!==null)setTheme(t);
 }
 
-function loadStorage(){
-  try{data=JSON.parse(localStorage.getItem('schicht_data')||'{}');}catch(e){data={};}
-  try{const s=JSON.parse(localStorage.getItem('schicht_settings'));if(s)settings=s;}catch(e){}
-  if(!settings.persons)settings.persons={
+// Hardcoded person defaults — never overwritten by GitHub
+const PERSONS_DEFAULT={
     Silke:  {name:'Bunzel-Hirche, Silke', vertr:87, delta:'+51,3'},
     Martina:{name:'Weger, Martina',       vertr:87, delta:'+27,75'},
     Sandra: {name:'Jacob, Sandra',        vertr:87, delta:''},
   };
+function loadStorage(){
+  try{data=JSON.parse(localStorage.getItem('schicht_data')||'{}');}catch(e){data={};}
+  try{
+    const s=JSON.parse(localStorage.getItem('schicht_settings'));
+    if(s){
+      settings=s;
+      // Always fill missing person fields from defaults
+      if(!settings.persons) settings.persons={};
+      PERSONS.forEach(p=>{
+        if(!settings.persons[p]||settings.persons[p].name===p)
+          settings.persons[p]=PERSONS_DEFAULT[p];
+      });
+    }
+  }catch(e){}
 }
 function saveStorage(){
   localStorage.setItem('schicht_data',JSON.stringify(data));
@@ -718,20 +730,14 @@ async function gistLoad(){
     if(ghTime > locTime){
       data = payload.data;
       if(payload.settings){
-        // restore settings but keep local persons if GitHub has none
-        const ghPersons = payload.settings.persons;
         settings = payload.settings;
-        if(!ghPersons) settings.persons = {
-    Silke:  {name:'Bunzel-Hirche, Silke', vertr:87, delta:'+51,3'},
-    Martina:{name:'Weger, Martina',       vertr:87, delta:'+27,75'},
-    Sandra: {name:'Jacob, Sandra',        vertr:87, delta:''},
-  };
       }
-      if(!settings.persons) settings.persons = {
-    Silke:  {name:'Bunzel-Hirche, Silke', vertr:87, delta:'+51,3'},
-    Martina:{name:'Weger, Martina',       vertr:87, delta:'+27,75'},
-    Sandra: {name:'Jacob, Sandra',        vertr:87, delta:''},
-  };
+      // Always enforce person defaults — never trust GitHub for names
+      if(!settings.persons) settings.persons={};
+      PERSONS.forEach(p=>{
+        if(!settings.persons[p]||settings.persons[p].name===p)
+          settings.persons[p]=PERSONS_DEFAULT[p];
+      });
       localStorage.setItem('schicht_data', JSON.stringify(data));
       localStorage.setItem('schicht_settings', JSON.stringify(settings));
       localStorage.setItem('schicht_saved', payload.saved);
