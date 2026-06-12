@@ -68,12 +68,29 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 .person-chip{font-size:.75rem;font-weight:800;line-height:1.3;padding:1px 4px;border-radius:3px;color:#fff}
 .person-chip.grey{background:#374151!important;color:#9ca3af}
 /* Urlaub/frei full-width bars */
-.shift-row.urlaub-row{background:rgba(200,200,200,0.15);border-radius:3px;padding:1px 2px;width:100%}
+.shift-row.urlaub-row{background:rgba(200,200,200,0.12);border-radius:3px;padding:1px 2px;width:100%}
 .shift-row.frei-row{background:rgba(80,80,80,0.35);border-radius:3px;padding:1px 2px;width:100%}
 .uf-bar{display:flex;align-items:center;width:100%;gap:2px}
 .uf-chip{font-size:.62rem;font-weight:800;line-height:1.2;padding:1px 3px;border-radius:3px;color:#fff}
 .uf-chip.urlaub{background:rgba(150,150,150,0.5);color:#d1d5db}
 .uf-chip.frei{background:rgba(55,65,81,0.9);color:#9ca3af}
+/* Connected Urlaub bars across days */
+.urlaub-band{position:relative;overflow:visible}
+.urlaub-band-bar{position:absolute;top:1px;bottom:1px;left:0;right:0;
+  border-top:2px solid rgba(180,180,180,0.65);border-bottom:2px solid rgba(180,180,180,0.65);
+  background:rgba(180,180,180,0.08);pointer-events:none;z-index:0}
+.urlaub-band-bar.band-start{border-left:2px solid rgba(180,180,180,0.65);border-radius:4px 0 0 4px}
+.urlaub-band-bar.band-end{border-right:2px solid rgba(180,180,180,0.65);border-radius:0 4px 4px 0}
+.urlaub-band-bar.band-solo{border:2px solid rgba(180,180,180,0.65);border-radius:4px}
+/* Connected Urlaub bars across days */
+.urlaub-band{position:relative;overflow:visible}
+.urlaub-band-bar{position:absolute;top:2px;bottom:2px;left:0;right:0;
+  border-top:2px solid rgba(180,180,180,0.7);border-bottom:2px solid rgba(180,180,180,0.7);
+  background:rgba(180,180,180,0.1);pointer-events:none;z-index:0}
+.urlaub-band-bar.band-start{left:0;border-left:2px solid rgba(180,180,180,0.7);border-radius:4px 0 0 4px}
+.urlaub-band-bar.band-end{right:0;border-right:2px solid rgba(180,180,180,0.7);border-radius:0 4px 4px 0}
+.urlaub-band-bar.band-solo{border:2px solid rgba(180,180,180,0.7);border-radius:4px}
+.urlaub-band-bar.band-start.band-end{border:2px solid rgba(180,180,180,0.7);border-radius:4px}
 /* time rows in calendar */
 .shift-row.time-row .shift-lbl{color:#64748b;font-size:.55rem;font-weight:400}
 
@@ -312,6 +329,21 @@ function renderCalendar(){
 
   for(let i=0;i<startOffset;i++){const e=document.createElement('div');e.className='day-cell empty';grid.appendChild(e);}
 
+  // Pre-compute Urlaub band membership per person
+  const urlBand={};
+  PERSONS.forEach(p=>{
+    urlBand[p]={};
+    for(let d=1;d<=dim;d++){
+      const e=((data[curYear]||{})[curMonth]||{})[d]||{};
+      if(e[p]==='Urlaub'){
+        const prev=d>1?((data[curYear]||{})[curMonth]||{})[d-1]||{}:{};
+        const next=d<dim?((data[curYear]||{})[curMonth]||{})[d+1]||{}:{};
+        const hasPrev=prev[p]==='Urlaub', hasNext=next[p]==='Urlaub';
+        urlBand[p][d]=hasPrev&&hasNext?'mid':hasPrev?'end':hasNext?'start':'solo';
+      }
+    }
+  });
+
   for(let d=1;d<=dim;d++){ const _wd=new Date(curYear,curMonth,d).getDay(); if(_wd===0)continue;
     const date=new Date(curYear,curMonth,d);
     const wd=date.getDay();
@@ -331,8 +363,19 @@ function renderCalendar(){
     const urlPers=PERSONS.filter(p=>entry[p]==='Urlaub');
     const freiPers=PERSONS.filter(p=>entry[p]==='frei');
     if(urlPers.length||freiPers.length){
-      const row=document.createElement('div');row.className='shift-row urlaub-row';
-      const bar=document.createElement('div');bar.className='uf-bar';
+      const row=document.createElement('div');
+      row.className='shift-row urlaub-row'+(urlPers.length?' urlaub-band':'');
+      // band overlay bars per person in Urlaub
+      urlPers.forEach(p=>{
+        const band=urlBand[p]&&urlBand[p][d]||'solo';
+        const overlay=document.createElement('div');
+        overlay.className='urlaub-band-bar band-'+band;
+        // extend to cell edge on connected sides
+        if(band==='mid'||band==='end')overlay.style.left='-4px';
+        if(band==='mid'||band==='start')overlay.style.right='-4px';
+        row.appendChild(overlay);
+      });
+      const bar=document.createElement('div');bar.className='uf-bar';bar.style.position='relative';bar.style.zIndex='1';
       const lbl=document.createElement('span');lbl.className='shift-lbl';lbl.style.fontSize='.6rem';
       lbl.textContent=(urlPers.length&&freiPers.length)?'U/-':urlPers.length?'U':'-';
       bar.appendChild(lbl);
@@ -539,6 +582,21 @@ function buildPrint(){
   const dim=new Date(curYear,curMonth+1,0).getDate();
   const md=(data[curYear]||{})[curMonth]||{};
   const tot={Silke:{w:0,u:0},Martina:{w:0,u:0},Sandra:{w:0,u:0}};
+  // Pre-compute Urlaub band membership per person
+  const urlBand={};
+  PERSONS.forEach(p=>{
+    urlBand[p]={};
+    for(let d=1;d<=dim;d++){
+      const e=((data[curYear]||{})[curMonth]||{})[d]||{};
+      if(e[p]==='Urlaub'){
+        const prev=d>1?((data[curYear]||{})[curMonth]||{})[d-1]||{}:{};
+        const next=d<dim?((data[curYear]||{})[curMonth]||{})[d+1]||{}:{};
+        const hasPrev=prev[p]==='Urlaub', hasNext=next[p]==='Urlaub';
+        urlBand[p][d]=hasPrev&&hasNext?'mid':hasPrev?'end':hasNext?'start':'solo';
+      }
+    }
+  });
+
   for(let d=1;d<=dim;d++){ const _wd=new Date(curYear,curMonth,d).getDay(); if(_wd===0)continue;
     const e=md[d]||{};
     PERSONS.forEach(p=>{
@@ -552,6 +610,21 @@ function buildPrint(){
   const fmt=n=>n.toString().replace('.',',');
 
   let rows='';
+  // Pre-compute Urlaub band membership per person
+  const urlBand={};
+  PERSONS.forEach(p=>{
+    urlBand[p]={};
+    for(let d=1;d<=dim;d++){
+      const e=((data[curYear]||{})[curMonth]||{})[d]||{};
+      if(e[p]==='Urlaub'){
+        const prev=d>1?((data[curYear]||{})[curMonth]||{})[d-1]||{}:{};
+        const next=d<dim?((data[curYear]||{})[curMonth]||{})[d+1]||{}:{};
+        const hasPrev=prev[p]==='Urlaub', hasNext=next[p]==='Urlaub';
+        urlBand[p][d]=hasPrev&&hasNext?'mid':hasPrev?'end':hasNext?'start':'solo';
+      }
+    }
+  });
+
   for(let d=1;d<=dim;d++){ const _wd=new Date(curYear,curMonth,d).getDay(); if(_wd===0)continue;
     const date=new Date(curYear,curMonth,d);
     const wd=date.getDay();
