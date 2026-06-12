@@ -704,14 +704,12 @@ ${PERSONS.map(p=>`<td colspan="3" style="font-size:8pt">${fmt(Math.round(tot[p].
 const GH_RAW  = 'https://raw.githubusercontent.com/AndreasHirche/Schicht/main/data.json';
 const GH_API  = 'https://api.github.com/repos/AndreasHirche/Schicht/contents/data.json';
 const GH_TOK  = 'ghp_gFdYmH'+'SkIbjTBG8TcyM0qi1FeR3LP91VIeDa';
-let   ghSha   = null;
 
 async function gistLoad(){
   try{
     const r = await fetch(GH_API, {headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json'}});
     if(!r.ok) throw new Error('HTTP '+r.status);
     const meta = await r.json();
-    ghSha = meta.sha;
     const raw = atob(meta.content.replace(/[^A-Za-z0-9+/=]/g,''));
     const payload = JSON.parse(decodeURIComponent(escape(raw)));
     if(!payload.data) throw new Error('no data');
@@ -746,19 +744,18 @@ async function gistLoad(){
 async function gistSave(){
   if(!GH_TOK) return;
   try{
-    const rGet = await fetch(GH_API, {headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json'}});
-    if(!rGet.ok) throw new Error('SHA fetch HTTP '+rGet.status);
-    const dg = await rGet.json();
-    ghSha = dg.sha;
+    // Always get fresh SHA before writing
+    const rGet = await fetch(GH_API,{headers:{Authorization:'token '+GH_TOK,Accept:'application/vnd.github.v3+json'}});
+    if(!rGet.ok) throw new Error('Lesen fehlgeschlagen: HTTP '+rGet.status);
+    const meta = await rGet.json();
+    const currentSha = meta.sha;
     const payload = {data, settings, saved: new Date().toISOString()};
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload,null,2))));
-    const body = {message:'Update shift data', content, sha: ghSha};
-    const rPut = await fetch(GH_API, {method:'PUT',
-      headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
-      body:JSON.stringify(body)});
+    const rPut = await fetch(GH_API,{method:'PUT',
+      headers:{Authorization:'token '+GH_TOK,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
+      body:JSON.stringify({message:'Update shift data',content,sha:currentSha})});
     if(rPut.ok){
-      const d2=await rPut.json(); ghSha=d2.content.sha;
-      localStorage.setItem('schicht_saved', payload.saved);
+      localStorage.setItem('schicht_saved',payload.saved);
     } else {
       const err=await rPut.json().catch(()=>({}));
       throw new Error(err.message||'HTTP '+rPut.status);
