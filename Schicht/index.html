@@ -235,7 +235,9 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
       </div>
     </div>
     <div style="margin-bottom:14px">
-      <div style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Datensicherung</div>
+      <div style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Personen (für Druckvorschau)</div>
+    <div id="personSettings" style="margin-bottom:14px"></div>
+    <div style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Datensicherung</div>
       <div style="font-size:.72rem;color:var(--muted);margin-bottom:8px">Notfall-Backup — nur nötig wenn kein Internet oder Daten verloren gehen.</div>
       <div style="display:flex;gap:8px">
         <button onclick="exportData();closeSettings()" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text);font-size:.82rem;font-weight:600;cursor:pointer">💾 Als Datei sichern</button>
@@ -283,6 +285,10 @@ let settings={shifts:{
   Früh:{start:'09:45',end:'15:15',pause:0.5},
   Mittel:{start:'09:45',end:'16:00',pause:0.5},
   Spät:{start:'13:00',end:'18:15',pause:0.5},
+},persons:{
+  Silke:  {name:'Bunzel-Hirche, Silke', vertr:87, delta:'+51,3'},
+  Martina:{name:'Weger, Martina',       vertr:87, delta:'+27,75'},
+  Sandra: {name:'Jacob, Sandra',        vertr:87, delta:''},
 }};
 let editDay=null,editSelections={};
 let printYear,printMonth;
@@ -367,7 +373,15 @@ function renderCalendar(){
     }
 
     // Time-based shifts: Früh, Mittel, Spät
-    ['Früh','Mittel','Spät'].forEach(shift=>{
+    PERSONS.forEach(p=>{
+    if(!settings.persons)settings.persons={};
+    settings.persons[p]={
+      name:(document.getElementById('pi_name_'+p)||{}).value||p,
+      vertr:parseFloat((document.getElementById('pi_vertr_'+p)||{}).value)||87,
+      delta:(document.getElementById('pi_delta_'+p)||{}).value||'',
+    };
+  });
+  ['Früh','Mittel','Spät'].forEach(shift=>{
       const persons=PERSONS.filter(p=>entry[p]===shift);
       const s=settings.shifts[shift];
       const hasData=persons.length>0;
@@ -488,6 +502,14 @@ function renderEntryGrid(){
   const lblS=document.createElement('div');lblS.className='entry-section-label';
   lblS.textContent='Schichten';secS.appendChild(lblS);
   _makeHeader(secS);
+  PERSONS.forEach(p=>{
+    if(!settings.persons)settings.persons={};
+    settings.persons[p]={
+      name:(document.getElementById('pi_name_'+p)||{}).value||p,
+      vertr:parseFloat((document.getElementById('pi_vertr_'+p)||{}).value)||87,
+      delta:(document.getElementById('pi_delta_'+p)||{}).value||'',
+    };
+  });
   ['Früh','Mittel','Spät'].forEach(shift=>{
     const s=settings.shifts[shift];
     const lbl=document.createElement('div');lbl.className='entry-row-label';
@@ -510,9 +532,32 @@ function overlayBgClick(e){if(e.target===document.getElementById('dayOverlay'))c
 
 // ── Settings ──────────────────────────────────────────────────────────────
 function openSettings(){
+  const pc=document.getElementById('personSettings');
+  if(pc){
+    pc.innerHTML='';
+    PERSONS.forEach(p=>{
+      const pi=settings.persons[p]||{name:p,vertr:87,delta:''};
+      const d=document.createElement('div');d.style.cssText='margin-bottom:10px;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid var(--border)';
+      d.innerHTML=`<div style="font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:6px">${p}</div>`+
+        `<input id="pi_name_${p}" class="setting-time" style="margin-bottom:4px" placeholder="Name" value="${pi.name||''}"><br>`+
+        `<div style="display:flex;gap:6px;margin-top:4px">`+
+        `<input id="pi_vertr_${p}" class="setting-time" type="number" style="width:70px" placeholder="Vertr.Std" value="${pi.vertr||87}">`+
+        `<span style="font-size:.75rem;color:var(--muted);align-self:center">Vertr.Std &nbsp; +/- Std</span>`+
+        `<input id="pi_delta_${p}" class="setting-time" style="flex:1" placeholder="+/- Std z.B. +27,75" value="${pi.delta||''}"></div>`;
+      pc.appendChild(d);
+    });
+  }
   const t=localStorage.getItem('schicht_theme')||'';
   setTimeout(()=>setTheme(t),50);
   const cont=document.getElementById('shiftSettings');cont.innerHTML='';
+  PERSONS.forEach(p=>{
+    if(!settings.persons)settings.persons={};
+    settings.persons[p]={
+      name:(document.getElementById('pi_name_'+p)||{}).value||p,
+      vertr:parseFloat((document.getElementById('pi_vertr_'+p)||{}).value)||87,
+      delta:(document.getElementById('pi_delta_'+p)||{}).value||'',
+    };
+  });
   ['Früh','Mittel','Spät'].forEach(shift=>{
     const s=settings.shifts[shift];
     const r=document.createElement('div');r.className='setting-row';
@@ -528,6 +573,14 @@ function openSettings(){
   document.getElementById('settingsModal').classList.add('show');
 }
 function saveSettings(){
+  PERSONS.forEach(p=>{
+    if(!settings.persons)settings.persons={};
+    settings.persons[p]={
+      name:(document.getElementById('pi_name_'+p)||{}).value||p,
+      vertr:parseFloat((document.getElementById('pi_vertr_'+p)||{}).value)||87,
+      delta:(document.getElementById('pi_delta_'+p)||{}).value||'',
+    };
+  });
   ['Früh','Mittel','Spät'].forEach(shift=>{
     settings.shifts[shift]={
       start:document.getElementById('st_'+shift+'_s').value,
@@ -621,9 +674,9 @@ function buildPrint(){
 <tr>
   <th rowspan="2" class="col-nr">#</th>
   <th rowspan="2" class="col-wd">Tag</th>
-  <th colspan="3" class="ph-si">Silke</th>
-  <th colspan="3" class="ph-ma">Martina</th>
-  <th colspan="3" class="ph-sa">Sandra</th>
+  <th colspan="3" class="ph-si">${(settings.persons.Silke.name)}<br><span style="font-weight:400;font-size:5.5pt">Vertr.Std. ${settings.persons.Silke.vertr}&nbsp;&nbsp;+/- Std ${settings.persons.Silke.delta}</span></th>
+  <th colspan="3" class="ph-ma">${(settings.persons.Martina.name)}<br><span style="font-weight:400;font-size:5.5pt">Vertr.Std. ${settings.persons.Martina.vertr}&nbsp;&nbsp;+/- Std ${settings.persons.Martina.delta}</span></th>
+  <th colspan="3" class="ph-sa">${(settings.persons.Sandra.name)}<br><span style="font-weight:400;font-size:5.5pt">Vertr.Std. ${settings.persons.Sandra.vertr}&nbsp;&nbsp;+/- Std ${settings.persons.Sandra.delta}</span></th>
   <th rowspan="2" class="col-son">Sonstiges</th>
 </tr>
 <tr>
