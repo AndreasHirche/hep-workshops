@@ -725,20 +725,24 @@ async function gistLoad(){
 async function gistSave(){
   if(!GH_TOK) return;
   try{
-    if(!ghSha){
-      const rGet = await fetch(GH_API, {headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json'}});
-      if(rGet.ok){ const dg=await rGet.json(); ghSha=dg.sha; }
-    }
-    // Only save shift data — NOT settings/persons (those are local config)
+    // Always fetch fresh SHA to avoid 409 conflicts
+    const rGet = await fetch(GH_API, {headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json'}});
+    if(!rGet.ok) throw new Error('SHA fetch HTTP '+rGet.status);
+    const dg = await rGet.json();
+    ghSha = dg.sha;
     const payload = {data, saved: new Date().toISOString()};
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload,null,2))));
-    const body = {message:'Update shift data', content};
-    if(ghSha) body.sha = ghSha;
+    const body = {message:'Update shift data', content, sha: ghSha};
     const rPut = await fetch(GH_API, {method:'PUT',
       headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
       body:JSON.stringify(body)});
-    if(rPut.ok){ const d2=await rPut.json(); ghSha=d2.content.sha; }
-    else throw new Error('HTTP '+rPut.status);
+    if(rPut.ok){
+      const d2=await rPut.json(); ghSha=d2.content.sha;
+      localStorage.setItem('schicht_saved', payload.saved);
+    } else {
+      const err=await rPut.json().catch(()=>({}));
+      throw new Error((err.message||'HTTP '+rPut.status));
+    }
   }catch(e){ showSyncErr('⚠ Speichern fehlgeschlagen: '+e.message); }
 }
 
