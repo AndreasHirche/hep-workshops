@@ -273,7 +273,8 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 
 <script>
 const PERSONS=['Silke','Martina','Sandra'];
-const COLORS={Silke:'#3b82f6',Martina:'#f97316',Sandra:'#22c55e'};
+const COLORS_DEFAULT={Silke:'#3b82f6',Martina:'#f97316',Sandra:'#22c55e'};
+function pColor(p){return (settings.persons&&settings.persons[p]&&settings.persons[p].color)||COLORS_DEFAULT[p]||'#64748b';}
 const INITIALS={Silke:'Si',Martina:'Ma',Sandra:'Sa'};
 const SHIFTS=['Urlaub','frei','Früh','Mittel','Spät'];
 const SHIFT_SHORT={Urlaub:'U',frei:'-',Früh:'F',Mittel:'M',Spät:'S'};
@@ -325,9 +326,9 @@ function loadTheme(){
 
 // Hardcoded person defaults — never overwritten by GitHub
 const PERSONS_DEFAULT={
-    Silke:  {name:'Bunzel-Hirche, Silke', vertr:87, delta:'+51,3'},
-    Martina:{name:'Weger, Martina',       vertr:87, delta:'+27,75'},
-    Sandra: {name:'Jacob, Sandra',        vertr:87, delta:''},
+    Silke:  {name:'Bunzel-Hirche, Silke', vertr:87, delta:'+51,3', color:'#3b82f6'},
+    Martina:{name:'Weger, Martina',       vertr:87, delta:'+27,75', color:'#f97316'},
+    Sandra: {name:'Jacob, Sandra',        vertr:87, delta:'', color:'#22c55e'},
   };
 function loadStorage(){
   try{data=JSON.parse(localStorage.getItem('schicht_data')||'{}');}catch(e){data={};}
@@ -451,7 +452,7 @@ function renderCalendar(){
         persons.forEach(p=>{
           const chip=document.createElement('span');
           chip.className='person-chip';
-          chip.style.background=COLORS[p];
+          chip.style.background=pColor(p);
           chip.textContent=INITIALS[p];
           chips.appendChild(chip);
         });
@@ -532,7 +533,7 @@ function _makeHeader(parent){
   const blank=document.createElement('div');blank.className='entry-row-label';parent.appendChild(blank);
   PERSONS.forEach(p=>{
     const h=document.createElement('div');h.className='entry-col-header';
-    h.style.color=COLORS[p];h.textContent=p;parent.appendChild(h);
+    h.style.color=pColor(p);h.textContent=p;parent.appendChild(h);
   });
 }
 function renderEntryGrid(){
@@ -588,7 +589,10 @@ function openSettings(){
       const pi=settings.persons[p]||{name:p,vertr:87,delta:''};
       const d=document.createElement('div');d.style.cssText='margin-bottom:10px;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid var(--border)';
       d.innerHTML=`<div style="font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:6px">${p}</div>`+
-        `<input id="pi_name_${p}" class="setting-time" style="margin-bottom:4px" placeholder="Name" value="${pi.name||''}"><br>`+
+        `<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">`+
+        `<input id="pi_name_${p}" class="setting-time" style="flex:1" placeholder="Name" value="${pi.name||''}">`+
+        `<input type="color" id="pi_color_${p}" value="${pi.color||COLORS_DEFAULT[p]||'#3b82f6'}" style="width:36px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:2px;background:transparent">`+
+        `</div>`+
         `<div style="display:flex;gap:6px;margin-top:4px">`+
         `<input id="pi_vertr_${p}" class="setting-time" type="number" style="width:70px" placeholder="Vertr.Std" value="${pi.vertr||87}">`+
         `<span style="font-size:.75rem;color:var(--muted);align-self:center">Vertr.Std &nbsp; +/- Std</span>`+
@@ -620,6 +624,7 @@ function saveSettings(){
   PERSONS.forEach(p=>{
     settings.persons[p]={
       name:(document.getElementById('pi_name_'+p)||{value:''}).value,
+      color:(document.getElementById('pi_color_'+p)||{value:COLORS_DEFAULT[p]}).value||COLORS_DEFAULT[p],
       vertr:parseFloat((document.getElementById('pi_vertr_'+p)||{value:87}).value)||87,
       delta:(document.getElementById('pi_delta_'+p)||{value:''}).value||'',
     };
@@ -718,7 +723,7 @@ function buildPrint(){
 <tr>
   <th rowspan="2" class="col-nr">#</th>
   <th rowspan="2" class="col-wd">Tag</th>
-${PERSONS.map((p,i)=>{const pi=settings.persons&&settings.persons[p]||{name:p,vertr:87,delta:''};const cls=['ph-si','ph-ma','ph-sa'][i];return`<th colspan="3" class="${cls}">${pi.name}<br><span style="font-weight:400;font-size:5.5pt">Vertr.Std. ${pi.vertr}&nbsp;&nbsp;+/- Std ${pi.delta}</span></th>`;}).join('')}
+${PERSONS.map((p,i)=>{const pi=settings.persons&&settings.persons[p]||{name:p,vertr:87,delta:''};const col=pi.color||COLORS_DEFAULT[p]||'#3b82f6';const bg=col+'22';return`<th colspan="3" style="background:${bg};color:${col};text-align:left;padding:3px 5px">${pi.name}<br><span style="font-weight:400;font-size:5.5pt">Vertr.Std. ${pi.vertr}&nbsp;&nbsp;+/- Std ${pi.delta}</span></th>`;}).join('')}
   <th rowspan="2" class="col-son">Sonstiges</th>
 </tr>
 <tr>
