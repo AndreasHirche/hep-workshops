@@ -285,10 +285,10 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 const PERSONS_BASE=['Silke','Martina','Sandra'];
 const PERSONS_EXTRA=['Person4','Person5'];
 function getPersons(){
-  // Base persons always first, then extras if named
   const extras=PERSONS_EXTRA.filter(p=>{
     const pi=settings.persons&&settings.persons[p];
-    return pi&&pi.name&&pi.name.trim()&&pi.name.trim()!==p;
+    const nm=(pi&&pi.name||'').trim();
+    return nm.length>=3&&nm!==p;
   });
   return [...PERSONS_BASE,...extras];
 }
@@ -796,6 +796,13 @@ function openSettings(){
   document.getElementById('settingsModal').classList.add('show');
 }
 function saveSettings(){
+  // Clean up stale 2-char names for extra persons
+  if(settings.persons){
+    PERSONS_EXTRA.forEach(p=>{
+      const nm=(settings.persons[p]&&settings.persons[p].name||'').trim();
+      if(nm.length>0&&nm.length<=2) settings.persons[p].name='';
+    });
+  }
   if(!settings.persons)settings.persons={};
   PERSONS.forEach(p=>{
     settings.persons[p]={
