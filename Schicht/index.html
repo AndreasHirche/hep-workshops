@@ -592,17 +592,62 @@ function _makeBtn(shift,p){
   const btn=document.createElement('div');
   btn.className='entry-btn';
   const pi=settings.persons&&settings.persons[p]||{};
-  // Show 2-letter initial from first name
-  const _fn=(pi.name||'').split(',')[1]?((pi.name||'').split(',')[1].trim().slice(0,2)):(pi.name||p).slice(0,2);
-  btn.textContent=_fn.toUpperCase()||INITIALS[p]||p.slice(0,2);
-  btn.style.borderColor='transparent';
+  const nm=pi.name||'';
+  const initials=nm.split(',')[1]?(nm.split(',')[1].trim().slice(0,2).toUpperCase()):nm.slice(0,2).toUpperCase()||INITIALS[p]||'??';
+  btn.textContent=initials;
   if(editSelections[p]===shift){
-    btn.style.borderColor=pColor(p);
-    btn.style.background=pColor(p)+'33';
-    btn.style.color=pColor(p);
+    btn.style.cssText='border:2px solid '+pColor(p)+';background:'+pColor(p)+'33;color:'+pColor(p)+';border-radius:8px;padding:10px 4px;text-align:center;font-size:.8rem;font-weight:700;cursor:pointer';
+  } else {
+    btn.style.cssText='border:2px solid transparent;background:rgba(255,255,255,0.04);color:var(--muted);border-radius:8px;padding:10px 4px;text-align:center;font-size:.8rem;font-weight:700;cursor:pointer';
   }
   btn.onclick=()=>toggleEntry(p,shift);
   return btn;
+}
+
+function renderEntryGrid(){
+  const grid=document.getElementById('entryGrid');
+  grid.innerHTML='';
+  const persons=getPersons();
+  const nc=persons.length;
+  // Simple flat grid: col0=label, col1..nc=persons
+  const cols='84px '+Array(nc).fill('1fr').join(' ');
+  grid.style.cssText='display:grid;grid-template-columns:'+cols+';gap:5px;margin-bottom:12px';
+
+  function addSectionHeader(label){
+    const h=document.createElement('div');
+    h.style.cssText='grid-column:1/-1;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 4px 2px;border-top:1px solid var(--border);margin-top:2px';
+    h.textContent=label;
+    grid.appendChild(h);
+    // blank label cell + person name headers
+    const blank=document.createElement('div'); grid.appendChild(blank);
+    persons.forEach(p=>{
+      const pi=settings.persons&&settings.persons[p]||{};
+      const nm=pi.name||'';
+      const dn=nm.split(',')[1]?(nm.split(',')[1].trim().split(' ')[0]):nm.split(' ')[0]||p;
+      const h2=document.createElement('div');
+      h2.style.cssText='text-align:center;font-size:.75rem;font-weight:700;padding:2px;color:'+pColor(p);
+      h2.textContent=dn;
+      grid.appendChild(h2);
+    });
+  }
+
+  function addRow(labelHtml, shift){
+    const lbl=document.createElement('div');
+    lbl.className='entry-row-label';
+    lbl.innerHTML=labelHtml;
+    grid.appendChild(lbl);
+    persons.forEach(p=>grid.appendChild(_makeBtn(shift,p)));
+  }
+
+  addSectionHeader('Abwesenheit');
+  addRow('Urlaub<span style="font-size:.68rem;color:var(--muted);font-weight:400;display:block">3,33 Std</span>','Urlaub');
+  addRow('frei','frei');
+
+  addSectionHeader('Schichten');
+  ['Früh','Mittel','Spät'].forEach(shift=>{
+    const s=settings.shifts[shift];
+    addRow(shift+(s?'<span style="font-size:.68rem;color:var(--muted);font-weight:400;display:block">'+s.start+'–'+s.end+'</span>':''),shift);
+  });
 }
 function _makeHeader(parent, persons){
   // First cell: row label placeholder
