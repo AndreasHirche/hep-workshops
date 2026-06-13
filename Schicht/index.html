@@ -590,16 +590,14 @@ function _commitDay(){
 
 function _makeBtn(shift,p){
   const btn=document.createElement('div');
-  btn.className='entry-btn';
   const pi=settings.persons&&settings.persons[p]||{};
   const nm=pi.name||'';
-  const initials=nm.split(',')[1]?(nm.split(',')[1].trim().slice(0,2).toUpperCase()):nm.slice(0,2).toUpperCase()||INITIALS[p]||'??';
-  btn.textContent=initials;
-  if(editSelections[p]===shift){
-    btn.style.cssText='border:2px solid '+pColor(p)+';background:'+pColor(p)+'33;color:'+pColor(p)+';border-radius:8px;padding:10px 4px;text-align:center;font-size:.8rem;font-weight:700;cursor:pointer';
-  } else {
-    btn.style.cssText='border:2px solid transparent;background:rgba(255,255,255,0.04);color:var(--muted);border-radius:8px;padding:10px 4px;text-align:center;font-size:.8rem;font-weight:700;cursor:pointer';
-  }
+  const initials=nm.indexOf(',')>=0?nm.split(',')[1].trim().slice(0,2).toUpperCase():nm.slice(0,2).toUpperCase()||INITIALS[p]||p.slice(0,2);
+  btn.textContent=initials.toUpperCase();
+  const sel=editSelections[p]===shift;
+  btn.style.cssText='padding:10px 4px;border-radius:8px;text-align:center;font-size:.82rem;font-weight:700;cursor:pointer;'
+    +(sel?'border:2px solid '+pColor(p)+';background:'+pColor(p)+'33;color:'+pColor(p)+';'
+        :'border:2px solid transparent;background:rgba(255,255,255,0.04);color:var(--muted);');
   btn.onclick=()=>toggleEntry(p,shift);
   return btn;
 }
@@ -608,139 +606,47 @@ function renderEntryGrid(){
   const grid=document.getElementById('entryGrid');
   grid.innerHTML='';
   const persons=getPersons();
-  const nc=persons.length;
-  // Simple flat grid: col0=label, col1..nc=persons
-  const cols='84px '+Array(nc).fill('1fr').join(' ');
-  grid.style.cssText='display:grid;grid-template-columns:'+cols+';gap:5px;margin-bottom:12px';
+  const n=persons.length;
+  // flat CSS grid: [label col] [person1] [person2] ...
+  grid.style.cssText='display:grid;grid-template-columns:88px '+Array(n).fill('1fr').join(' ')+';gap:5px 6px;';
 
-  function addSectionHeader(label){
-    const h=document.createElement('div');
-    h.style.cssText='grid-column:1/-1;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 4px 2px;border-top:1px solid var(--border);margin-top:2px';
-    h.textContent=label;
-    grid.appendChild(h);
-    // blank label cell + person name headers
-    const blank=document.createElement('div'); grid.appendChild(blank);
-    persons.forEach(p=>{
-      const pi=settings.persons&&settings.persons[p]||{};
-      const nm=pi.name||'';
-      const dn=nm.split(',')[1]?(nm.split(',')[1].trim().split(' ')[0]):nm.split(' ')[0]||p;
-      const h2=document.createElement('div');
-      h2.style.cssText='text-align:center;font-size:.75rem;font-weight:700;padding:2px;color:'+pColor(p);
-      h2.textContent=dn;
-      grid.appendChild(h2);
-    });
-  }
-
-  function addRow(labelHtml, shift){
+  function row(labelHtml, shift){
+    // label cell
     const lbl=document.createElement('div');
-    lbl.className='entry-row-label';
+    lbl.style.cssText='display:flex;flex-direction:column;justify-content:center;font-size:.82rem;font-weight:600;color:var(--text);padding:2px 0;';
     lbl.innerHTML=labelHtml;
     grid.appendChild(lbl);
+    // one button per person
     persons.forEach(p=>grid.appendChild(_makeBtn(shift,p)));
   }
 
-  addSectionHeader('Abwesenheit');
-  addRow('Urlaub<span style="font-size:.68rem;color:var(--muted);font-weight:400;display:block">3,33 Std</span>','Urlaub');
-  addRow('frei','frei');
+  function sectionHeader(label){
+    // full-width section title
+    const h=document.createElement('div');
+    h.style.cssText='grid-column:1/-1;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:10px 2px 4px;border-top:1px solid var(--border);';
+    h.textContent=label; grid.appendChild(h);
+    // blank + person name headers
+    grid.appendChild(document.createElement('div'));
+    persons.forEach(p=>{
+      const pi=settings.persons&&settings.persons[p]||{};
+      const nm=pi.name||'';
+      const fn=nm.indexOf(',')>=0?(nm.split(',')[1].trim().split(' ')[0]):nm.split(' ')[0]||p;
+      const h2=document.createElement('div');
+      h2.style.cssText='text-align:center;font-size:.78rem;font-weight:700;color:'+pColor(p)+';padding:2px;';
+      h2.textContent=fn; grid.appendChild(h2);
+    });
+  }
 
-  addSectionHeader('Schichten');
+  sectionHeader('Abwesenheit');
+  row('Urlaub<span style="font-size:.68rem;color:var(--muted);font-weight:400;display:block">3,33 Std</span>','Urlaub');
+  row('frei','frei');
+  sectionHeader('Schichten');
   ['Früh','Mittel','Spät'].forEach(shift=>{
     const s=settings.shifts[shift];
-    addRow(shift+(s?'<span style="font-size:.68rem;color:var(--muted);font-weight:400;display:block">'+s.start+'–'+s.end+'</span>':''),shift);
+    row(shift+(s?'<span style="font-size:.68rem;color:var(--muted);font-weight:400;display:block">'+s.start+'–'+s.end+'</span>':''),shift);
   });
 }
-function _makeHeader(parent, persons){
-  // First cell: row label placeholder
-  const blank=document.createElement('div');blank.className='entry-row-label';parent.appendChild(blank);
-  persons.forEach(p=>{
-    const h=document.createElement('div');h.className='entry-col-header';
-    const pi=settings.persons&&settings.persons[p]||{};
-    const dn=(pi.name||p).split(',')[1]?((pi.name||p).split(',')[1].trim().split(' ')[0]):(pi.name||p).split(' ')[0]||p;
-    h.style.color=pColor(p);h.textContent=dn;parent.appendChild(h);
-  });
-}
-function renderEntryGrid(){
-  const grid=document.getElementById('entryGrid');
-  grid.innerHTML='';
-  const persons=getPersons();
-  const nc=persons.length;
-  const cd='80px '+Array(nc).fill('1fr').join(' ');
-  grid.style.gridTemplateColumns=cd;
 
-  // ── Section: Abwesenheit ──────────────────────────────────
-  const secUF=document.createElement('div');secUF.className='entry-section-uf';
-  secUF.style.gridTemplateColumns=cd;
-  const lblUF=document.createElement('div');lblUF.className='entry-section-label';
-  lblUF.textContent='Abwesenheit';secUF.appendChild(lblUF);
-  _makeHeader(secUF, persons);
-  ['Urlaub','frei'].forEach(shift=>{
-    const lbl=document.createElement('div');lbl.className='entry-row-label';
-    lbl.innerHTML=shift+(shift==='Urlaub'?'<span style="font-size:.7rem;color:var(--muted);font-weight:400;display:block">3,33 Std</span>':'');
-    secUF.appendChild(lbl);
-    persons.forEach(p=>secUF.appendChild(_makeBtn(shift,p)));
-  });
-  grid.appendChild(secUF);
-
-  // ── Section: Schichten ────────────────────────────────────
-  const secS=document.createElement('div');secS.className='entry-section-shifts';
-  secS.style.gridTemplateColumns=cd;
-  const lblS=document.createElement('div');lblS.className='entry-section-label';
-  lblS.textContent='Schichten';secS.appendChild(lblS);
-  _makeHeader(secS, persons);
-  ['Früh','Mittel','Spät'].forEach(shift=>{
-    const s=settings.shifts[shift];
-    const lbl=document.createElement('div');lbl.className='entry-row-label';
-    lbl.innerHTML=shift+(s?'<span style="font-size:.68rem;color:var(--muted);font-weight:400;display:block">'+s.start+'–'+s.end+'</span>':'');
-    secS.appendChild(lbl);
-    persons.forEach(p=>secS.appendChild(_makeBtn(shift,p)));
-  });
-  grid.appendChild(secS);
-}
-function _makeHeader(parent){
-  const blank=document.createElement('div');blank.className='entry-row-label';parent.appendChild(blank);
-  PERSONS.forEach(p=>{
-    const h=document.createElement('div');h.className='entry-col-header';
-    const _pi=settings.persons&&settings.persons[p]||{};
-    const _dn=(_pi.name||p).split(',')[1]?((_pi.name||p).split(',')[1].trim().split(' ')[0]):(_pi.name||p).split(' ')[0]||p;
-    h.style.color=pColor(p);h.textContent=_dn;parent.appendChild(h);
-  });
-}
-function renderEntryGrid(){
-  const grid=document.getElementById('entryGrid');
-  grid.innerHTML='';
-  const _nc=getPersons().length;
-  const _cd='64px '+Array(_nc).fill('1fr').join(' ');
-  grid.style.gridTemplateColumns=_cd;
-
-  // ── Section: Abwesenheit ─────────────────────────────────
-  const secUF=document.createElement('div');secUF.className='entry-section-uf';secUF.style.gridTemplateColumns=_cd;
-  const lblUF=document.createElement('div');lblUF.className='entry-section-label';
-  lblUF.textContent='Abwesenheit';secUF.appendChild(lblUF);
-  _makeHeader(secUF);
-  ['Urlaub','frei'].forEach(shift=>{
-    const lbl=document.createElement('div');lbl.className='entry-row-label';
-    lbl.innerHTML=shift+(shift==='Urlaub'?'<span style="font-size:.7rem;color:var(--muted);font-weight:400;display:block">3,33 Std</span>':'');
-    secUF.appendChild(lbl);
-    getPersons().forEach(p=>secUF.appendChild(_makeBtn(shift,p)));
-  });
-  grid.appendChild(secUF);
-
-  // ── Section: Schichten ───────────────────────────────────
-  const secS=document.createElement('div');secS.className='entry-section-shifts';secS.style.gridTemplateColumns=_cd;
-  const lblS=document.createElement('div');lblS.className='entry-section-label';
-  lblS.textContent='Schichten';secS.appendChild(lblS);
-  _makeHeader(secS);
-  PERSONS.forEach(p=>{
-  });
-  ['Früh','Mittel','Spät'].forEach(shift=>{
-    const s=settings.shifts[shift];
-    const lbl=document.createElement('div');lbl.className='entry-row-label';
-    lbl.innerHTML=`${shift}${s?'<span style="font-size:.7rem;color:var(--muted);font-weight:400;display:block">'+s.start+'–'+s.end+'</span>':''}`; 
-    secS.appendChild(lbl);
-    getPersons().forEach(p=>secS.appendChild(_makeBtn(shift,p)));
-  });
-  grid.appendChild(secS);
-}
 
 function toggleEntry(person,shift){
   editSelections[person]=editSelections[person]===shift?null:shift;
