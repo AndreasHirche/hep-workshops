@@ -53,7 +53,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 .cal-header .hd-sun{color:#888}
 .month-summary{display:flex;gap:6px;padding:5px 3px 2px;flex-shrink:0;flex-wrap:wrap}
 .ms-chip{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;
-  padding:5px 4px;border-radius:8px;background:var(--surface);border:1px solid var(--border)}
+  padding:5px 4px}
 .ms-name{font-size:.6rem;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ms-hours{font-size:.88rem;font-weight:800;line-height:1.2}
 .ms-delta{font-size:.65rem;font-weight:700}
@@ -426,7 +426,7 @@ function renderMonthSummary(){
     chip.style.borderColor=col+'44';
     const initials=(pi.name||p).split(',')[0].trim().slice(0,2).toUpperCase()||INITIALS[p];
     chip.innerHTML=
-      `<span class="ms-name" style="color:${col}">${INITIALS[p]}</span>`+
+      `<span class="ms-name" style="color:${col}">${(pi.name||p).split(',')[1]?((pi.name||p).split(',')[1].trim().split(' ')[0]):(pi.name||p).split(' ')[0]}</span>`+
       `<span class="ms-hours" style="color:${col}">${worked.toString().replace('.',',')}</span>`+
       `<span class="ms-delta ${cls}">${diffStr}</span>`;
     cont.appendChild(chip);
