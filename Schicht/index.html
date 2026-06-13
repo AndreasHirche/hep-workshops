@@ -1026,6 +1026,14 @@ loadStorage();
 loadTheme();
 const now=new Date();
 curYear=now.getFullYear();curMonth=now.getMonth();
+// Force-clean extra persons on every startup
+PERSONS_EXTRA.forEach(p=>{
+  const pi=settings.persons&&settings.persons[p];
+  if(pi&&pi.name&&pi.name.trim().length<4){
+    pi.name='';
+    localStorage.setItem('schicht_settings',JSON.stringify(settings));
+  }
+});
 gistLoad().then(()=>renderCalendar()).catch(()=>renderCalendar());
 </script>
 </body>
