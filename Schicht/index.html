@@ -285,7 +285,12 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 const PERSONS_BASE=['Silke','Martina','Sandra'];
 const PERSONS_EXTRA=['Person4','Person5'];
 function getPersons(){
-  return [...PERSONS_BASE,...PERSONS_EXTRA.filter(p=>settings.persons&&settings.persons[p]&&settings.persons[p].name&&settings.persons[p].name.trim())];
+  // Base persons always first, then extras if named
+  const extras=PERSONS_EXTRA.filter(p=>{
+    const pi=settings.persons&&settings.persons[p];
+    return pi&&pi.name&&pi.name.trim()&&pi.name.trim()!==p;
+  });
+  return [...PERSONS_BASE,...extras];
 }
 function getPrintPersons(){
   // Always show all 5 columns in print, extra persons shown even if empty
@@ -587,8 +592,9 @@ function _makeBtn(shift,p){
   const btn=document.createElement('div');
   btn.className='entry-btn';
   const pi=settings.persons&&settings.persons[p]||{};
-  const initials=INITIALS[p]||(pi.name||p).slice(0,2).toUpperCase();
-  btn.textContent=initials;
+  // Show 2-letter initial from first name
+  const _fn=(pi.name||'').split(',')[1]?((pi.name||'').split(',')[1].trim().slice(0,2)):(pi.name||p).slice(0,2);
+  btn.textContent=_fn.toUpperCase()||INITIALS[p]||p.slice(0,2);
   btn.style.borderColor='transparent';
   if(editSelections[p]===shift){
     btn.style.borderColor=pColor(p);
