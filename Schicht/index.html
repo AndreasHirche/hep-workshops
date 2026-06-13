@@ -770,7 +770,7 @@ function buildPrint(){
 <tr>
   <th rowspan="2" class="col-nr">#</th>
   <th rowspan="2" class="col-wd">Tag</th>
-${PERSONS.map((p,i)=>{const pi=settings.persons&&settings.persons[p]||{name:p,vertr:87,delta:''};const col=pi.color||COLORS_DEFAULT[p]||'#3b82f6';const bg=col+'22';return`<th colspan="3" style="background:${bg};color:${col};text-align:left;padding:3px 5px">${pi.name}<br><span style="font-weight:400;font-size:5.5pt">Vertr.Std. ${pi.vertr}&nbsp;&nbsp;+/- Std ${pi.delta}</span></th>`;}).join('')}
+${PERSONS.map((p,i)=>{const pi=settings.persons&&settings.persons[p]||{name:p,vertr:87,delta:''};const col=pi.color||COLORS_DEFAULT[p]||'#3b82f6';const bg=col+'22';return`<th colspan="3" style="background:${bg};color:${col};text-align:left;padding:3px 5px">Name: ${pi.name}<br><span style="font-weight:400;font-size:5.5pt">Vertr.Std. ${pi.vertr}&nbsp;&nbsp;+/- Std ${pi.delta}</span></th>`;}).join('')}
   <th rowspan="2" class="col-son">Sonstiges</th>
 </tr>
 <tr>
