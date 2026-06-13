@@ -51,6 +51,15 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 .cal-header span{text-align:center;font-size:.88rem;font-weight:700;color:var(--muted);
   text-transform:uppercase;padding:3px 0}
 .cal-header .hd-sun{color:#888}
+.month-summary{display:flex;gap:6px;padding:5px 3px 2px;flex-shrink:0;flex-wrap:wrap}
+.ms-chip{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;
+  padding:5px 4px;border-radius:8px;background:var(--surface);border:1px solid var(--border)}
+.ms-name{font-size:.6rem;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ms-hours{font-size:.88rem;font-weight:800;line-height:1.2}
+.ms-delta{font-size:.65rem;font-weight:700}
+.ms-pos{color:#22c55e}
+.ms-neg{color:#ef4444}
+.ms-zero{color:var(--muted)}
 .cal-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:2px}
 .day-cell{background:var(--surface);border-radius:6px;padding:4px;
   border:1px solid var(--border);cursor:pointer;min-height:80px;position:relative}
@@ -204,6 +213,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
     <div class="cal-header">
       <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span>
     </div>
+    <div id="monthSummary" class="month-summary"></div>
     <div class="cal-grid" id="calGrid"></div>
     <button onclick="openPrint()" style="width:100%;margin-top:6px;padding:12px;border-radius:10px;border:none;background:var(--si);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;flex-shrink:0">🖨️ Drucken / Vorschau</button>
   </div>
@@ -391,8 +401,41 @@ function isHoliday(y,m,d){
 }
 
 // ── Calendar ──────────────────────────────────────────────────────────────
+function renderMonthSummary(){
+  const dim=new Date(curYear,curMonth+1,0).getDate();
+  const md=(data[curYear]||{})[curMonth]||{};
+  const cont=document.getElementById('monthSummary');
+  if(!cont)return;
+  cont.innerHTML='';
+  PERSONS.forEach(p=>{
+    let worked=0,urlaubDays=0;
+    for(let d=1;d<=dim;d++){
+      const v=(md[d]||{})[p];
+      if(v==='Urlaub'){worked+=3.33;urlaubDays++;}
+      else if(v&&settings.shifts[v])worked+=calcHours(v);
+    }
+    worked=Math.round(worked*100)/100;
+    const pi=settings.persons&&settings.persons[p]||{};
+    const vertr=parseFloat(pi.vertr)||87;
+    const diff=Math.round((worked-vertr)*100)/100;
+    const diffStr=(diff>0?'+':'')+diff.toString().replace('.',',');
+    const cls=diff>0?'ms-pos':diff<0?'ms-neg':'ms-zero';
+    const col=pColor(p);
+    const chip=document.createElement('div');
+    chip.className='ms-chip';
+    chip.style.borderColor=col+'44';
+    const initials=(pi.name||p).split(',')[0].trim().slice(0,2).toUpperCase()||INITIALS[p];
+    chip.innerHTML=
+      `<span class="ms-name" style="color:${col}">${INITIALS[p]}</span>`+
+      `<span class="ms-hours" style="color:${col}">${worked.toString().replace('.',',')}</span>`+
+      `<span class="ms-delta ${cls}">${diffStr}</span>`;
+    cont.appendChild(chip);
+  });
+}
+
 function renderCalendar(){
   document.getElementById('monthTitle').textContent=MONTHS[curMonth]+' '+curYear;
+  renderMonthSummary();
   const grid=document.getElementById('calGrid');
   grid.innerHTML='';
   const today=new Date();
