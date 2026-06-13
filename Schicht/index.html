@@ -282,10 +282,15 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;b
 </div>
 
 <script>
-const PERSONS=['Silke','Martina','Sandra'];
-const COLORS_DEFAULT={Silke:'#3b82f6',Martina:'#f97316',Sandra:'#22c55e'};
+const PERSONS_BASE=['Silke','Martina','Sandra'];
+const PERSONS_EXTRA=['Person4','Person5'];
+function getPersons(){
+  return [...PERSONS_BASE,...PERSONS_EXTRA.filter(p=>settings.persons&&settings.persons[p]&&settings.persons[p].name&&settings.persons[p].name.trim())];
+}
+const PERSONS=['Silke','Martina','Sandra','Person4','Person5'];
+const COLORS_DEFAULT={Silke:'#3b82f6',Martina:'#f97316',Sandra:'#22c55e',Person4:'#a855f7',Person5:'#ec4899'};
 function pColor(p){return (settings.persons&&settings.persons[p]&&settings.persons[p].color)||COLORS_DEFAULT[p]||'#64748b';}
-const INITIALS={Silke:'Si',Martina:'Ma',Sandra:'Sa'};
+const INITIALS={Silke:'Si',Martina:'Ma',Sandra:'Sa',Person4:'P4',Person5:'P5'};
 const SHIFTS=['Urlaub','frei','Früh','Mittel','Spät'];
 const SHIFT_SHORT={Urlaub:'U',frei:'-',Früh:'F',Mittel:'M',Spät:'S'};
 const WD=['So','Mo','Di','Mi','Do','Fr','Sa'];
@@ -339,6 +344,8 @@ const PERSONS_DEFAULT={
     Silke:  {name:'Bunzel-Hirche, Silke', vertr:87, delta:'+51,3', color:'#3b82f6'},
     Martina:{name:'Weger, Martina',       vertr:87, delta:'+27,75', color:'#f97316'},
     Sandra: {name:'Jacob, Sandra',        vertr:87, delta:'', color:'#22c55e'},
+    Person4:{name:'',                     vertr:87, delta:'', color:'#a855f7'},
+    Person5:{name:'',                     vertr:87, delta:'', color:'#ec4899'},
   };
 function loadStorage(){
   try{data=JSON.parse(localStorage.getItem('schicht_data')||'{}');}catch(e){data={};}
@@ -526,10 +533,15 @@ function _loadEditDay(){
   const dim=new Date(curYear,curMonth+1,0).getDate();
   if(editDay<1||editDay>dim)return;
   const date=new Date(curYear,curMonth,editDay);
+  const hw=isHoliday(curYear,curMonth,editDay);
+  const sheet=document.getElementById('daySheet');
+  sheet.style.border=hw?'2px solid rgba(150,150,150,0.6)':'';
+  sheet.style.background=hw?'rgba(110,110,110,0.07)':'';
   document.getElementById('dayTitle').innerHTML=
-    `${editDay}. ${MONTHS[curMonth]}&nbsp;<span>${WD_LONG[date.getDay()]}</span>`;
+    editDay+'. '+MONTHS[curMonth]+' <span>'+WD_LONG[date.getDay()]+'</span>'+
+    (hw?'<br><span style="font-size:.72rem;color:#94a3b8;font-weight:400">🎉 '+hw+'</span>':'');
   const entry=((data[curYear]||{})[curMonth]||{})[editDay]||{};
-  editSelections={Silke:entry.Silke||null,Martina:entry.Martina||null,Sandra:entry.Sandra||null};
+  editSelections={}; getPersons().forEach(p=>editSelections[p]=entry[p]||null);
   renderEntryGrid();
 }
 
@@ -547,9 +559,9 @@ function navigateDay(delta){
   const nextEntry=((data[curYear]||{})[curMonth]||{})[editDay]||{};
   const isEmpty=!PERSONS.some(p=>nextEntry[p]);
   if(isEmpty){
-    editSelections={...prevEntry};
+    editSelections={}; getPersons().forEach(p=>editSelections[p]=prevEntry[p]||null);
   } else {
-    editSelections={Silke:nextEntry.Silke||null,Martina:nextEntry.Martina||null,Sandra:nextEntry.Sandra||null};
+    editSelections={}; getPersons().forEach(p=>editSelections[p]=nextEntry[p]||null);
   }
   const date=new Date(curYear,curMonth,editDay);
   document.getElementById('dayTitle').innerHTML=
@@ -576,15 +588,20 @@ function _makeHeader(parent){
   const blank=document.createElement('div');blank.className='entry-row-label';parent.appendChild(blank);
   PERSONS.forEach(p=>{
     const h=document.createElement('div');h.className='entry-col-header';
-    h.style.color=pColor(p);h.textContent=p;parent.appendChild(h);
+    const _pi=settings.persons&&settings.persons[p]||{};
+    const _dn=(_pi.name||p).split(',')[1]?((_pi.name||p).split(',')[1].trim().split(' ')[0]):(_pi.name||p).split(' ')[0]||p;
+    h.style.color=pColor(p);h.textContent=_dn;parent.appendChild(h);
   });
 }
 function renderEntryGrid(){
   const grid=document.getElementById('entryGrid');
   grid.innerHTML='';
+  const _nc=getPersons().length;
+  const _cd='64px '+Array(_nc).fill('1fr').join(' ');
+  grid.style.gridTemplateColumns=_cd;
 
   // ── Section: Abwesenheit ─────────────────────────────────
-  const secUF=document.createElement('div');secUF.className='entry-section-uf';
+  const secUF=document.createElement('div');secUF.className='entry-section-uf';secUF.style.gridTemplateColumns=_cd;
   const lblUF=document.createElement('div');lblUF.className='entry-section-label';
   lblUF.textContent='Abwesenheit';secUF.appendChild(lblUF);
   _makeHeader(secUF);
@@ -592,12 +609,12 @@ function renderEntryGrid(){
     const lbl=document.createElement('div');lbl.className='entry-row-label';
     lbl.innerHTML=shift+(shift==='Urlaub'?'<span style="font-size:.7rem;color:var(--muted);font-weight:400;display:block">3,33 Std</span>':'');
     secUF.appendChild(lbl);
-    PERSONS.forEach(p=>secUF.appendChild(_makeBtn(shift,p)));
+    getPersons().forEach(p=>secUF.appendChild(_makeBtn(shift,p)));
   });
   grid.appendChild(secUF);
 
   // ── Section: Schichten ───────────────────────────────────
-  const secS=document.createElement('div');secS.className='entry-section-shifts';
+  const secS=document.createElement('div');secS.className='entry-section-shifts';secS.style.gridTemplateColumns=_cd;
   const lblS=document.createElement('div');lblS.className='entry-section-label';
   lblS.textContent='Schichten';secS.appendChild(lblS);
   _makeHeader(secS);
@@ -608,7 +625,7 @@ function renderEntryGrid(){
     const lbl=document.createElement('div');lbl.className='entry-row-label';
     lbl.innerHTML=`${shift}${s?'<span style="font-size:.7rem;color:var(--muted);font-weight:400;display:block">'+s.start+'–'+s.end+'</span>':''}`; 
     secS.appendChild(lbl);
-    PERSONS.forEach(p=>secS.appendChild(_makeBtn(shift,p)));
+    getPersons().forEach(p=>secS.appendChild(_makeBtn(shift,p)));
   });
   grid.appendChild(secS);
 }
@@ -619,7 +636,7 @@ function toggleEntry(person,shift){
 }
 
 function saveDay(){_commitDay();closeDay();renderCalendar();}
-function clearDay(){editSelections={Silke:null,Martina:null,Sandra:null};renderEntryGrid();}
+function clearDay(){editSelections={};getPersons().forEach(p=>editSelections[p]=null);renderEntryGrid();}
 function closeDay(){document.getElementById('dayOverlay').classList.remove('show');}
 function overlayBgClick(e){if(e.target===document.getElementById('dayOverlay'))closeDay();}
 
@@ -721,16 +738,16 @@ function closePrint(){document.getElementById('printModal').classList.remove('sh
 function buildPrint(){
   const dim=new Date(printYear,printMonth+1,0).getDate();
   const md=(data[printYear]||{})[printMonth]||{};
-  const tot={Silke:{w:0,u:0},Martina:{w:0,u:0},Sandra:{w:0,u:0}};
+  const tot={}; getPersons().forEach(p=>tot[p]={w:0,u:0});
   for(let d=1;d<=dim;d++){
     const e=md[d]||{};
-    PERSONS.forEach(p=>{
+    getPersons().forEach(p=>{
       const v=e[p];
       if(v==='Urlaub'){tot[p].u++;tot[p].w+=3.33;}
       else if(v&&settings.shifts[v])tot[p].w+=calcHours(v);
     });
   }
-  PERSONS.forEach(p=>tot[p].w=Math.round(tot[p].w*100)/100);
+  getPersons().forEach(p=>tot[p].w=Math.round(tot[p].w*100)/100);
 
   const fmt=n=>n.toString().replace('.',',');
 
@@ -742,7 +759,7 @@ function buildPrint(){
     const cls=isSun?'sun-row':'';
     const e=md[d]||{};
     rows+=`<tr class="${cls}"><td class="col-nr">${String(d).padStart(2,'0')}</td><td class="col-wd">${WD_PRINT[wd]}</td>`;
-    PERSONS.forEach(p=>{
+    getPersons().forEach(p=>{
       const v=e[p];
       if(!v){rows+=`<td class="col-az"></td><td class="col-pa"></td><td class="col-st"></td>`;}
       else if(v==='Urlaub'){rows+=`<td class="col-az">U</td><td class="col-pa">-</td><td class="col-st">3,33</td>`;}
@@ -752,39 +769,34 @@ function buildPrint(){
         rows+=`<td class="col-az">${shiftTimeStr(v)}</td><td class="col-pa">${fmt(s.pause)}</td><td class="col-st">${fmt(calcHours(v))}</td>`;
       }
     });
-    rows+=`<td class="col-son"></td></tr>`;
+    const _hw=isHoliday(printYear,printMonth,d);
+    rows+=`<td class="col-son" style="font-size:6pt;text-align:left;padding-left:2px">${_hw||''}</td></tr>`;
   }
 
   const navTitle=document.getElementById('printNavTitle');if(navTitle)navTitle.textContent=MONTHS[printMonth]+' '+printYear;
   document.getElementById('printArea').innerHTML=`
 <div class="plan-title">Schichtplan ${MONTHS[printMonth]} ${printYear}</div>
 <table class="plan-table">
-<colgroup>
-  <col class="col-nr"><col class="col-wd">
-  <col class="col-az"><col class="col-pa"><col class="col-st">
-  <col class="col-az"><col class="col-pa"><col class="col-st">
-  <col class="col-az"><col class="col-pa"><col class="col-st">
-  <col class="col-son">
-</colgroup>
+${(()=>{const _cg='<colgroup><col class="col-nr"><col class="col-wd">'+getPersons().map(()=>'<col class="col-az"><col class="col-pa"><col class="col-st">').join('')+'<col class="col-son"></colgroup>';return _cg;})()}
 <thead>
 <tr>
   <th rowspan="2" class="col-nr">#</th>
   <th rowspan="2" class="col-wd">Tag</th>
-${PERSONS.map((p,i)=>{const pi=settings.persons&&settings.persons[p]||{name:p,vertr:87,delta:''};const col=pi.color||COLORS_DEFAULT[p]||'#3b82f6';const bg=col+'22';return`<th colspan="3" style="background:${bg};color:${col};text-align:left;padding:3px 5px">Name: ${pi.name}<br><span style="font-weight:400;font-size:5.5pt">Vertr.Std. ${pi.vertr}&nbsp;&nbsp;+/- Std ${pi.delta}</span></th>`;}).join('')}
+${getPersons().map((p,i)=>{const pi=settings.persons&&settings.persons[p]||{name:p,vertr:87,delta:''};const col=pi.color||COLORS_DEFAULT[p]||'#3b82f6';const bg=col+'22';return`<th colspan="3" style="background:${bg};color:${col};text-align:left;padding:3px 5px">Name: ${pi.name}<br><span style="font-weight:400;font-size:5.5pt">Vertr.Std. ${pi.vertr}&nbsp;&nbsp;+/- Std ${pi.delta}</span></th>`;}).join('')}
   <th rowspan="2" class="col-son">Sonstiges</th>
 </tr>
 <tr>
-${PERSONS.map(p=>`<th class="sub-th col-az">Arbeitszeit</th><th class="sub-th col-pa">Pause</th><th class="sub-th col-st">Std</th>`).join('')}
+${getPersons().map(p=>`<th class="sub-th col-az">Arbeitszeit</th><th class="sub-th col-pa">Pause</th><th class="sub-th col-st">Std</th>`).join('')}
 </tr>
 </thead>
 <tbody>${rows}</tbody>
 <tfoot>
 <tr class="total-row"><td colspan="2">Arbeitsstunden</td>
-${PERSONS.map(p=>`<td colspan="3">${fmt(Math.round((tot[p].w-tot[p].u*3.33)*100)/100)}</td>`).join('')}<td></td></tr>
+${getPersons().map(p=>`<td colspan="3">${fmt(Math.round(((tot[p]||{w:0,u:0}).w-(tot[p]||{w:0,u:0}).u*3.33)*100)/100)}</td>`).join('')}<td></td></tr>
 <tr class="total-row"><td colspan="2">Urlaubsstunden</td>
-${PERSONS.map(p=>`<td colspan="3">${fmt(Math.round(tot[p].u*3.33*100)/100)}</td>`).join('')}<td></td></tr>
+${getPersons().map(p=>`<td colspan="3">${fmt(Math.round((tot[p]||{w:0,u:0}).u*3.33*100)/100)}</td>`).join('')}<td></td></tr>
 <tr class="total-row" style="border-top:2px solid #888"><td colspan="2">Gesamtstunden</td>
-${PERSONS.map(p=>`<td colspan="3" style="font-size:8pt">${fmt(Math.round(tot[p].w*100)/100)}</td>`).join('')}<td></td></tr>
+${getPersons().map(p=>`<td colspan="3" style="font-size:8pt">${fmt(Math.round((tot[p]||{w:0,u:0}).w*100)/100)}</td>`).join('')}<td></td></tr>
 </tfoot>
 </table>`;
 }
