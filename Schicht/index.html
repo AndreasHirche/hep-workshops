@@ -585,11 +585,65 @@ function _commitDay(){
 
 function _makeBtn(shift,p){
   const btn=document.createElement('div');
-  btn.className='entry-btn';btn.textContent=INITIALS[p];
-  const key=p.slice(0,2).toLowerCase();
-  if(editSelections[p]===shift)btn.classList.add('sel-'+key);
+  btn.className='entry-btn';
+  const pi=settings.persons&&settings.persons[p]||{};
+  const initials=INITIALS[p]||(pi.name||p).slice(0,2).toUpperCase();
+  btn.textContent=initials;
+  btn.style.borderColor='transparent';
+  if(editSelections[p]===shift){
+    btn.style.borderColor=pColor(p);
+    btn.style.background=pColor(p)+'33';
+    btn.style.color=pColor(p);
+  }
   btn.onclick=()=>toggleEntry(p,shift);
   return btn;
+}
+function _makeHeader(parent, persons){
+  // First cell: row label placeholder
+  const blank=document.createElement('div');blank.className='entry-row-label';parent.appendChild(blank);
+  persons.forEach(p=>{
+    const h=document.createElement('div');h.className='entry-col-header';
+    const pi=settings.persons&&settings.persons[p]||{};
+    const dn=(pi.name||p).split(',')[1]?((pi.name||p).split(',')[1].trim().split(' ')[0]):(pi.name||p).split(' ')[0]||p;
+    h.style.color=pColor(p);h.textContent=dn;parent.appendChild(h);
+  });
+}
+function renderEntryGrid(){
+  const grid=document.getElementById('entryGrid');
+  grid.innerHTML='';
+  const persons=getPersons();
+  const nc=persons.length;
+  const cd='80px '+Array(nc).fill('1fr').join(' ');
+  grid.style.gridTemplateColumns=cd;
+
+  // ── Section: Abwesenheit ──────────────────────────────────
+  const secUF=document.createElement('div');secUF.className='entry-section-uf';
+  secUF.style.gridTemplateColumns=cd;
+  const lblUF=document.createElement('div');lblUF.className='entry-section-label';
+  lblUF.textContent='Abwesenheit';secUF.appendChild(lblUF);
+  _makeHeader(secUF, persons);
+  ['Urlaub','frei'].forEach(shift=>{
+    const lbl=document.createElement('div');lbl.className='entry-row-label';
+    lbl.innerHTML=shift+(shift==='Urlaub'?'<span style="font-size:.7rem;color:var(--muted);font-weight:400;display:block">3,33 Std</span>':'');
+    secUF.appendChild(lbl);
+    persons.forEach(p=>secUF.appendChild(_makeBtn(shift,p)));
+  });
+  grid.appendChild(secUF);
+
+  // ── Section: Schichten ────────────────────────────────────
+  const secS=document.createElement('div');secS.className='entry-section-shifts';
+  secS.style.gridTemplateColumns=cd;
+  const lblS=document.createElement('div');lblS.className='entry-section-label';
+  lblS.textContent='Schichten';secS.appendChild(lblS);
+  _makeHeader(secS, persons);
+  ['Früh','Mittel','Spät'].forEach(shift=>{
+    const s=settings.shifts[shift];
+    const lbl=document.createElement('div');lbl.className='entry-row-label';
+    lbl.innerHTML=shift+(s?'<span style="font-size:.68rem;color:var(--muted);font-weight:400;display:block">'+s.start+'–'+s.end+'</span>':'');
+    secS.appendChild(lbl);
+    persons.forEach(p=>secS.appendChild(_makeBtn(shift,p)));
+  });
+  grid.appendChild(secS);
 }
 function _makeHeader(parent){
   const blank=document.createElement('div');blank.className='entry-row-label';parent.appendChild(blank);
