@@ -539,11 +539,11 @@ function _loadEditDay(){
   const date=new Date(curYear,curMonth,editDay);
   const hw=isHoliday(curYear,curMonth,editDay);
   const sheet=document.getElementById('daySheet');
-  sheet.style.border=hw?'2px solid rgba(150,150,150,0.6)':'';
-  sheet.style.background=hw?'rgba(110,110,110,0.07)':'';
+  sheet.style.border=hw?'2px solid rgba(150,150,150,0.7)':'';
+  sheet.style.background='';
   document.getElementById('dayTitle').innerHTML=
     editDay+'. '+MONTHS[curMonth]+' <span>'+WD_LONG[date.getDay()]+'</span>'+
-    (hw?'<div style="margin-top:4px;font-size:.82rem;font-weight:600;color:#d1d5db;background:rgba(120,120,120,0.18);border-radius:6px;padding:3px 10px;display:inline-block">🎉 '+hw+'</div>':'');
+    (hw?'<div style="margin-top:5px;font-size:.85rem;font-weight:700;color:#f1f5f9;background:#374151;border-radius:6px;padding:4px 12px;display:inline-block">🎉 '+hw+'</div>':'');
   const entry=((data[curYear]||{})[curMonth]||{})[editDay]||{};
   editSelections={}; getPersons().forEach(p=>editSelections[p]=entry[p]||null);
   renderEntryGrid();
@@ -552,6 +552,9 @@ function _loadEditDay(){
 function navigateDay(delta){
   // save current silently
   _commitDay();
+  // reset holiday styling before loading next day
+  const _sheet=document.getElementById('daySheet');
+  if(_sheet){_sheet.style.border='';_sheet.style.background='';}
   const dim=new Date(curYear,curMonth+1,0).getDate();
   let next=editDay+delta;
   // skip Sundays
