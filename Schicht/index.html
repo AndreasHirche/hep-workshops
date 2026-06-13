@@ -65,11 +65,10 @@
 
 /* ── GLITTER EFFECTS ── */
 .glitter-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-.glitter-particle{position:absolute;border-radius:50%;animation:glitter-float linear infinite;opacity:0}
-@keyframes glitter-float{
-  0%{transform:translateY(100vh) rotate(0deg);opacity:0}
-  10%{opacity:.7}90%{opacity:.5}
-  100%{transform:translateY(-10vh) rotate(720deg);opacity:0}
+.glitter-particle{position:absolute;border-radius:50%;animation:glitter-twinkle ease-in-out infinite;opacity:0}
+@keyframes glitter-twinkle{
+  0%,100%{opacity:0;transform:scale(0.5) rotate(0deg)}
+  50%{opacity:.85;transform:scale(1.3) rotate(180deg)}
 }
 
 /* ── 3D CHIPS ── */
@@ -1027,16 +1026,21 @@ addSwipe(document.getElementById('daySheet'),()=>navigateDay(1),()=>navigateDay(
   const bg=document.getElementById('glitterBg');
   if(!bg)return;
   const colors=['#ffd700','#fff','#a78bfa','#3b82f6','#f97316','#22c55e'];
-  for(let i=0;i<28;i++){
+  for(let i=0;i<40;i++){
     const p=document.createElement('div');
     p.className='glitter-particle';
-    const size=2+Math.random()*4;
-    const delay=Math.random()*8;
-    const dur=6+Math.random()*8;
+    const size=1.5+Math.random()*4;
+    const delay=Math.random()*6;
+    const dur=1.5+Math.random()*3;
     const left=Math.random()*100;
+    const top=Math.random()*100;
     const color=colors[Math.floor(Math.random()*colors.length)];
-    p.style.cssText=`width:${size}px;height:${size}px;left:${left}%;background:${color};`
-      +`animation-duration:${dur}s;animation-delay:${delay}s;box-shadow:0 0 ${size*2}px ${color}`;
+    // 4-point star shape via clip-path for some
+    const isStar=Math.random()>.5;
+    p.style.cssText=`width:${size}px;height:${size}px;left:${left}%;top:${top}%;background:${color};`
+      +`animation-duration:${dur}s;animation-delay:${delay}s;`
+      +`box-shadow:0 0 ${size*3}px ${color},0 0 ${size*6}px ${color}44;`
+      +(isStar?`clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);border-radius:0;`:'');
     bg.appendChild(p);
   }
 })();
