@@ -363,8 +363,8 @@
     <div class="pref-group" style="border-left:none;padding-left:0;margin-left:0">
       <span class="pref-group-label">Mode</span>
       <div class="pref-group-row">
-        <button id="past-toggle-btn" class="phase-toggle" onclick="togglePast()">📅 Past</button>
-        <button id="view-toggle-btn" class="view-toggle org-active" onclick="toggleView()">🔑 Organizer</button>
+        <button id="past-toggle-btn" class="phase-toggle" onclick="togglePastRows()">📅 Past</button>
+        <button id="view-toggle-btn" class="view-toggle org-active" onclick="toggleViewMode()">🔑 Organizer</button>
         <button id="layout-toggle-btn" class="layout-toggle part-only" onclick="toggleLayout()">☰ List</button>
       </div>
     </div>
@@ -1168,7 +1168,13 @@ function toggleViewMode() {
   if (filters.size) applyFilters();
 })();
 
-Object.assign(window, {toggleMapMode, calNav, calClick, closePanel, toggleAllUpcoming, toggleViewMode, toggleLayout});
+function togglePastRows(){
+  showPast=!showPast;
+  const btn=document.getElementById("past-toggle-btn");
+  if(btn){btn.classList.toggle("active",showPast);}
+  filterRows();
+}
+Object.assign(window, {toggleMapMode, calNav, calClick, closePanel, toggleAllUpcoming, toggleViewMode, toggleLayout, togglePastRows});
 window.addEventListener('resize', () => { clearTimeout(window._calResT); window._calResT = setTimeout(renderCal, 120); });
 
 // ── Agenda column ─────────────────────────────────────────────────────────────
