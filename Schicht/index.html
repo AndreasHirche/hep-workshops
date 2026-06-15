@@ -920,7 +920,7 @@ function setupPrintAreaEditing(){
   if(!area)return;
   if(!_printAreaListenerAttached){
     area.addEventListener('click',function(e){
-      const td=e.target.closest('td');
+      const td=e.target.closest('td,th');
       if(!td||!area.contains(td))return;
       openCellEditor(td,e);
     });
