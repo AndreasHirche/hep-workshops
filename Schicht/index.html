@@ -908,9 +908,84 @@ ${getPrintPersons().map(p=>`<td colspan="3">${fmt(Math.round((tot[p]||{w:0,u:0})
 ${getPrintPersons().map(p=>`<td colspan="3" style="font-size:8pt">${fmt(Math.round((tot[p]||{w:0,u:0}).w*100)/100)}</td>`).join('')}<td></td></tr>
 </tfoot>
 </table>`;
+  // Wire up cell editing via event delegation
+  setupPrintAreaEditing();
 }
 
-// ── GitHub Sync ───────────────────────────────────────────────────────────
+// ── Print cell editor ─────────────────────────────────────────────────────
+let _printAreaListenerAttached=false;
+function setupPrintAreaEditing(){
+  const area=document.getElementById('printArea');
+  if(!area)return;
+  if(!_printAreaListenerAttached){
+    area.addEventListener('click',function(e){
+      const td=e.target.closest('td');
+      if(!td||!area.contains(td))return;
+      openCellEditor(td,e);
+    });
+    _printAreaListenerAttached=true;
+  }
+}
+function openCellEditor(td,evt){
+  const old=document.getElementById('_cellEditor');
+  if(old)old.remove();
+  let styled=false;
+  const rawText=td.innerText||td.textContent||'';
+  const editor=document.createElement('div');
+  editor.id='_cellEditor';
+  editor.style.cssText='position:fixed;z-index:400;background:#1e293b;color:#f1f5f9;border-radius:10px;padding:10px 12px;box-shadow:0 8px 32px rgba(0,0,0,0.5);min-width:200px;max-width:280px;display:flex;flex-direction:column;gap:7px;border:1px solid #334155;';
+  const rect=td.getBoundingClientRect();
+  const left=Math.min(rect.left,window.innerWidth-292);
+  const top=rect.bottom+4+window.scrollY;
+  editor.style.left=Math.max(4,left)+'px';
+  editor.style.top=top+'px';
+  const ta=document.createElement('textarea');
+  ta.value=rawText;
+  ta.style.cssText='width:100%;min-height:52px;background:#0f172a;color:#f1f5f9;border:1px solid #475569;border-radius:6px;padding:6px 8px;font-size:.82rem;font-family:inherit;resize:vertical;outline:none;';
+  editor.appendChild(ta);
+  const toggleBtn=document.createElement('button');
+  toggleBtn.textContent='⚪ Kursiv/Blau';
+  toggleBtn.style.cssText='padding:6px 10px;border-radius:7px;border:1px solid #475569;background:transparent;color:#94a3b8;font-size:.78rem;font-weight:600;cursor:pointer;text-align:left;';
+  toggleBtn.onclick=function(){
+    styled=!styled;
+    toggleBtn.textContent=styled?'🔵 Kursiv/Blau':'⚪ Kursiv/Blau';
+    toggleBtn.style.background=styled?'rgba(37,99,235,0.25)':'transparent';
+    toggleBtn.style.color=styled?'#93c5fd':'#94a3b8';
+    toggleBtn.style.borderColor=styled?'#2563eb':'#475569';
+  };
+  editor.appendChild(toggleBtn);
+  const existingSpan=td.querySelector('span[style*="color:#2563eb"]');
+  if(existingSpan){styled=true;toggleBtn.click();}
+  const btns=document.createElement('div');
+  btns.style.cssText='display:flex;gap:6px;';
+  const okBtn=document.createElement('button');
+  okBtn.textContent='OK';
+  okBtn.style.cssText='flex:2;padding:7px;border-radius:7px;border:none;background:#2563eb;color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;';
+  okBtn.onclick=function(){
+    const txt=ta.value;
+    if(styled){
+      td.innerHTML='<span style="color:#2563eb;font-style:italic">'+txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span>';
+    }else{
+      td.textContent=txt;
+    }
+    editor.remove();
+  };
+  const cancelBtn=document.createElement('button');
+  cancelBtn.textContent='✕';
+  cancelBtn.style.cssText='flex:1;padding:7px;border-radius:7px;border:1px solid #475569;background:transparent;color:#94a3b8;font-size:.82rem;font-weight:600;cursor:pointer;';
+  cancelBtn.onclick=function(){editor.remove();};
+  btns.appendChild(okBtn);btns.appendChild(cancelBtn);
+  editor.appendChild(btns);
+  document.body.appendChild(editor);
+  ta.focus();ta.select();
+  setTimeout(()=>{
+    function outsideClick(ev){
+      if(!editor.contains(ev.target)){editor.remove();document.removeEventListener('mousedown',outsideClick);}
+    }
+    document.addEventListener('mousedown',outsideClick);
+  },100);
+}
+
 // ── GitHub Sync (always-on, no login needed) ────────────────────────────
 const GH_RAW  = 'https://raw.githubusercontent.com/AndreasHirche/Schicht/main/data.json';
 const GH_API  = 'https://api.github.com/repos/AndreasHirche/Schicht/contents/data.json';
@@ -1013,11 +1088,46 @@ addSwipe(document.getElementById('daySheet'),()=>navigateDay(1),()=>navigateDay(
 
 // ── Init ──────────────────────────────────────────────────────────────────
 
+// ── Elfenzauber sound ─────────────────────────────────────────────────────
+function elfSound(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    // C6=1047, E6=1319, G6=1568, C7=2093
+    const notes=[1047,1319,1568,2093];
+    notes.forEach((freq,i)=>{
+      const t=ctx.currentTime+i*0.8;
+      // Main oscillator
+      const osc=ctx.createOscillator();
+      osc.type='sine';
+      osc.frequency.setValueAtTime(freq,t);
+      // Vibrato LFO
+      const lfo=ctx.createOscillator();
+      lfo.type='sine';
+      lfo.frequency.setValueAtTime(6,t);
+      const lfoGain=ctx.createGain();
+      lfoGain.gain.setValueAtTime(freq*0.012,t);
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+      // Gain envelope: attack 0.02s, decay 0.4s
+      const gain=ctx.createGain();
+      gain.gain.setValueAtTime(0,t);
+      gain.gain.linearRampToValueAtTime(0.28,t+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001,t+0.3+0.4);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t+0.32+0.4);
+      lfo.start(t);
+      lfo.stop(t+0.32+0.4);
+    });
+  }catch(e){}
+}
+
 // ── Splash screen ─────────────────────────────────────────────────────────
 (function(){
   const splash=document.getElementById('splash');
   // Open curtain after short delay
-  setTimeout(()=>{splash.classList.add('splash-open');},600);
+  setTimeout(()=>{splash.classList.add('splash-open');elfSound();},600);
   setTimeout(()=>{splash.classList.add('done');},2300);
 })();
 
