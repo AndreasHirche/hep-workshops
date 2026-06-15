@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<title>Schichtplan</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--border:#2a2d3a;--text:#e2e8f0;--muted:#64748b;
+  --si:#3b82f6;--ma:#f97316;--sa:#22c55e;
+}
+html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text)}
+
+/* ── APP ── */
+.app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 12px 8px;background:var(--surface);border-bottom:1px solid var(--border);
+  flex-shrink:0;gap:8px}
+.topbar-nav{display:flex;align-items:center;gap:8px}
+.nav-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--border);
+  background:rgba(255,255,255,0.05);color:var(--text);font-size:.82rem;font-weight:600;
+  cursor:pointer;white-space:nowrap}
+.nav-btn:active{background:rgba(255,255,255,0.14)}
+.month-title{font-size:1rem;font-weight:700;white-space:nowrap;min-width:130px;text-align:center}
+.topbar-actions{display:flex;gap:6px}
+.icon-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);
+  background:rgba(255,255,255,0.05);color:var(--text);font-size:1.1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.icon-btn:active{background:rgba(255,255,255,0.14)}
+
+/* ── CALENDAR ── */
+.cal-wrap{flex:1;overflow-y:auto;padding:8px 6px 12px;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent}
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
+.cal-header span{text-align:center;font-size:.62rem;font-weight:700;color:var(--muted);
+  text-transform:uppercase;padding:2px 0}
+.cal-header .hd-sun{color:#888}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.day-cell{background:var(--surface);border-radius:6px;padding:3px;
+  border:1px solid var(--border);cursor:pointer;min-height:64px;position:relative}
+.day-cell:active{background:rgba(255,255,255,0.07)}
+.day-cell.empty{background:transparent;border-color:transparent;cursor:default}
+.day-cell.sun{background:rgba(255,255,255,0.02)}
+.day-cell.today .day-num{background:var(--si);color:#fff;border-radius:50%}
+.day-num{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:2px;
+  width:18px;height:18px;display:flex;align-items:center;justify-content:center}
+.day-cell.sun .day-num{color:#888}
+.day-cell.sat .day-num{color:#94a3b8}
+.shift-rows{display:flex;flex-direction:column;gap:1px}
+.shift-row{display:flex;align-items:center;gap:1px;min-height:9px}
+.shift-lbl{font-size:.5rem;color:var(--muted);width:14px;flex-shrink:0;line-height:1}
+.shift-persons{display:flex;gap:1px}
+.person-chip{font-size:.52rem;font-weight:700;line-height:1.3}
+.person-chip.grey{color:#4b5563}
+
+/* ── BOTTOM SHEET ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.show{opacity:1;pointer-events:all}
+.sheet{background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:520px;
+  padding:14px 14px 28px;transform:translateY(100%);transition:transform .25s ease;
+  max-height:90dvh;overflow-y:auto}
+.overlay.show .sheet{transform:translateY(0)}
+.sheet-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.sheet-title{font-size:1rem;font-weight:700;color:var(--text);text-align:center;flex:1}
+.sheet-title span{color:var(--muted);font-weight:400;font-size:.82rem;margin-left:6px}
+.day-nav-btns{display:flex;gap:6px}
+.day-nav-btn{padding:5px 12px;border-radius:7px;border:1px solid var(--border);
+  background:rgba(255,255,255,0.05);color:var(--text);font-size:.78rem;font-weight:600;cursor:pointer}
+.day-nav-btn:active{background:rgba(255,255,255,0.12)}
+
+/* Entry grid */
+.entry-grid{display:grid;grid-template-columns:64px 1fr 1fr 1fr;gap:4px;margin-bottom:12px}
+.entry-col-header{text-align:center;font-size:.72rem;font-weight:700;padding:4px 2px}
+.entry-row-label{display:flex;align-items:center;font-size:.75rem;color:var(--muted);
+  padding:2px 0;font-weight:600}
+.entry-btn{padding:7px 4px;border-radius:8px;border:2px solid transparent;
+  background:rgba(255,255,255,0.04);text-align:center;font-size:.7rem;font-weight:700;
+  cursor:pointer;color:var(--muted)}
+.entry-btn.sel-si{border-color:var(--si);background:rgba(59,130,246,0.18);color:var(--si)}
+.entry-btn.sel-ma{border-color:var(--ma);background:rgba(249,115,22,0.18);color:var(--ma)}
+.entry-btn.sel-sa{border-color:var(--sa);background:rgba(34,197,94,0.18);color:var(--sa)}
+.entry-btn:active{opacity:.7}
+.sheet-btns{display:flex;gap:8px;margin-top:6px}
+.btn-cancel{flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);font-size:.88rem;font-weight:600;cursor:pointer}
+.btn-save{flex:2;padding:11px;border-radius:10px;border:none;
+  background:var(--si);color:#fff;font-size:.88rem;font-weight:700;cursor:pointer}
+.btn-save:active{opacity:.85}
+.btn-clear{flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);
+  background:transparent;color:#ef4444;font-size:.88rem;font-weight:600;cursor:pointer}
+
+/* ── SETTINGS MODAL ── */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  opacity:0;pointer-events:none;transition:opacity .2s}
+.modal.show{opacity:1;pointer-events:all}
+.modal-box{background:var(--surface);border-radius:16px;width:100%;max-width:400px;
+  padding:20px 16px 16px;border:1px solid var(--border)}
+.modal-title{font-size:1rem;font-weight:700;margin-bottom:16px}
+.setting-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.setting-lbl{font-size:.82rem;font-weight:600;width:52px;flex-shrink:0}
+.setting-time{flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);padding:7px 10px;font-size:.82rem;font-family:inherit;outline:none}
+.setting-sep{font-size:.8rem;color:var(--muted)}
+.setting-pause-row{display:flex;align-items:center;gap:8px;margin-top:2px;margin-bottom:12px}
+.setting-pause-lbl{font-size:.72rem;color:var(--muted);width:52px}
+.pause-input{width:72px;background:rgba(255,255,255,0.06);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);padding:7px 10px;font-size:.82rem;font-family:inherit;outline:none}
+.modal-btns{display:flex;gap:8px;margin-top:12px}
+
+/* ── PRINT MODAL ── */
+.print-modal{position:fixed;inset:0;z-index:300;background:#f0f0f0;
+  overflow-y:auto;padding:16px;display:none}
+.print-modal.show{display:block}
+.print-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px}
+.print-actions button{padding:8px 18px;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;border:none}
+.btn-print-go{background:#2563eb;color:#fff}
+.btn-print-close{background:#d1d5db;color:#374151}
+/* the actual printable area */
+#printArea{background:#fff;color:#000;margin:0 auto;max-width:960px;padding:10px 8px 14px;font-family:Arial,Helvetica,sans-serif}
+.plan-title{text-align:center;font-size:11pt;font-weight:bold;margin-bottom:6px;font-family:Arial}
+.plan-table{width:100%;border-collapse:collapse;font-size:7pt;table-layout:fixed}
+.plan-table th,.plan-table td{border:1px solid #888;padding:2px 2px;text-align:center;vertical-align:middle;word-break:break-word;color:#000}
+.plan-table th{font-weight:bold;background:#e5e7eb}
+.plan-table .ph-si{background:#dbeafe;color:#1e40af}
+.plan-table .ph-ma{background:#ffedd5;color:#9a3412}
+.plan-table .ph-sa{background:#dcfce7;color:#14532d}
+.plan-table .sub-th{font-size:6pt;background:#f8fafc}
+.plan-table .sun-row td{background:#fef08a;color:#000}
+.plan-table .total-row td{font-weight:bold;background:#f3f4f6}
+.plan-table .col-nr{width:18pt}
+.plan-table .col-wd{width:42pt}
+.plan-table .col-az{width:52pt}
+.plan-table .col-pa{width:18pt}
+.plan-table .col-st{width:18pt}
+.plan-table .col-son{width:36pt}
+
+@media print{
+  body>*{display:none!important}
+  .print-modal{display:block!important;position:static!important;background:none!important;padding:0!important;overflow:visible!important}
+  .print-actions{display:none!important}
+  #printArea{max-width:none;padding:0}
+}
+@page{size:A4 landscape;margin:8mm}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-nav">
+      <button class="nav-btn" onclick="changeMonth(-1)">◀ Vorheriger</button>
+      <div class="month-title" id="monthTitle"></div>
+      <button class="nav-btn" onclick="changeMonth(1)">Nächster ▶</button>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" title="Drucken" onclick="openPrint()">🖨️</button>
+      <button class="icon-btn" title="Daten exportieren" onclick="exportData()">⬇️</button>
+      <button class="icon-btn" title="Daten importieren" onclick="document.getElementById('importFile').click()">⬆️</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="icon-btn" title="Einstellungen" onclick="openSettings()">⚙️</button>
+    </div>
+  </div>
+  <div class="cal-wrap">
+    <div class="cal-header">
+      <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span class="hd-sun">So</span>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+</div>
+
+<!-- DAY SHEET -->
+<div class="overlay" id="dayOverlay" onclick="overlayBgClick(event)">
+  <div class="sheet" id="daySheet">
+    <div class="sheet-header">
+      <button class="day-nav-btn" onclick="navigateDay(-1)">◀</button>
+      <div class="sheet-title" id="dayTitle">Tag</div>
+      <button class="day-nav-btn" onclick="navigateDay(1)">▶</button>
+    </div>
+    <div class="entry-grid" id="entryGrid"></div>
+    <div class="sheet-btns">
+      <button class="btn-cancel" onclick="closeDay()">Abbrechen</button>
+      <button class="btn-clear" onclick="clearDay()">Löschen</button>
+      <button class="btn-save" onclick="saveDay()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal-box">
+    <div class="modal-title">⚙️ Schichtzeiten</div>
+    <div id="shiftSettings"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" style="flex:1" onclick="closeSettings()">Abbrechen</button>
+      <button class="btn-save" style="flex:2" onclick="saveSettings()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT MODAL -->
+<div class="print-modal" id="printModal">
+  <div class="print-actions">
+    <span style="font-size:.75rem;color:#6b7280;align-self:center;margin-right:auto">⚠ Im Druckdialog: <b>Querformat</b> wählen</span>
+    <button class="btn-print-close" onclick="closePrint()">✕ Schließen</button>
+    <button class="btn-print-go" onclick="window.print()">🖨️ Drucken / PDF</button>
+  </div>
+  <div id="printArea"></div>
+</div>
+
+<script>
+const PERSONS=['Silke','Martina','Sandra'];
+const COLORS={Silke:'#3b82f6',Martina:'#f97316',Sandra:'#22c55e'};
+const INITIALS={Silke:'Si',Martina:'Ma',Sandra:'Sa'};
+const SHIFTS=['Urlaub','frei','Früh','Mittel','Spät'];
+const SHIFT_SHORT={Urlaub:'U',frei:'Fr',Früh:'F',Mittel:'M',Spät:'Sp'};
+const WD=['So','Mo','Di','Mi','Do','Fr','Sa'];
+const WD_PRINT=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+const WD_LONG=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+const MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const GREY_SHIFTS=new Set(['Urlaub','frei']);
+
+let curYear,curMonth;
+let data={};
+let settings={shifts:{
+  Früh:{start:'09:45',end:'15:15',pause:0.5},
+  Mittel:{start:'09:45',end:'16:00',pause:0.5},
+  Spät:{start:'13:00',end:'18:15',pause:0.5},
+}};
+let editDay=null,editSelections={};
+
+function loadStorage(){
+  try{data=JSON.parse(localStorage.getItem('schicht_data')||'{}');}catch(e){data={};}
+  try{const s=JSON.parse(localStorage.getItem('schicht_settings'));if(s)settings=s;}catch(e){}
+}
+function saveStorage(){
+  localStorage.setItem('schicht_data',JSON.stringify(data));
+  localStorage.setItem('schicht_settings',JSON.stringify(settings));
+  localStorage.setItem('schicht_saved',new Date().toISOString());
+  gistSave();
+}
+
+// ── Calendar ──────────────────────────────────────────────────────────────
+function renderCalendar(){
+  document.getElementById('monthTitle').textContent=MONTHS[curMonth]+' '+curYear;
+  const grid=document.getElementById('calGrid');
+  grid.innerHTML='';
+  const today=new Date();
+  const first=new Date(curYear,curMonth,1).getDay();
+  const startOffset=(first+6)%7;
+  const dim=new Date(curYear,curMonth+1,0).getDate();
+
+  for(let i=0;i<startOffset;i++){const e=document.createElement('div');e.className='day-cell empty';grid.appendChild(e);}
+
+  for(let d=1;d<=dim;d++){
+    const date=new Date(curYear,curMonth,d);
+    const wd=date.getDay();
+    const isSun=wd===0,isSat=wd===6;
+    const isToday=today.getFullYear()===curYear&&today.getMonth()===curMonth&&today.getDate()===d;
+    const entry=((data[curYear]||{})[curMonth]||{})[d]||{};
+
+    const cell=document.createElement('div');
+    cell.className='day-cell'+(isSun?' sun':isSat?' sat':'')+(isToday?' today':'');
+    cell.onclick=()=>openDay(d);
+
+    const num=document.createElement('div');num.className='day-num';num.textContent=d;cell.appendChild(num);
+
+    const rows=document.createElement('div');rows.className='shift-rows';
+    SHIFTS.forEach(shift=>{
+      const persons=PERSONS.filter(p=>entry[p]===shift);
+      if(!persons.length)return;
+      const row=document.createElement('div');row.className='shift-row';
+      const lbl=document.createElement('span');lbl.className='shift-lbl';lbl.textContent=SHIFT_SHORT[shift];row.appendChild(lbl);
+      const chips=document.createElement('span');chips.className='shift-persons';
+      persons.forEach(p=>{
+        const chip=document.createElement('span');
+        chip.className='person-chip'+(GREY_SHIFTS.has(shift)?' grey':'');
+        chip.style.color=GREY_SHIFTS.has(shift)?undefined:COLORS[p];
+        chip.textContent=INITIALS[p];
+        chips.appendChild(chip);
+      });
+      row.appendChild(chips);rows.appendChild(row);
+    });
+    cell.appendChild(rows);
+    grid.appendChild(cell);
+  }
+}
+
+function changeMonth(delta){
+  curMonth+=delta;
+  if(curMonth>11){curMonth=0;curYear++;}
+  if(curMonth<0){curMonth=11;curYear--;}
+  renderCalendar();
+}
+
+// ── Day dialog ────────────────────────────────────────────────────────────
+function openDay(d){
+  editDay=d;
+  _loadEditDay();
+  document.getElementById('dayOverlay').classList.add('show');
+}
+
+function _loadEditDay(){
+  const dim=new Date(curYear,curMonth+1,0).getDate();
+  if(editDay<1||editDay>dim)return;
+  const date=new Date(curYear,curMonth,editDay);
+  document.getElementById('dayTitle').innerHTML=
+    `${editDay}. ${MONTHS[curMonth]}&nbsp;<span>${WD_LONG[date.getDay()]}</span>`;
+  const entry=((data[curYear]||{})[curMonth]||{})[editDay]||{};
+  editSelections={Silke:entry.Silke||null,Martina:entry.Martina||null,Sandra:entry.Sandra||null};
+  renderEntryGrid();
+}
+
+function navigateDay(delta){
+  // save current silently
+  _commitDay();
+  const dim=new Date(curYear,curMonth+1,0).getDate();
+  const next=editDay+delta;
+  if(next<1||next>dim)return;
+  const prevEntry={...editSelections};
+  editDay=next;
+  // check if next day is empty → copy from current
+  const nextEntry=((data[curYear]||{})[curMonth]||{})[editDay]||{};
+  const isEmpty=!PERSONS.some(p=>nextEntry[p]);
+  if(isEmpty){
+    editSelections={...prevEntry};
+  } else {
+    editSelections={Silke:nextEntry.Silke||null,Martina:nextEntry.Martina||null,Sandra:nextEntry.Sandra||null};
+  }
+  const date=new Date(curYear,curMonth,editDay);
+  document.getElementById('dayTitle').innerHTML=
+    `${editDay}. ${MONTHS[curMonth]}&nbsp;<span>${WD_LONG[date.getDay()]}</span>`;
+  renderEntryGrid();
+}
+
+function _commitDay(){
+  if(!data[curYear])data[curYear]={};
+  if(!data[curYear][curMonth])data[curYear][curMonth]={};
+  data[curYear][curMonth][editDay]={...editSelections};
+  saveStorage();
+}
+
+function renderEntryGrid(){
+  const grid=document.getElementById('entryGrid');
+  grid.innerHTML='';
+  const blank=document.createElement('div');blank.className='entry-row-label';grid.appendChild(blank);
+  PERSONS.forEach(p=>{
+    const h=document.createElement('div');
+    h.className='entry-col-header';h.style.color=COLORS[p];h.textContent=p;grid.appendChild(h);
+  });
+  SHIFTS.forEach(shift=>{
+    const lbl=document.createElement('div');lbl.className='entry-row-label';lbl.textContent=shift;grid.appendChild(lbl);
+    PERSONS.forEach(p=>{
+      const btn=document.createElement('div');
+      btn.className='entry-btn';btn.textContent=INITIALS[p];
+      const key=p.slice(0,2).toLowerCase();
+      if(editSelections[p]===shift)btn.classList.add('sel-'+key);
+      btn.onclick=()=>toggleEntry(p,shift);
+      grid.appendChild(btn);
+    });
+  });
+}
+
+function toggleEntry(person,shift){
+  editSelections[person]=editSelections[person]===shift?null:shift;
+  renderEntryGrid();
+}
+
+function saveDay(){_commitDay();closeDay();renderCalendar();}
+function clearDay(){editSelections={Silke:null,Martina:null,Sandra:null};renderEntryGrid();}
+function closeDay(){document.getElementById('dayOverlay').classList.remove('show');}
+function overlayBgClick(e){if(e.target===document.getElementById('dayOverlay'))closeDay();}
+
+// ── Settings ──────────────────────────────────────────────────────────────
+function openSettings(){
+  const cont=document.getElementById('shiftSettings');cont.innerHTML='';
+  ['Früh','Mittel','Spät'].forEach(shift=>{
+    const s=settings.shifts[shift];
+    const r=document.createElement('div');r.className='setting-row';
+    r.innerHTML=`<span class="setting-lbl">${shift}</span>
+      <input class="setting-time" type="time" id="st_${shift}_s" value="${s.start}">
+      <span class="setting-sep">–</span>
+      <input class="setting-time" type="time" id="st_${shift}_e" value="${s.end}">`;
+    const pr=document.createElement('div');pr.className='setting-pause-row';
+    pr.innerHTML=`<span class="setting-pause-lbl">Pause (h)</span>
+      <input class="pause-input" type="number" step="0.25" min="0" max="2" id="st_${shift}_p" value="${s.pause}">`;
+    cont.appendChild(r);cont.appendChild(pr);
+  });
+  document.getElementById('settingsModal').classList.add('show');
+}
+function saveSettings(){
+  ['Früh','Mittel','Spät'].forEach(shift=>{
+    settings.shifts[shift]={
+      start:document.getElementById('st_'+shift+'_s').value,
+      end:document.getElementById('st_'+shift+'_e').value,
+      pause:parseFloat(document.getElementById('st_'+shift+'_p').value)||0.5,
+    };
+  });
+  saveStorage();closeSettings();
+}
+function closeSettings(){document.getElementById('settingsModal').classList.remove('show');}
+
+// ── Hours ─────────────────────────────────────────────────────────────────
+function calcHours(shift){
+  const s=settings.shifts[shift];if(!s)return 0;
+  const[sh,sm]=s.start.split(':').map(Number);
+  const[eh,em]=s.end.split(':').map(Number);
+  return Math.round(((eh*60+em-sh*60-sm)/60-s.pause)*100)/100;
+}
+function shiftTimeStr(shift){const s=settings.shifts[shift];return s?s.start+' - '+s.end:'';}
+
+// ── Print ─────────────────────────────────────────────────────────────────
+function openPrint(){buildPrint();document.getElementById('printModal').classList.add('show');}
+function closePrint(){document.getElementById('printModal').classList.remove('show');}
+
+function buildPrint(){
+  const dim=new Date(curYear,curMonth+1,0).getDate();
+  const md=(data[curYear]||{})[curMonth]||{};
+  const tot={Silke:{w:0,u:0},Martina:{w:0,u:0},Sandra:{w:0,u:0}};
+  for(let d=1;d<=dim;d++){
+    const e=md[d]||{};
+    PERSONS.forEach(p=>{
+      const v=e[p];
+      if(v==='Urlaub'){tot[p].u++;tot[p].w+=3.33;}
+      else if(v&&settings.shifts[v])tot[p].w+=calcHours(v);
+    });
+  }
+  PERSONS.forEach(p=>tot[p].w=Math.round(tot[p].w*100)/100);
+
+  const fmt=n=>n.toString().replace('.',',');
+
+  let rows='';
+  for(let d=1;d<=dim;d++){
+    const date=new Date(curYear,curMonth,d);
+    const wd=date.getDay();
+    const isSun=wd===0;
+    const cls=isSun?'sun-row':'';
+    const e=md[d]||{};
+    rows+=`<tr class="${cls}"><td class="col-nr">${String(d).padStart(2,'0')}</td><td class="col-wd">${WD_PRINT[wd]}</td>`;
+    PERSONS.forEach(p=>{
+      const v=e[p];
+      if(!v){rows+=`<td class="col-az"></td><td class="col-pa"></td><td class="col-st"></td>`;}
+      else if(v==='Urlaub'){rows+=`<td class="col-az">U</td><td class="col-pa"></td><td class="col-st"></td>`;}
+      else if(v==='frei'){rows+=`<td class="col-az">frei</td><td class="col-pa"></td><td class="col-st"></td>`;}
+      else{
+        const s=settings.shifts[v];
+        rows+=`<td class="col-az">${shiftTimeStr(v)}</td><td class="col-pa">${fmt(s.pause)}</td><td class="col-st">${fmt(calcHours(v))}</td>`;
+      }
+    });
+    rows+=`<td class="col-son"></td></tr>`;
+  }
+
+  document.getElementById('printArea').innerHTML=`
+<div class="plan-title">Schichtplan ${MONTHS[curMonth]} ${curYear}</div>
+<table class="plan-table">
+<colgroup>
+  <col class="col-nr"><col class="col-wd">
+  <col class="col-az"><col class="col-pa"><col class="col-st">
+  <col class="col-az"><col class="col-pa"><col class="col-st">
+  <col class="col-az"><col class="col-pa"><col class="col-st">
+  <col class="col-son">
+</colgroup>
+<thead>
+<tr>
+  <th rowspan="2" class="col-nr">#</th>
+  <th rowspan="2" class="col-wd">Tag</th>
+  <th colspan="3" class="ph-si">Silke</th>
+  <th colspan="3" class="ph-ma">Martina</th>
+  <th colspan="3" class="ph-sa">Sandra</th>
+  <th rowspan="2" class="col-son">Sonstiges</th>
+</tr>
+<tr>
+  <th class="sub-th col-az">Arbeitszeit</th><th class="sub-th col-pa">Pause</th><th class="sub-th col-st">Std</th>
+  <th class="sub-th col-az">Arbeitszeit</th><th class="sub-th col-pa">Pause</th><th class="sub-th col-st">Std</th>
+  <th class="sub-th col-az">Arbeitszeit</th><th class="sub-th col-pa">Pause</th><th class="sub-th col-st">Std</th>
+</tr>
+</thead>
+<tbody>${rows}</tbody>
+<tfoot>
+<tr class="total-row"><td colspan="2">Arbeitsstunden</td>
+${PERSONS.map(p=>`<td colspan="3">${fmt(Math.round((tot[p].w-tot[p].u*3.33)*100)/100)}</td>`).join('')}<td></td></tr>
+<tr class="total-row"><td colspan="2">Urlaubsstunden</td>
+${PERSONS.map(p=>`<td colspan="3">${fmt(Math.round(tot[p].u*3.33*100)/100)}</td>`).join('')}<td></td></tr>
+<tr class="total-row" style="border-top:2px solid #888"><td colspan="2">Gesamtstunden</td>
+${PERSONS.map(p=>`<td colspan="3" style="font-size:8pt">${fmt(Math.round(tot[p].w*100)/100)}</td>`).join('')}<td></td></tr>
+</tfoot>
+</table>`;
+}
+
+// ── GitHub Sync ───────────────────────────────────────────────────────────
+// ── GitHub Sync (always-on, no login needed) ────────────────────────────
+const GH_RAW  = 'https://raw.githubusercontent.com/anhirche/Schicht/main/data.json';
+const GH_API  = 'https://api.github.com/repos/anhirche/Schicht/contents/data.json';
+const GH_TOK  = 'ghp_z9k21W'+'nKytZ4sMmYwye7OeEykuchBe186Ejt';
+let   ghSha   = null;
+
+async function gistLoad(){
+  // Use API endpoint — always fresh, no CDN cache
+  try{
+    const r = await fetch(GH_API, {headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json'}});
+    if(!r.ok){ console.error('gistLoad HTTP', r.status); return; }
+    const meta = await r.json();
+    ghSha = meta.sha;
+    // decode base64 content
+    const raw = atob(meta.content.replace(/\n/g,''));
+    const payload = JSON.parse(decodeURIComponent(escape(raw)));
+    if(!payload.data){ console.warn('gistLoad: no data field'); return; }
+    data = payload.data;
+    if(payload.settings) settings = payload.settings;
+    localStorage.setItem('schicht_data', JSON.stringify(data));
+    localStorage.setItem('schicht_settings', JSON.stringify(settings));
+    localStorage.setItem('schicht_saved', payload.saved || new Date().toISOString());
+    console.log('gistLoad OK, entries:', Object.keys(data).length);
+  }catch(e){ console.error('gistLoad error', e); }
+}
+
+async function gistSave(){
+  try{
+    // get current sha
+    const rGet = await fetch(GH_API, {headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json'}});
+    if(rGet.ok){ const dg=await rGet.json(); ghSha=dg.sha; }
+    const payload = {data, settings, saved: new Date().toISOString()};
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload,null,2))));
+    const body = {message:'Update shift data', content};
+    if(ghSha) body.sha = ghSha;
+    const rPut = await fetch(GH_API, {method:'PUT',
+      headers:{Authorization:'token '+GH_TOK, Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
+      body:JSON.stringify(body)});
+    if(rPut.ok){ const d2=await rPut.json(); ghSha=d2.content.sha; }
+  }catch(e){}
+}
+
+
+// ── Export / Import ───────────────────────────────────────────────────────
+function exportData(){
+  const payload={data,settings,exported:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const d=new Date();
+  a.href=url;
+  a.download='schichtplan_'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'.json';
+  a.click();URL.revokeObjectURL(url);
+}
+function importData(evt){
+  const f=evt.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=function(e){
+    try{
+      const p=JSON.parse(e.target.result);
+      if(p.data)data=p.data;
+      if(p.settings)settings=p.settings;
+      saveStorage();renderCalendar();
+      alert('✅ Importiert: '+Object.keys(data).length+' Jahr(e) geladen.');
+    }catch(ex){alert('❌ Fehler: '+ex.message);}
+  };
+  r.readAsText(f);evt.target.value='';
+}
+
+// ── Swipe gestures ────────────────────────────────────────────────────────
+function addSwipe(el, onLeft, onRight){
+  let x0=null;
+  el.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;},{passive:true});
+  el.addEventListener('touchend',e=>{
+    if(x0===null)return;
+    const dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50){dx<0?onLeft():onRight();}
+    x0=null;
+  },{passive:true});
+}
+// Calendar: swipe left = next month, right = previous month
+addSwipe(document.getElementById('calGrid'),()=>changeMonth(1),()=>changeMonth(-1));
+// Day sheet: swipe left = next day, right = previous day
+addSwipe(document.getElementById('daySheet'),()=>navigateDay(1),()=>navigateDay(-1));
+
+// ── Init ──────────────────────────────────────────────────────────────────
+loadStorage();
+const now=new Date();
+curYear=now.getFullYear();curMonth=now.getMonth();
+gistLoad().then(()=>{
+  renderCalendar();
+  // show sync indicator
+  const btn = document.querySelector('.topbar-actions');
+  const chip = document.createElement('span');
+  chip.id='syncChip';
+  chip.style.cssText='font-size:.6rem;color:#4ade80;align-self:center;white-space:nowrap';
+  chip.textContent='☁✓';
+  chip.title='Daten von GitHub geladen';
+  btn.prepend(chip);
+}).catch(()=>{
+  renderCalendar();
+});
+</script>
+</body>
+</html>
