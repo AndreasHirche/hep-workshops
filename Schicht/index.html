@@ -1095,7 +1095,7 @@ function elfSound(){
     // C6=1047, E6=1319, G6=1568, C7=2093
     const notes=[1047,1319,1568,2093];
     notes.forEach((freq,i)=>{
-      const t=ctx.currentTime+i*0.8;
+      const t=ctx.currentTime+i*0.18;
       // Main oscillator
       const osc=ctx.createOscillator();
       osc.type='sine';
@@ -1112,13 +1112,13 @@ function elfSound(){
       const gain=ctx.createGain();
       gain.gain.setValueAtTime(0,t);
       gain.gain.linearRampToValueAtTime(0.28,t+0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001,t+0.3+0.4);
+      gain.gain.exponentialRampToValueAtTime(0.0001,t+0.22);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(t);
-      osc.stop(t+0.32+0.4);
+      osc.stop(t+0.25);
       lfo.start(t);
-      lfo.stop(t+0.32+0.4);
+      lfo.stop(t+0.25);
     });
   }catch(e){}
 }
@@ -1126,20 +1126,14 @@ function elfSound(){
 // ── Splash screen ─────────────────────────────────────────────────────────
 (function(){
   const splash=document.getElementById('splash');
-  let _curtainOpened=false;
-  function openCurtain(){
-    if(_curtainOpened)return;
-    _curtainOpened=true;
-    splash.classList.add('splash-open');
-    elfSound();
-    setTimeout(()=>splash.classList.add('done'),1800);
-  }
-  // Open on any user interaction (gesture needed for AudioContext)
+  // Open curtain immediately — no gesture needed for animation
+  setTimeout(()=>splash.classList.add('splash-open'),400);
+  setTimeout(()=>splash.classList.add('done'),2100);
+  // Sound: play on first user gesture (AudioContext requires gesture on mobile)
+  function trySound(){elfSound();}
   ['touchstart','mousedown','keydown'].forEach(ev=>
-    document.addEventListener(ev,openCurtain,{once:true,passive:true})
+    document.addEventListener(ev,trySound,{once:true,passive:true})
   );
-  // Fallback: open after 3s even without interaction (no sound)
-  setTimeout(()=>{ if(!_curtainOpened){_curtainOpened=true;splash.classList.add('splash-open');setTimeout(()=>splash.classList.add('done'),1800);} },3000);
 })();
 
 // ── Glitter particles ─────────────────────────────────────────────────────
