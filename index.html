@@ -334,6 +334,21 @@
     .cal-cols{grid-template-columns:1fr 1fr}
     #scroll-area{height:calc(100dvh - 200px)}
   }
+
+  /* Styled scrollbars */
+  #scroll-area{scrollbar-width:thin;scrollbar-color:#2563eb #0d1f35}
+  #scroll-area::-webkit-scrollbar{width:6px}
+  #scroll-area::-webkit-scrollbar-track{background:#0d1f35}
+  #scroll-area::-webkit-scrollbar-thumb{background:#2563eb;border-radius:3px}
+  #scroll-area::-webkit-scrollbar-thumb:hover{background:#3b82f6}
+  /* Also style any overflow-y:auto elements */
+  .overflow-y-auto,::-webkit-scrollbar{scrollbar-width:thin}
+  *{scrollbar-width:thin;scrollbar-color:#2563eb22 transparent}
+  *::-webkit-scrollbar{width:5px;height:5px}
+  *::-webkit-scrollbar-track{background:transparent}
+  *::-webkit-scrollbar-thumb{background:#2563eb88;border-radius:3px}
+  *::-webkit-scrollbar-thumb:hover{background:#2563eb}
+
 </style>
 </head>
 <body class="part-view"><script>(function(){var v=localStorage.getItem('hep-dashboard-view');if(v==='org'){document.body.classList.remove('part-view');document.body.classList.add('sketch-theme');}else{document.body.classList.add('part-view');}})();</script>
