@@ -1126,9 +1126,20 @@ function elfSound(){
 // ── Splash screen ─────────────────────────────────────────────────────────
 (function(){
   const splash=document.getElementById('splash');
-  // Open curtain after short delay
-  setTimeout(()=>{splash.classList.add('splash-open');elfSound();},600);
-  setTimeout(()=>{splash.classList.add('done');},2300);
+  let _curtainOpened=false;
+  function openCurtain(){
+    if(_curtainOpened)return;
+    _curtainOpened=true;
+    splash.classList.add('splash-open');
+    elfSound();
+    setTimeout(()=>splash.classList.add('done'),1800);
+  }
+  // Open on any user interaction (gesture needed for AudioContext)
+  ['touchstart','mousedown','keydown'].forEach(ev=>
+    document.addEventListener(ev,openCurtain,{once:true,passive:true})
+  );
+  // Fallback: open after 3s even without interaction (no sound)
+  setTimeout(()=>{ if(!_curtainOpened){_curtainOpened=true;splash.classList.add('splash-open');setTimeout(()=>splash.classList.add('done'),1800);} },3000);
 })();
 
 // ── Glitter particles ─────────────────────────────────────────────────────
