@@ -206,31 +206,46 @@ waitForGlobe(() => {
   ], { w: 300, h: 100, pw: 20, ph: 7, border: '#f87171' });
   scene.add(exitPanel);
 
-  // ── XR controller input ───────────────────────────────────────────────────
+  // ── XR controllers ────────────────────────────────────────────────────────
+  const raycaster = new T.Raycaster();
+  const worldPos  = new T.Vector3();
+  const worldQuat = new T.Quaternion();
+  const rayDir    = new T.Vector3();
+
   const ctrl = [
     renderer.xr.getController(0),
     renderer.xr.getController(1),
   ];
+
+  // Exit panel attached to rig so it moves with player
+  exitPanel.position.set(30, -5, -50);   // front-right in rig-local space
+  rig.add(exitPanel);
+
   ctrl.forEach((c, i) => {
-    scene.add(c);
-    // Ray pointer line
-    const ray = new T.Line(
-      new T.BufferGeometry().setFromPoints([new T.Vector3(0,0,0), new T.Vector3(0,0,-1)]),
-      new T.LineBasicMaterial({ color: i===0 ? 0x60a5fa : 0xf87171, linewidth: 2 })
-    );
-    ray.scale.z = 5; c.add(ray);
-    // Select (trigger squeeze) on right controller → check exit
-    if (i === 1) {
-      c.addEventListener('selectstart', () => {
-        // Raycast exit panel
-        const cDir = new T.Vector3(0,0,-1).applyQuaternion(c.quaternion);
-        const ray  = new T.Raycaster(c.position.clone(), cDir.normalize());
-        const hits = ray.intersectObject(exitPanel);
-        if (hits.length > 0) {
-          renderer.xr.getSession()?.end();
-        }
-      });
-    }
+    rig.add(c);   // controllers must be children of rig so positions are in rig space
+
+    // Pointer ray — visible red/blue line showing aim direction
+    const rayGeo = new T.BufferGeometry().setFromPoints([
+      new T.Vector3(0, 0, 0),
+      new T.Vector3(0, 0, -1)
+    ]);
+    const rayLine = new T.Line(rayGeo,
+      new T.LineBasicMaterial({ color: i === 0 ? 0x60a5fa : 0xf87171 }));
+    rayLine.scale.z = 50;
+    c.add(rayLine);
+
+    // Trigger fires raycaster against exit panel
+    c.addEventListener('selectstart', () => {
+      c.getWorldPosition(worldPos);
+      c.getWorldQuaternion(worldQuat);
+      rayDir.set(0, 0, -1).applyQuaternion(worldQuat);
+      raycaster.set(worldPos, rayDir);
+      raycaster.far = 500;
+      const hits = raycaster.intersectObject(exitPanel, true);
+      if (hits.length > 0) {
+        renderer.xr.getSession()?.end();
+      }
+    });
   });
 
   // ── XR session events ─────────────────────────────────────────────────────
@@ -239,8 +254,8 @@ waitForGlobe(() => {
   renderer.xr.addEventListener('sessionstart', () => {
     inVR = true; hintTimer = 0;
     hintPanel.visible = true;
-    // Position exit panel to right of player's starting view
-    exitPanel.position.set(80, 30, 220);
+    // Position hint panel in front of player (world space, near starting position)
+    hintPanel.position.set(0, 50, 140);
   });
   renderer.xr.addEventListener('sessionend', () => { inVR = false; });
 
