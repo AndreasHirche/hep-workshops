@@ -235,7 +235,16 @@ waitForGlobe(() => {
   }
 
   // Convert lat/lng to 3D globe position
-  function latLngToVec3(lat, lng, r = 105) {
+  // ── Marker hit-spheres — parented to globe's own scene group so they
+  //    rotate with the globe automatically ──────────────────────────────────
+  // Find globe's root group (first Group child of scene that isn't rig)
+  let globeRoot = null;
+  for (const child of scene.children) {
+    if (child.type === 'Group' && child !== rig) { globeRoot = child; break; }
+  }
+
+  // globe.gl uses a Globe radius of 100 units. We place spheres at r=105.
+  function latLngToLocal(lat, lng, r = 105) {
     const phi   = (90 - lat) * Math.PI / 180;
     const theta = (lng + 180) * Math.PI / 180;
     return new T.Vector3(
@@ -245,16 +254,18 @@ waitForGlobe(() => {
     );
   }
 
-  // Build 3D positions for markers (for raycasting in VR)
   const markerSpheres = MARKERS.map(m => {
-    const pos = latLngToVec3(m.lat, m.lng, 108);
-    const geo = new T.SphereGeometry(4, 8, 8);
-    const mat = new M({ color: parseInt(m.color.replace('#',''), 16), transparent: true, opacity: 0 });
+    const pos = latLngToLocal(m.lat, m.lng, 108);
+    const geo = new T.SphereGeometry(5, 8, 8);
+    const mat = new M({ color: parseInt(m.color.replace('#',''), 16), transparent: true, opacity: 0.15 });
     const mesh = new T.Mesh(geo, mat);
     mesh.position.copy(pos);
     mesh.userData = m;
-    scene.add(mesh);
+    // Add to globe's root group so they rotate with the globe
+    if (globeRoot) globeRoot.add(mesh);
+    else scene.add(mesh);
     return mesh;
+  });
   });
 
   // ── XR controllers ────────────────────────────────────────────────────────
@@ -309,14 +320,18 @@ waitForGlobe(() => {
 
         selectedLoc = m.loc;
 
-        // Position info panel floating next to the globe point, facing outward
+        // Position info panel: get world position of the hit marker sphere
         const panel = buildInfoPanel(m.loc);
         if (panel) {
-          const globePos = latLngToVec3(m.lat, m.lng, 130);
-          panel.position.copy(globePos);
-          // Orient outward from globe centre
+          // Get world position of the hit sphere (it moves with globe)
+          const markerWorld = new T.Vector3();
+          hit.object.getWorldPosition(markerWorld);
+          // Push panel slightly further out from globe centre
+          const dir = markerWorld.clone().normalize();
+          panel.position.copy(markerWorld.clone().addScaledVector(dir, 30));
+          // Face outward from globe centre (away from origin)
           panel.lookAt(new T.Vector3(0, 0, 0));
-          panel.rotateY(Math.PI); // flip to face viewer
+          panel.rotateY(Math.PI);
           infoPanelVisible = true;
         }
         globe.controls().autoRotate = false;
@@ -378,8 +393,8 @@ waitForGlobe(() => {
       const hoverHits = raycaster.intersectObjects(markerSpheres, false);
       const newHovered = hoverHits.length > 0 ? hoverHits[0].object : null;
       if (newHovered !== hoveredMarker) {
-        if (hoveredMarker) hoveredMarker.material.opacity = 0;
-        if (newHovered) newHovered.material.opacity = 0.35;
+        if (hoveredMarker) hoveredMarker.material.opacity = 0.15;
+        if (newHovered) newHovered.material.opacity = 0.7;
         hoveredMarker = newHovered;
       }
 
