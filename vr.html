@@ -14,7 +14,6 @@ canvas{display:block}
   padding:8px 18px;color:#e2e8f0;font-size:0.8rem;text-align:center;z-index:10;
   backdrop-filter:blur(8px)}
 #info a{color:#60a5fa;text-decoration:none}
-#info a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -30,10 +29,45 @@ import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import Globe from 'https://esm.sh/globe.gl@2.45.3';
 
-// ── Markers ──────────────────────────────────────────────────────────────────
-const MARKERS = [{"loc":"Monterrey","lat":25.687,"lng":-100.316,"count":1,"upcoming":0,"past":1,"postponed":0,"color":"#c4b5fd"},{"loc":"Walldorf","lat":49.306,"lng":8.638,"count":3,"upcoming":0,"past":1,"postponed":2,"color":"#4ade80"},{"loc":"Barcelona","lat":41.385,"lng":2.173,"count":3,"upcoming":0,"past":1,"postponed":2,"color":"#7dd3fc"},{"loc":"Bengaluru","lat":12.972,"lng":77.595,"count":3,"upcoming":0,"past":2,"postponed":1,"color":"#7dd3fc"},{"loc":"Madrid","lat":40.417,"lng":-3.704,"count":5,"upcoming":2,"past":1,"postponed":2,"color":"#2dd4bf"},{"loc":"Mexico City","lat":19.433,"lng":-99.133,"count":3,"upcoming":2,"past":1,"postponed":0,"color":"#fde047"},{"loc":"Zürich","lat":47.377,"lng":8.542,"count":11,"upcoming":6,"past":2,"postponed":3,"color":"#7dd3fc"},{"loc":"Rot","lat":49.286,"lng":8.616,"count":9,"upcoming":8,"past":0,"postponed":1,"color":"#fde047"},{"loc":"Madrid","lat":40.417,"lng":-3.704,"count":5,"upcoming":2,"past":1,"postponed":2,"color":"#2dd4bf"},{"loc":"Milan","lat":45.465,"lng":9.186,"count":4,"upcoming":4,"past":0,"postponed":0,"color":"#7dd3fc"},{"loc":"Helsinki","lat":60.17,"lng":24.938,"count":3,"upcoming":1,"past":0,"postponed":2,"color":"#c4b5fd"},{"loc":"Paris","lat":48.857,"lng":2.352,"count":3,"upcoming":1,"past":0,"postponed":2,"color":"#c4b5fd"},{"loc":"São Paulo","lat":-23.551,"lng":-46.633,"count":2,"upcoming":1,"past":0,"postponed":1,"color":"#7dd3fc"},{"loc":"Stockholm","lat":59.333,"lng":18.065,"count":1,"upcoming":1,"past":0,"postponed":0,"color":"#fde047"},{"loc":"Vancouver","lat":49.283,"lng":-123.121,"count":1,"upcoming":1,"past":0,"postponed":0,"color":"#4ade80"},{"loc":"Bellevue","lat":47.611,"lng":-122.192,"count":1,"upcoming":1,"past":0,"postponed":0,"color":"#2dd4bf"},{"loc":"Buenos Aires","lat":-34.604,"lng":-58.382,"count":2,"upcoming":2,"past":0,"postponed":0,"color":"#fde047"},{"loc":"Bogotá","lat":4.711,"lng":-74.073,"count":3,"upcoming":3,"past":0,"postponed":0,"color":"#fde047"},{"loc":"London","lat":51.507,"lng":-0.128,"count":2,"upcoming":0,"past":0,"postponed":2,"color":"#fde047"},{"loc":"Vienna","lat":48.208,"lng":16.374,"count":1,"upcoming":0,"past":0,"postponed":1,"color":"#c4b5fd"},{"loc":"Brussels","lat":50.846,"lng":4.352,"count":2,"upcoming":2,"past":0,"postponed":0,"color":"#7dd3fc"},{"loc":"Palo Alto","lat":37.442,"lng":-122.143,"count":1,"upcoming":0,"past":1,"postponed":0,"color":"#c4b5fd"},{"loc":"KSA","lat":23.886,"lng":45.079,"count":4,"upcoming":4,"past":0,"postponed":0,"color":"#c4b5fd"},{"loc":"Abu Dhabi","lat":24.453,"lng":54.377,"count":1,"upcoming":1,"past":0,"postponed":0,"color":"#fde047"},{"loc":"Israel","lat":31.769,"lng":35.217,"count":2,"upcoming":2,"past":0,"postponed":0,"color":"#fde047"},{"loc":"Denmark","lat":56.263,"lng":9.502,"count":1,"upcoming":1,"past":0,"postponed":0,"color":"#7dd3fc"},{"loc":"Slovakia","lat":48.669,"lng":19.699,"count":2,"upcoming":2,"past":0,"postponed":0,"color":"#c4b5fd"},{"loc":"Budapest","lat":47.498,"lng":19.04,"count":1,"upcoming":0,"past":1,"postponed":0,"color":"#fde047"}];
+const T = THREE;
+const MOVE_SPEED  = 1.2;   // units per frame
+const TURN_SPEED  = 0.025; // radians per frame
+const DEADZONE    = 0.15;
 
-// ── Globe setup ───────────────────────────────────────────────────────────────
+// ── Markers ──────────────────────────────────────────────────────────────────
+const MARKERS = [
+  {"loc":"Walldorf","lat":49.306,"lng":8.638,"count":3,"upcoming":0,"past":1,"color":"#4ade80"},
+  {"loc":"Barcelona","lat":41.385,"lng":2.173,"count":3,"upcoming":0,"past":1,"color":"#7dd3fc"},
+  {"loc":"Madrid","lat":40.417,"lng":-3.704,"count":5,"upcoming":2,"past":1,"color":"#2dd4bf"},
+  {"loc":"Mexico City","lat":19.433,"lng":-99.133,"count":3,"upcoming":2,"past":1,"color":"#fde047"},
+  {"loc":"Zürich","lat":47.377,"lng":8.542,"count":11,"upcoming":6,"past":2,"color":"#7dd3fc"},
+  {"loc":"Rot/St.Leon-Rot","lat":49.286,"lng":8.616,"count":9,"upcoming":8,"past":0,"color":"#fde047"},
+  {"loc":"Milan","lat":45.465,"lng":9.186,"count":4,"upcoming":4,"past":0,"color":"#7dd3fc"},
+  {"loc":"Helsinki","lat":60.17,"lng":24.938,"count":3,"upcoming":1,"past":0,"color":"#c4b5fd"},
+  {"loc":"Paris","lat":48.857,"lng":2.352,"count":3,"upcoming":1,"past":0,"color":"#c4b5fd"},
+  {"loc":"São Paulo","lat":-23.551,"lng":-46.633,"count":2,"upcoming":1,"past":0,"color":"#7dd3fc"},
+  {"loc":"Stockholm","lat":59.333,"lng":18.065,"count":1,"upcoming":1,"past":0,"color":"#fde047"},
+  {"loc":"Vancouver","lat":49.283,"lng":-123.121,"count":1,"upcoming":1,"past":0,"color":"#4ade80"},
+  {"loc":"Bellevue","lat":47.611,"lng":-122.192,"count":1,"upcoming":1,"past":0,"color":"#2dd4bf"},
+  {"loc":"Buenos Aires","lat":-34.604,"lng":-58.382,"count":2,"upcoming":2,"past":0,"color":"#fde047"},
+  {"loc":"Bogotá","lat":4.711,"lng":-74.073,"count":3,"upcoming":3,"past":0,"color":"#fde047"},
+  {"loc":"Bengaluru","lat":12.972,"lng":77.595,"count":3,"upcoming":0,"past":2,"color":"#7dd3fc"},
+  {"loc":"KSA","lat":23.886,"lng":45.079,"count":4,"upcoming":4,"past":0,"color":"#c4b5fd"},
+  {"loc":"Abu Dhabi","lat":24.453,"lng":54.377,"count":1,"upcoming":1,"past":0,"color":"#fde047"},
+  {"loc":"Israel","lat":31.769,"lng":35.217,"count":2,"upcoming":2,"past":0,"color":"#fde047"},
+  {"loc":"Denmark","lat":56.263,"lng":9.502,"count":1,"upcoming":1,"past":0,"color":"#7dd3fc"},
+  {"loc":"Slovakia","lat":48.669,"lng":19.699,"count":2,"upcoming":2,"past":0,"color":"#c4b5fd"},
+  {"loc":"Brussels","lat":50.846,"lng":4.352,"count":2,"upcoming":2,"past":0,"color":"#7dd3fc"},
+  {"loc":"London","lat":51.507,"lng":-0.128,"count":2,"upcoming":0,"past":0,"color":"#fde047"},
+  {"loc":"Palo Alto","lat":37.442,"lng":-122.143,"count":1,"upcoming":0,"past":1,"color":"#c4b5fd"},
+  {"loc":"Budapest","lat":47.498,"lng":19.04,"count":1,"upcoming":0,"past":1,"color":"#fde047"},
+  {"loc":"Monterrey","lat":25.687,"lng":-100.316,"count":1,"upcoming":0,"past":1,"color":"#c4b5fd"},
+  {"loc":"Santiago","lat":-33.453,"lng":-70.674,"count":1,"upcoming":0,"past":1,"color":"#c4b5fd"},
+  {"loc":"Lima","lat":-12.046,"lng":-77.043,"count":1,"upcoming":0,"past":1,"color":"#c4b5fd"},
+  {"loc":"Vienna","lat":48.208,"lng":16.374,"count":1,"upcoming":0,"past":0,"color":"#c4b5fd"}
+];
+
+// ── Globe ─────────────────────────────────────────────────────────────────────
 const globeEl = document.createElement('div');
 globeEl.style.cssText = 'position:fixed;inset:0';
 document.body.prepend(globeEl);
@@ -50,7 +84,7 @@ const globe = Globe({ animateIn: false })
   .pointColor(d => d.upcoming > 0 ? (d.color || '#3b82f6') : '#64748b')
   .pointRadius(d => Math.max(0.28, Math.min(1.4, 0.18 + d.count * 0.18)))
   .pointAltitude(0.015)
-  .pointLabel(d => `<div style="background:#1e293b;color:#e2e8f0;padding:5px 10px;border-radius:8px;font-size:0.75rem;font-family:system-ui;border:1px solid #334155">${d.loc} — ${d.count} workshop${d.count>1?'s':''}</div>`)
+  .pointLabel(d => `<div style="background:#1e293b;color:#e2e8f0;padding:5px 10px;border-radius:8px;font-size:0.75rem;font-family:system-ui;border:1px solid #334155">${d.loc}<br>${d.count} workshop${d.count>1?'s':''}${d.upcoming?' · '+d.upcoming+' upcoming':''}</div>`)
   (globeEl);
 
 globe.controls().autoRotate = true;
@@ -59,8 +93,7 @@ globe.controls().enableDamping = true;
 globe.controls().dampingFactor = 0.1;
 globe.pointOfView({ lat: 30, lng: 15, altitude: 2.2 }, 0);
 
-// ── WebXR / VR setup ──────────────────────────────────────────────────────────
-// Wait for globe renderer to be ready
+// ── Wait for globe renderer ───────────────────────────────────────────────────
 function waitForGlobe(fn) {
   if (globe.renderer && globe.renderer()) fn();
   else requestAnimationFrame(() => waitForGlobe(fn));
@@ -71,32 +104,40 @@ waitForGlobe(() => {
   const scene    = globe.scene();
   const camera   = globe.camera();
 
-  // Enable WebXR
   renderer.xr.enabled = true;
+  camera.far = 50000; camera.updateProjectionMatrix();
 
-  // VRButton
+  // ── VRButton ──────────────────────────────────────────────────────────────
   const btn = VRButton.createButton(renderer);
-  btn.style.cssText = 'padding:12px 24px;border-radius:8px;border:2px solid #60a5fa;background:rgba(15,23,42,0.9);color:#e2e8f0;font-size:0.9rem;font-family:system-ui;cursor:pointer;backdrop-filter:blur(8px)';
+  btn.style.cssText = 'padding:12px 28px;border-radius:8px;border:2px solid #60a5fa;background:rgba(15,23,42,0.92);color:#e2e8f0;font-size:1rem;font-family:system-ui;cursor:pointer;backdrop-filter:blur(8px);font-weight:600';
   document.getElementById('vr-btn-wrap').appendChild(btn);
 
-  // Camera rig — puts user at a comfortable viewing distance from the globe
-  const rig = new THREE.Group();
-  // Globe radius = ~100 units in globe.gl; position rig ~300 units back
-  rig.position.set(0, 20, 280);
+  // ── Camera rig (player) ───────────────────────────────────────────────────
+  // The rig moves through the world; camera is a child so XR headset tracking
+  // is relative to the rig's position.
+  const rig = new T.Group();
+  rig.position.set(0, 20, 280);  // start: ~3m back from globe centre
   scene.add(rig);
   rig.add(camera);
 
-  // ── Rocket in orbit ────────────────────────────────────────────────────────
-  const T = THREE;
-  const M = T.MeshBasicMaterial;
-  camera.far = 50000; camera.updateProjectionMatrix();
+  // ── Globe wrapper (for manual rotation via controller) ────────────────────
+  // globe.gl places the globe at scene origin; we wrap it in a group
+  // so we can rotate it independently of the camera.
+  // globe.gl renders directly into scene, so we rotate the globe mesh group.
+  const globeGroup = scene.children.find(c => c.type === 'Group' && c !== rig);
+  // Fallback: create a pivot and re-parent globe children if needed
+  // (globe.gl adds a single top-level Group for the globe mesh)
+  let globePivot = globeGroup || null;
+
+  // ── Lights ────────────────────────────────────────────────────────────────
   scene.add(new T.AmbientLight(0xffffff, 1.5));
   const sun = new T.DirectionalLight(0xfff8e0, 2);
   sun.position.set(400, 200, 300); scene.add(sun);
 
+  // ── Rocket ────────────────────────────────────────────────────────────────
+  const M = T.MeshBasicMaterial;
   const rocket = new T.Group();
-  const silver = new M({ color: 0xbcc8d4 });
-  rocket.add(new T.Mesh(new T.CapsuleGeometry(2.5, 9, 8, 16), silver));
+  rocket.add(new T.Mesh(new T.CapsuleGeometry(2.5, 9, 8, 16), new M({ color: 0xbcc8d4 })));
   const nose = new T.Mesh(new T.ConeGeometry(2.5, 5, 16), new M({ color: 0x1d4ed8 }));
   nose.position.y = 9.5; rocket.add(nose);
   for (let i = 0; i < 3; i++) {
@@ -112,51 +153,202 @@ waitForGlobe(() => {
   const winGlass = new T.Mesh(new T.CircleGeometry(0.62, 16), new M({ color: 0x0a2d5e, side: T.DoubleSide }));
   winGlass.position.set(2.52, 1.5, 0); winGlass.rotation.y = Math.PI/2; rocket.add(winGlass);
   rocket.rotation.x = -Math.PI/2;
+  const rocketOrbit = new T.Group();
+  rocketOrbit.rotation.x = 0.4; rocketOrbit.rotation.z = 0.3;
+  rocket.position.set(140, 0, 0); rocketOrbit.add(rocket);
+  scene.add(rocketOrbit);
 
-  const orbit = new T.Group();
-  orbit.rotation.x = 0.4; orbit.rotation.z = 0.3;
-  rocket.position.set(140, 0, 0); orbit.add(rocket);
-  scene.add(orbit);
-
-  // ── VR label plane (floating text in VR space) ────────────────────────────
-  function makeLabel(text, color='#e2e8f0') {
-    const cv = document.createElement('canvas'); cv.width=512; cv.height=64;
+  // ── Canvas label helper ───────────────────────────────────────────────────
+  function makePanel(lines, opts={}) {
+    const W = opts.w || 512, H = opts.h || (lines.length * 42 + 20);
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     const ctx = cv.getContext('2d');
-    ctx.fillStyle='rgba(15,23,42,0.85)'; ctx.roundRect(0,0,512,64,12); ctx.fill();
-    ctx.strokeStyle=color; ctx.lineWidth=2; ctx.roundRect(1,1,510,62,11); ctx.stroke();
-    ctx.fillStyle=color; ctx.font='bold 26px system-ui,sans-serif'; ctx.textAlign='center';
-    ctx.fillText(text, 256, 42);
+    ctx.fillStyle = opts.bg || 'rgba(10,20,40,0.92)';
+    ctx.roundRect(0, 0, W, H, 14); ctx.fill();
+    ctx.strokeStyle = opts.border || '#60a5fa'; ctx.lineWidth = 2;
+    ctx.roundRect(1, 1, W-2, H-2, 13); ctx.stroke();
+    lines.forEach((line, i) => {
+      ctx.fillStyle = line.color || '#e2e8f0';
+      ctx.font = `${line.bold?'bold ':''} ${line.size||22}px system-ui,sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(line.text, W/2, 36 + i * 42);
+    });
     const tex = new T.CanvasTexture(cv);
     const mat = new M({ map: tex, transparent: true, side: T.DoubleSide });
-    const mesh = new T.Mesh(new T.PlaneGeometry(40, 5), mat);
-    return mesh;
+    return new T.Mesh(new T.PlaneGeometry(opts.pw || W*0.1, opts.ph || H*0.1), mat);
   }
 
-  const titleLabel = makeLabel('HEP Workshops — Global View', '#60a5fa');
-  titleLabel.position.set(0, 120, -60);
-  scene.add(titleLabel);
-
-  // Stats label
+  // ── Title panel (world-space, always visible) ─────────────────────────────
   const upcoming = MARKERS.reduce((s,d)=>s+d.upcoming,0);
   const total    = MARKERS.reduce((s,d)=>s+d.count,0);
-  const statsLabel = makeLabel(`${total} workshops · ${upcoming} upcoming · ${MARKERS.length} locations`, '#4ade80');
-  statsLabel.position.set(0, 108, -60);
-  scene.add(statsLabel);
+  const titlePanel = makePanel([
+    { text: 'HEP Workshops — Global View', color: '#60a5fa', bold: true, size: 26 },
+    { text: `${total} workshops · ${upcoming} upcoming · ${MARKERS.length} locations`, color: '#4ade80', size: 20 },
+  ], { w: 600, pw: 60, ph: 10 });
+  titlePanel.position.set(0, 130, 0);
+  scene.add(titlePanel);
 
-  // ── Replace globe.gl's render loop with setAnimationLoop for WebXR ─────────
-  // globe.gl uses its own RAF loop; for WebXR we need setAnimationLoop
+  // ── Controls hint (shown in VR, fades after 8s) ───────────────────────────
+  const hintPanel = makePanel([
+    { text: 'VR Controls', color: '#fde047', bold: true, size: 24 },
+    { text: 'Left stick  →  move forward/back/strafe', color: '#e2e8f0', size: 19 },
+    { text: 'Right stick →  turn left/right', color: '#e2e8f0', size: 19 },
+    { text: 'Right trigger →  spin globe', color: '#e2e8f0', size: 19 },
+    { text: 'Press Oculus button to exit VR', color: '#94a3b8', size: 17 },
+  ], { w: 560, h: 220, pw: 56, ph: 22, border: '#fde047' });
+  hintPanel.position.set(0, 80, 200);  // in front of player at start
+  scene.add(hintPanel);
+
+  // ── Exit panel (always visible in VR, in front-right) ─────────────────────
+  const exitPanel = makePanel([
+    { text: '✕  EXIT VR', color: '#f87171', bold: true, size: 26 },
+    { text: 'Point & press trigger', color: '#94a3b8', size: 18 },
+  ], { w: 300, h: 100, pw: 20, ph: 7, border: '#f87171' });
+  scene.add(exitPanel);
+
+  // ── XR controller input ───────────────────────────────────────────────────
+  const ctrl = [
+    renderer.xr.getController(0),
+    renderer.xr.getController(1),
+  ];
+  ctrl.forEach((c, i) => {
+    scene.add(c);
+    // Ray pointer line
+    const ray = new T.Line(
+      new T.BufferGeometry().setFromPoints([new T.Vector3(0,0,0), new T.Vector3(0,0,-1)]),
+      new T.LineBasicMaterial({ color: i===0 ? 0x60a5fa : 0xf87171, linewidth: 2 })
+    );
+    ray.scale.z = 5; c.add(ray);
+    // Select (trigger squeeze) on right controller → check exit
+    if (i === 1) {
+      c.addEventListener('selectstart', () => {
+        // Raycast exit panel
+        const cDir = new T.Vector3(0,0,-1).applyQuaternion(c.quaternion);
+        const ray  = new T.Raycaster(c.position.clone(), cDir.normalize());
+        const hits = ray.intersectObject(exitPanel);
+        if (hits.length > 0) {
+          renderer.xr.getSession()?.end();
+        }
+      });
+    }
+  });
+
+  // ── XR session events ─────────────────────────────────────────────────────
+  let inVR = false;
+  let hintTimer = 0;
+  renderer.xr.addEventListener('sessionstart', () => {
+    inVR = true; hintTimer = 0;
+    hintPanel.visible = true;
+    // Position exit panel to right of player's starting view
+    exitPanel.position.set(80, 30, 220);
+  });
+  renderer.xr.addEventListener('sessionend', () => { inVR = false; });
+
+  // ── Gamepad helpers ───────────────────────────────────────────────────────
+  function getGamepad(controllerIdx) {
+    const src = renderer.xr.getControllerGrip(controllerIdx)?.inputSource ||
+                renderer.xr.getController(controllerIdx)?.inputSource;
+    return src?.gamepad || null;
+  }
+
+  // ── Velocity (smooth movement) ────────────────────────────────────────────
+  const playerVel = new T.Vector3();
+  const _forward  = new T.Vector3();
+  const _right    = new T.Vector3();
+
+  // ── Globe manual spin ─────────────────────────────────────────────────────
+  let globeSpinActive = false;
+
+  // ── Render loop ───────────────────────────────────────────────────────────
   let tick = 0;
-  renderer.setAnimationLoop(() => {
-    orbit.rotation.y += 0.006;
-    flameMat.opacity = 0.7 + 0.2 * Math.sin(tick += 0.12);
+  const _tmp = new T.Vector3();
+
+  renderer.setAnimationLoop((time, frame) => {
+    tick += 0.016;
+
+    // Rocket orbit
+    rocketOrbit.rotation.y += 0.006;
+    flameMat.opacity = 0.7 + 0.2 * Math.sin(tick * 7.5);
+
+    // Globe auto-rotate (only when not manually spinning)
     globe.controls().update();
-    // Keep labels facing camera
-    titleLabel.lookAt(camera.position);
-    statsLabel.lookAt(camera.position);
+
+    // Hint fade out after 8s in VR
+    if (inVR) {
+      hintTimer += 0.016;
+      if (hintTimer > 8 && hintPanel.visible) hintPanel.visible = false;
+    }
+
+    // Keep title panel facing camera
+    _tmp.setFromMatrixPosition(camera.matrixWorld);
+    titlePanel.lookAt(_tmp);
+    exitPanel.lookAt(_tmp);
+    if (hintPanel.visible) hintPanel.lookAt(_tmp);
+
+    if (inVR && frame) {
+      // ── XR input via WebXR gamepad API ───────────────────────────────────
+      const session = renderer.xr.getSession();
+      const sources = session ? [...session.inputSources] : [];
+
+      let leftAxes  = null;
+      let rightAxes = null;
+      let rightTrigger = 0;
+
+      sources.forEach(src => {
+        if (!src.gamepad) return;
+        const axes = src.gamepad.axes;
+        const btns = src.gamepad.buttons;
+        if (src.handedness === 'left'  && axes.length >= 4) leftAxes  = axes;
+        if (src.handedness === 'right' && axes.length >= 4) {
+          rightAxes = axes;
+          rightTrigger = btns[0]?.value ?? 0; // index trigger
+        }
+      });
+
+      // Left stick: move (x=strafe, y=forward/back)
+      if (leftAxes) {
+        const lx = Math.abs(leftAxes[2]) > DEADZONE ? leftAxes[2] : 0;
+        const ly = Math.abs(leftAxes[3]) > DEADZONE ? leftAxes[3] : 0;
+        if (lx || ly) {
+          // Forward direction = camera's -Z projected onto XZ plane
+          camera.getWorldDirection(_forward);
+          _forward.y = 0; _forward.normalize();
+          _right.crossVectors(new T.Vector3(0,1,0), _forward).negate();
+          rig.position.addScaledVector(_forward, -ly * MOVE_SPEED);
+          rig.position.addScaledVector(_right,    lx * MOVE_SPEED);
+        }
+      }
+
+      // Right stick x: turn (snap-less smooth)
+      if (rightAxes) {
+        const rx = Math.abs(rightAxes[2]) > DEADZONE ? rightAxes[2] : 0;
+        if (rx) {
+          rig.rotateY(-rx * TURN_SPEED);
+        }
+        // Right stick y: move up/down (for floating in space feel)
+        const ry = Math.abs(rightAxes[3]) > DEADZONE ? rightAxes[3] : 0;
+        if (ry) rig.position.y -= ry * MOVE_SPEED * 0.5;
+      }
+
+      // Right trigger: spin globe manually (left stick x = globe rotation)
+      if (rightTrigger > 0.5 && leftAxes) {
+        const lx = Math.abs(leftAxes[2]) > DEADZONE ? leftAxes[2] : 0;
+        if (lx) {
+          globe.controls().autoRotate = false;
+          // Rotate the globe's internal group
+          if (globePivot) globePivot.rotation.y += lx * 0.02;
+        } else {
+          globe.controls().autoRotate = true;
+        }
+      } else {
+        globe.controls().autoRotate = true;
+      }
+    }
+
     renderer.render(scene, camera);
   });
 
-  console.log('WebXR Globe ready. renderer.xr.enabled:', renderer.xr.enabled);
+  console.log('WebXR Globe VR ready');
 });
 </script>
 </body>
