@@ -235,15 +235,11 @@ waitForGlobe(() => {
   }
 
   // Convert lat/lng to 3D globe position
-  // ── Marker hit-spheres — parented to globe's own scene group so they
-  //    rotate with the globe automatically ──────────────────────────────────
-  // Find globe's root group (first Group child of scene that isn't rig)
-  let globeRoot = null;
-  for (const child of scene.children) {
-    if (child.type === 'Group' && child !== rig) { globeRoot = child; break; }
-  }
+  // ── Marker hit-spheres in scene root, updated every frame to match globe ──
+  // globe.gl's globe object exposes its rotation via globe.scene() children.
+  // Easiest: keep spheres in scene and sync their world position each frame
+  // by reading from the globe's internal GlobeObject.
 
-  // globe.gl uses a Globe radius of 100 units. We place spheres at r=105.
   function latLngToLocal(lat, lng, r = 105) {
     const phi   = (90 - lat) * Math.PI / 180;
     const theta = (lng + 180) * Math.PI / 180;
@@ -254,18 +250,23 @@ waitForGlobe(() => {
     );
   }
 
-  const markerSpheres = MARKERS.map(m => {
-    const pos = latLngToLocal(m.lat, m.lng, 108);
+  // Find the globe mesh group to get its world matrix each frame
+  let globeGroup = null;
+  for (const child of scene.children) {
+    if (child.type === 'Group' && child !== rig) { globeGroup = child; break; }
+  }
+
+  // Local positions (before globe rotation)
+  const markerLocalPos = MARKERS.map(m => latLngToLocal(m.lat, m.lng, 110));
+
+  const markerSpheres = MARKERS.map((m, i) => {
     const geo = new T.SphereGeometry(5, 8, 8);
     const mat = new M({ color: parseInt(m.color.replace('#',''), 16), transparent: true, opacity: 0.15 });
     const mesh = new T.Mesh(geo, mat);
-    mesh.position.copy(pos);
+    mesh.position.copy(markerLocalPos[i]);
     mesh.userData = m;
-    // Add to globe's root group so they rotate with the globe
-    if (globeRoot) globeRoot.add(mesh);
-    else scene.add(mesh);
+    scene.add(mesh);  // stay in scene root
     return mesh;
-  });
   });
 
   // ── XR controllers ────────────────────────────────────────────────────────
@@ -376,6 +377,14 @@ waitForGlobe(() => {
     rocketOrbit.rotation.y += 0.006;
     flameMat.opacity = 0.7 + 0.2 * Math.sin(tick * 7.5);
     globe.controls().update();
+
+    // Sync marker spheres to globe's actual rotation
+    if (globeGroup) {
+      const mat4 = globeGroup.matrixWorld;
+      markerSpheres.forEach((mesh, i) => {
+        mesh.position.copy(markerLocalPos[i]).applyMatrix4(mat4);
+      });
+    }
 
     if (inVR) {
       hintTimer += 0.016;
