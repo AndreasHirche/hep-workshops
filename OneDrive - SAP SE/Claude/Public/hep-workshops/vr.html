@@ -14,7 +14,6 @@ canvas{display:block}
   padding:8px 18px;color:#e2e8f0;font-size:0.8rem;text-align:center;z-index:10;
   backdrop-filter:blur(8px)}
 #info a{color:#60a5fa;text-decoration:none}
-#info a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -28,12 +27,50 @@ canvas{display:block}
 <script type="module">
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
-import Globe from 'https://esm.sh/globe.gl@2.45.3';
+import Globe from 'https://esm.sh/globe.gl@2.46.1';
 
-// ── Markers ──────────────────────────────────────────────────────────────────
-const MARKERS = [{"loc":"Monterrey","lat":25.687,"lng":-100.316,"count":1,"upcoming":0,"past":1,"postponed":0,"color":"#c4b5fd"},{"loc":"Walldorf","lat":49.306,"lng":8.638,"count":3,"upcoming":0,"past":1,"postponed":2,"color":"#4ade80"},{"loc":"Barcelona","lat":41.385,"lng":2.173,"count":3,"upcoming":0,"past":1,"postponed":2,"color":"#7dd3fc"},{"loc":"Bengaluru","lat":12.972,"lng":77.595,"count":3,"upcoming":0,"past":2,"postponed":1,"color":"#7dd3fc"},{"loc":"Madrid","lat":40.417,"lng":-3.704,"count":5,"upcoming":2,"past":1,"postponed":2,"color":"#2dd4bf"},{"loc":"Mexico City","lat":19.433,"lng":-99.133,"count":3,"upcoming":2,"past":1,"postponed":0,"color":"#fde047"},{"loc":"Zürich","lat":47.377,"lng":8.542,"count":11,"upcoming":6,"past":2,"postponed":3,"color":"#7dd3fc"},{"loc":"Rot","lat":49.286,"lng":8.616,"count":9,"upcoming":8,"past":0,"postponed":1,"color":"#fde047"},{"loc":"Madrid","lat":40.417,"lng":-3.704,"count":5,"upcoming":2,"past":1,"postponed":2,"color":"#2dd4bf"},{"loc":"Milan","lat":45.465,"lng":9.186,"count":4,"upcoming":4,"past":0,"postponed":0,"color":"#7dd3fc"},{"loc":"Helsinki","lat":60.17,"lng":24.938,"count":3,"upcoming":1,"past":0,"postponed":2,"color":"#c4b5fd"},{"loc":"Paris","lat":48.857,"lng":2.352,"count":3,"upcoming":1,"past":0,"postponed":2,"color":"#c4b5fd"},{"loc":"São Paulo","lat":-23.551,"lng":-46.633,"count":2,"upcoming":1,"past":0,"postponed":1,"color":"#7dd3fc"},{"loc":"Stockholm","lat":59.333,"lng":18.065,"count":1,"upcoming":1,"past":0,"postponed":0,"color":"#fde047"},{"loc":"Vancouver","lat":49.283,"lng":-123.121,"count":1,"upcoming":1,"past":0,"postponed":0,"color":"#4ade80"},{"loc":"Bellevue","lat":47.611,"lng":-122.192,"count":1,"upcoming":1,"past":0,"postponed":0,"color":"#2dd4bf"},{"loc":"Buenos Aires","lat":-34.604,"lng":-58.382,"count":2,"upcoming":2,"past":0,"postponed":0,"color":"#fde047"},{"loc":"Bogotá","lat":4.711,"lng":-74.073,"count":3,"upcoming":3,"past":0,"postponed":0,"color":"#fde047"},{"loc":"London","lat":51.507,"lng":-0.128,"count":2,"upcoming":0,"past":0,"postponed":2,"color":"#fde047"},{"loc":"Vienna","lat":48.208,"lng":16.374,"count":1,"upcoming":0,"past":0,"postponed":1,"color":"#c4b5fd"},{"loc":"Brussels","lat":50.846,"lng":4.352,"count":2,"upcoming":2,"past":0,"postponed":0,"color":"#7dd3fc"},{"loc":"Palo Alto","lat":37.442,"lng":-122.143,"count":1,"upcoming":0,"past":1,"postponed":0,"color":"#c4b5fd"},{"loc":"KSA","lat":23.886,"lng":45.079,"count":4,"upcoming":4,"past":0,"postponed":0,"color":"#c4b5fd"},{"loc":"Abu Dhabi","lat":24.453,"lng":54.377,"count":1,"upcoming":1,"past":0,"postponed":0,"color":"#fde047"},{"loc":"Israel","lat":31.769,"lng":35.217,"count":2,"upcoming":2,"past":0,"postponed":0,"color":"#fde047"},{"loc":"Denmark","lat":56.263,"lng":9.502,"count":1,"upcoming":1,"past":0,"postponed":0,"color":"#7dd3fc"},{"loc":"Slovakia","lat":48.669,"lng":19.699,"count":2,"upcoming":2,"past":0,"postponed":0,"color":"#c4b5fd"},{"loc":"Budapest","lat":47.498,"lng":19.04,"count":1,"upcoming":0,"past":1,"postponed":0,"color":"#fde047"}];
+const T = THREE;
+const MOVE_SPEED = 1.2;
+const TURN_SPEED = 0.025;
+const DEADZONE   = 0.15;
 
-// ── Globe setup ───────────────────────────────────────────────────────────────
+// ── Workshop data by location ─────────────────────────────────────────────────
+const WORKSHOPS = {"Monterrey":[{"date":"February 03-04, 2026","topic":"SAP Business AI (University)","status":"past","color":"#c4b5fd","agenda":""}],"Walldorf":[{"date":"February 03-05, 2026","topic":"SAP Build Code","status":"past","color":"#4ade80","agenda":""},{"date":"September 8-9, 2026","topic":"Joule Agents and Skills","status":"upcoming","color":"#fde047","agenda":""}],"Barcelona":[{"date":"February 24-25, 2026","topic":"SAP BDC","status":"past","color":"#7dd3fc","agenda":""}],"Bengaluru":[{"date":"February 26-27, 2026","topic":"SAP BDC","status":"past","color":"#7dd3fc","agenda":""},{"date":"March 9-10, 2026","topic":"Joule Agents and Skills","status":"past","color":"#fde047","agenda":""}],"Santiago":[{"date":"March 10-11, 2026","topic":"SAP Business AI","status":"past","color":"#c4b5fd","agenda":""}],"Madrid":[{"date":"March 24-25, 2026","topic":"SAP Business AI","status":"past","color":"#c4b5fd","agenda":""},{"date":"May 26-28, 2026","topic":"SAP Integration Suite","status":"past","color":"#2dd4bf","agenda":""},{"date":"June 23-24, 2026","topic":"SAP BDC","status":"upcoming","color":"#7dd3fc","agenda":""}],"Mexico City":[{"date":"March 24-25, 2026","topic":"SAP Business AI","status":"past","color":"#c4b5fd","agenda":""},{"date":"September 8-9, 2026","topic":"Joule Agents and Skills","status":"upcoming","color":"#fde047","agenda":""}],"Zürich":[{"date":"April 21-22, 2026","topic":"Joule Agents and Skills","status":"past","color":"#fde047","agenda":""},{"date":"April 23-24, 2026","topic":"SAP BDC","status":"past","color":"#7dd3fc","agenda":""}],"Palo Alto":[{"date":"April 28-30, 2026","topic":"SAP Business AI","status":"past","color":"#c4b5fd","agenda":"https://andreashirche.github.io/hep-workshops/Agenda_AI_PaloAlto_2026/Wission3.html"}],"Budapest":[{"date":"April 28-29, 2026","topic":"Joule Agents and Skills","status":"past","color":"#fde047","agenda":""}],"Bellevue":[{"date":"May 19-21, 2026","topic":"SAP Integration Suite","status":"past","color":"#2dd4bf","agenda":"https://andreashirche.github.io/hep-workshops/Agenda_IS_Bellevue_2026/agenda.html"}],"São Paulo":[{"date":"May 26-27, 2026","topic":"SAP BDC","status":"past","color":"#7dd3fc","agenda":""}],"St. Leon-Rot":[{"date":"July 2026","topic":"SAP BDC + Integration Suite","status":"upcoming","color":"#2dd4bf","agenda":""},{"date":"August 17-20, 2026","topic":"SAP Build Code","status":"upcoming","color":"#4ade80","agenda":""}],"Rot":[{"date":"Nov 19-20, 2026","topic":"Joule Agents and Skills","status":"upcoming","color":"#fde047","agenda":""},{"date":"Nov 30 - Dec 04, 2026","topic":"Joule · BDC · IS · Build Code","status":"upcoming","color":"#fde047","agenda":""},{"date":"Dec 07-11, 2026","topic":"Joule · BDC · IS · Build Code","status":"upcoming","color":"#fde047","agenda":""}],"Milan":[{"date":"2026","topic":"SAP BDC","status":"upcoming","color":"#7dd3fc","agenda":""},{"date":"2026","topic":"SAP Integration Suite","status":"upcoming","color":"#2dd4bf","agenda":""},{"date":"2026","topic":"SAP Build Code","status":"upcoming","color":"#4ade80","agenda":""},{"date":"2026","topic":"SAP Business AI","status":"upcoming","color":"#c4b5fd","agenda":""}],"Helsinki":[{"date":"June 10-11, 2026","topic":"SAP Business AI","status":"past","color":"#c4b5fd","agenda":"https://andreashirche.github.io/hep-workshops/Agenda_AI_Helsinki_2026/Agenda_AI_Helsinki_2026.html"}],"Paris":[{"date":"TBD 2026","topic":"SAP Business AI","status":"upcoming","color":"#c4b5fd","agenda":""}],"Stockholm":[{"date":"Aug 26-27, 2026","topic":"Joule Agents and Skills","status":"upcoming","color":"#fde047","agenda":""}],"Vancouver":[{"date":"September 28-30, 2026","topic":"SAP Build Code","status":"upcoming","color":"#4ade80","agenda":"https://andreashirche.github.io/hep-workshops/Agenda_Code_Vancouver_2026/agenda.html"}],"Bellevue":[{"date":"May 19-21, 2026","topic":"SAP Integration Suite","status":"past","color":"#2dd4bf","agenda":"https://andreashirche.github.io/hep-workshops/Agenda_IS_Bellevue_2026/agenda.html"}],"Buenos Aires":[{"date":"August 13-14, 2026","topic":"SAP BDC","status":"upcoming","color":"#7dd3fc","agenda":""}],"Bogotá":[{"date":"August 10-11, 2026","topic":"SAP BDC","status":"upcoming","color":"#7dd3fc","agenda":""},{"date":"2026","topic":"SAP Business AI","status":"upcoming","color":"#c4b5fd","agenda":""}],"KSA":[{"date":"2026","topic":"Joule Agents and Skills","status":"upcoming","color":"#fde047","agenda":""},{"date":"2026","topic":"SAP Business AI","status":"upcoming","color":"#c4b5fd","agenda":""}],"Abu Dhabi":[{"date":"August 18-19","topic":"Joule Agents and Skills","status":"upcoming","color":"#fde047","agenda":""},{"date":"September 2-3","topic":"SAP Business AI","status":"upcoming","color":"#c4b5fd","agenda":""}],"Israel":[{"date":"September 2-3","topic":"Joule Agents and Skills","status":"upcoming","color":"#fde047","agenda":""},{"date":"2026","topic":"SAP Business AI","status":"upcoming","color":"#c4b5fd","agenda":""}],"Denmark":[{"date":"September 22-23, 2026","topic":"HEP BDC","status":"upcoming","color":"#7dd3fc","agenda":""}],"Slovakia":[{"date":"2026","topic":"SAP Business AI","status":"upcoming","color":"#c4b5fd","agenda":""},{"date":"2026","topic":"SAP BDC","status":"upcoming","color":"#7dd3fc","agenda":""}],"Brussels":[{"date":"2026","topic":"SAP BDC","status":"upcoming","color":"#7dd3fc","agenda":""},{"date":"2026","topic":"SAP Business AI","status":"upcoming","color":"#c4b5fd","agenda":""}],"London":[{"date":"2026","topic":"TBD","status":"upcoming","color":"#fde047","agenda":""}]};
+
+// ── Markers ───────────────────────────────────────────────────────────────────
+const MARKERS = [
+  {"loc":"Walldorf","lat":49.306,"lng":8.638,"count":3,"upcoming":1,"past":1,"color":"#4ade80"},
+  {"loc":"Barcelona","lat":41.385,"lng":2.173,"count":3,"upcoming":0,"past":1,"color":"#7dd3fc"},
+  {"loc":"Madrid","lat":40.417,"lng":-3.704,"count":5,"upcoming":2,"past":1,"color":"#2dd4bf"},
+  {"loc":"Mexico City","lat":19.433,"lng":-99.133,"count":3,"upcoming":2,"past":1,"color":"#fde047"},
+  {"loc":"Zürich","lat":47.377,"lng":8.542,"count":11,"upcoming":6,"past":2,"color":"#7dd3fc"},
+  {"loc":"Rot/St.Leon-Rot","lat":49.286,"lng":8.616,"count":9,"upcoming":8,"past":0,"color":"#fde047"},
+  {"loc":"Milan","lat":45.465,"lng":9.186,"count":4,"upcoming":4,"past":0,"color":"#7dd3fc"},
+  {"loc":"Helsinki","lat":60.17,"lng":24.938,"count":3,"upcoming":1,"past":1,"color":"#c4b5fd"},
+  {"loc":"Paris","lat":48.857,"lng":2.352,"count":3,"upcoming":1,"past":0,"color":"#c4b5fd"},
+  {"loc":"São Paulo","lat":-23.551,"lng":-46.633,"count":2,"upcoming":1,"past":0,"color":"#7dd3fc"},
+  {"loc":"Stockholm","lat":59.333,"lng":18.065,"count":1,"upcoming":1,"past":0,"color":"#fde047"},
+  {"loc":"Vancouver","lat":49.283,"lng":-123.121,"count":1,"upcoming":1,"past":0,"color":"#4ade80"},
+  {"loc":"Bellevue","lat":47.611,"lng":-122.192,"count":1,"upcoming":1,"past":1,"color":"#2dd4bf"},
+  {"loc":"Buenos Aires","lat":-34.604,"lng":-58.382,"count":2,"upcoming":2,"past":0,"color":"#fde047"},
+  {"loc":"Bogotá","lat":4.711,"lng":-74.073,"count":3,"upcoming":3,"past":0,"color":"#fde047"},
+  {"loc":"Bengaluru","lat":12.972,"lng":77.595,"count":3,"upcoming":0,"past":2,"color":"#7dd3fc"},
+  {"loc":"KSA","lat":23.886,"lng":45.079,"count":4,"upcoming":4,"past":0,"color":"#c4b5fd"},
+  {"loc":"Abu Dhabi","lat":24.453,"lng":54.377,"count":1,"upcoming":1,"past":0,"color":"#fde047"},
+  {"loc":"Israel","lat":31.769,"lng":35.217,"count":2,"upcoming":2,"past":0,"color":"#fde047"},
+  {"loc":"Denmark","lat":56.263,"lng":9.502,"count":1,"upcoming":1,"past":0,"color":"#7dd3fc"},
+  {"loc":"Slovakia","lat":48.669,"lng":19.699,"count":2,"upcoming":2,"past":0,"color":"#c4b5fd"},
+  {"loc":"Brussels","lat":50.846,"lng":4.352,"count":2,"upcoming":2,"past":0,"color":"#7dd3fc"},
+  {"loc":"London","lat":51.507,"lng":-0.128,"count":2,"upcoming":0,"past":0,"color":"#fde047"},
+  {"loc":"Palo Alto","lat":37.442,"lng":-122.143,"count":1,"upcoming":0,"past":1,"color":"#c4b5fd"},
+  {"loc":"Budapest","lat":47.498,"lng":19.04,"count":1,"upcoming":0,"past":1,"color":"#fde047"},
+  {"loc":"Monterrey","lat":25.687,"lng":-100.316,"count":1,"upcoming":0,"past":1,"color":"#c4b5fd"},
+  {"loc":"Santiago","lat":-33.453,"lng":-70.674,"count":1,"upcoming":0,"past":1,"color":"#c4b5fd"},
+  {"loc":"St. Leon-Rot","lat":49.286,"lng":8.616,"count":5,"upcoming":5,"past":0,"color":"#fde047"},
+  {"loc":"Rot","lat":49.286,"lng":8.616,"count":3,"upcoming":3,"past":0,"color":"#fde047"}
+];
+
+// ── Globe ─────────────────────────────────────────────────────────────────────
 const globeEl = document.createElement('div');
 globeEl.style.cssText = 'position:fixed;inset:0';
 document.body.prepend(globeEl);
@@ -48,9 +85,9 @@ const globe = Globe({ animateIn: false })
   .pointsData(MARKERS)
   .pointLat('lat').pointLng('lng')
   .pointColor(d => d.upcoming > 0 ? (d.color || '#3b82f6') : '#64748b')
-  .pointRadius(d => Math.max(0.28, Math.min(1.4, 0.18 + d.count * 0.18)))
-  .pointAltitude(0.015)
-  .pointLabel(d => `<div style="background:#1e293b;color:#e2e8f0;padding:5px 10px;border-radius:8px;font-size:0.75rem;font-family:system-ui;border:1px solid #334155">${d.loc} — ${d.count} workshop${d.count>1?'s':''}</div>`)
+  .pointRadius(d => Math.max(0.35, Math.min(1.6, 0.2 + d.count * 0.2)))
+  .pointAltitude(0.025)
+  .pointLabel(d => `<div style="background:#1e293b;color:#e2e8f0;padding:5px 10px;border-radius:8px;font-size:0.75rem;font-family:system-ui;border:1px solid #334155">${d.loc}<br>${d.count} workshop${d.count>1?'s':''}${d.upcoming?' · <span style="color:#86efac">'+d.upcoming+' upcoming</span>':''}</div>`)
   (globeEl);
 
 globe.controls().autoRotate = true;
@@ -59,8 +96,7 @@ globe.controls().enableDamping = true;
 globe.controls().dampingFactor = 0.1;
 globe.pointOfView({ lat: 30, lng: 15, altitude: 2.2 }, 0);
 
-// ── WebXR / VR setup ──────────────────────────────────────────────────────────
-// Wait for globe renderer to be ready
+// ── Wait for globe renderer ───────────────────────────────────────────────────
 function waitForGlobe(fn) {
   if (globe.renderer && globe.renderer()) fn();
   else requestAnimationFrame(() => waitForGlobe(fn));
@@ -71,32 +107,29 @@ waitForGlobe(() => {
   const scene    = globe.scene();
   const camera   = globe.camera();
 
-  // Enable WebXR
   renderer.xr.enabled = true;
+  camera.far = 50000; camera.updateProjectionMatrix();
 
   // VRButton
   const btn = VRButton.createButton(renderer);
-  btn.style.cssText = 'padding:12px 24px;border-radius:8px;border:2px solid #60a5fa;background:rgba(15,23,42,0.9);color:#e2e8f0;font-size:0.9rem;font-family:system-ui;cursor:pointer;backdrop-filter:blur(8px)';
+  btn.style.cssText = 'padding:12px 28px;border-radius:8px;border:2px solid #60a5fa;background:rgba(15,23,42,0.92);color:#e2e8f0;font-size:1rem;font-family:system-ui;cursor:pointer;backdrop-filter:blur(8px);font-weight:600';
   document.getElementById('vr-btn-wrap').appendChild(btn);
 
-  // Camera rig — puts user at a comfortable viewing distance from the globe
-  const rig = new THREE.Group();
-  // Globe radius = ~100 units in globe.gl; position rig ~300 units back
+  // ── Camera rig ────────────────────────────────────────────────────────────
+  const rig = new T.Group();
   rig.position.set(0, 20, 280);
   scene.add(rig);
   rig.add(camera);
 
-  // ── Rocket in orbit ────────────────────────────────────────────────────────
-  const T = THREE;
-  const M = T.MeshBasicMaterial;
-  camera.far = 50000; camera.updateProjectionMatrix();
+  // ── Lights ────────────────────────────────────────────────────────────────
   scene.add(new T.AmbientLight(0xffffff, 1.5));
   const sun = new T.DirectionalLight(0xfff8e0, 2);
   sun.position.set(400, 200, 300); scene.add(sun);
 
+  // ── Rocket ────────────────────────────────────────────────────────────────
+  const M = T.MeshBasicMaterial;
   const rocket = new T.Group();
-  const silver = new M({ color: 0xbcc8d4 });
-  rocket.add(new T.Mesh(new T.CapsuleGeometry(2.5, 9, 8, 16), silver));
+  rocket.add(new T.Mesh(new T.CapsuleGeometry(2.5, 9, 8, 16), new M({ color: 0xbcc8d4 })));
   const nose = new T.Mesh(new T.ConeGeometry(2.5, 5, 16), new M({ color: 0x1d4ed8 }));
   nose.position.y = 9.5; rocket.add(nose);
   for (let i = 0; i < 3; i++) {
@@ -112,51 +145,306 @@ waitForGlobe(() => {
   const winGlass = new T.Mesh(new T.CircleGeometry(0.62, 16), new M({ color: 0x0a2d5e, side: T.DoubleSide }));
   winGlass.position.set(2.52, 1.5, 0); winGlass.rotation.y = Math.PI/2; rocket.add(winGlass);
   rocket.rotation.x = -Math.PI/2;
+  const rocketOrbit = new T.Group();
+  rocketOrbit.rotation.x = 0.4; rocketOrbit.rotation.z = 0.3;
+  rocket.position.set(140, 0, 0); rocketOrbit.add(rocket);
+  scene.add(rocketOrbit);
 
-  const orbit = new T.Group();
-  orbit.rotation.x = 0.4; orbit.rotation.z = 0.3;
-  rocket.position.set(140, 0, 0); orbit.add(rocket);
-  scene.add(orbit);
-
-  // ── VR label plane (floating text in VR space) ────────────────────────────
-  function makeLabel(text, color='#e2e8f0') {
-    const cv = document.createElement('canvas'); cv.width=512; cv.height=64;
+  // ── Canvas panel builder ──────────────────────────────────────────────────
+  function makePanel(lines, opts = {}) {
+    const W = opts.w || 512;
+    const lineH = opts.lineH || 40;
+    const padTop = 16, padBot = 16;
+    const H = opts.h || (lines.length * lineH + padTop + padBot);
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     const ctx = cv.getContext('2d');
-    ctx.fillStyle='rgba(15,23,42,0.85)'; ctx.roundRect(0,0,512,64,12); ctx.fill();
-    ctx.strokeStyle=color; ctx.lineWidth=2; ctx.roundRect(1,1,510,62,11); ctx.stroke();
-    ctx.fillStyle=color; ctx.font='bold 26px system-ui,sans-serif'; ctx.textAlign='center';
-    ctx.fillText(text, 256, 42);
+    ctx.fillStyle = opts.bg || 'rgba(8,16,36,0.95)';
+    if (ctx.roundRect) { ctx.roundRect(0,0,W,H,14); ctx.fill(); }
+    else { ctx.fillRect(0,0,W,H); }
+    ctx.strokeStyle = opts.border || '#60a5fa'; ctx.lineWidth = 2.5;
+    if (ctx.roundRect) { ctx.roundRect(1,1,W-2,H-2,13); ctx.stroke(); }
+    else { ctx.strokeRect(1,1,W-2,H-2); }
+    lines.forEach((line, i) => {
+      ctx.fillStyle = line.color || '#e2e8f0';
+      const sz = line.size || 22;
+      ctx.font = `${line.bold ? 'bold ' : ''}${sz}px system-ui,sans-serif`;
+      ctx.textAlign = line.align || 'center';
+      const x = line.align === 'left' ? 20 : W / 2;
+      ctx.fillText(line.text, x, padTop + sz + i * lineH, W - 30);
+    });
     const tex = new T.CanvasTexture(cv);
     const mat = new M({ map: tex, transparent: true, side: T.DoubleSide });
-    const mesh = new T.Mesh(new T.PlaneGeometry(40, 5), mat);
-    return mesh;
+    const scale = opts.scale || 0.09;
+    return new T.Mesh(new T.PlaneGeometry(W * scale, H * scale), mat);
   }
 
-  const titleLabel = makeLabel('HEP Workshops — Global View', '#60a5fa');
-  titleLabel.position.set(0, 120, -60);
-  scene.add(titleLabel);
-
-  // Stats label
+  // ── Title panel ───────────────────────────────────────────────────────────
   const upcoming = MARKERS.reduce((s,d)=>s+d.upcoming,0);
   const total    = MARKERS.reduce((s,d)=>s+d.count,0);
-  const statsLabel = makeLabel(`${total} workshops · ${upcoming} upcoming · ${MARKERS.length} locations`, '#4ade80');
-  statsLabel.position.set(0, 108, -60);
-  scene.add(statsLabel);
+  const titlePanel = makePanel([
+    { text: 'HEP Workshops — Global View', color: '#60a5fa', bold: true, size: 26 },
+    { text: `${total} workshops · ${upcoming} upcoming · ${MARKERS.length} locations`, color: '#4ade80', size: 20 },
+  ], { w: 600, scale: 0.09, lineH: 42 });
+  titlePanel.position.set(0, 130, 0);
+  scene.add(titlePanel);
 
-  // ── Replace globe.gl's render loop with setAnimationLoop for WebXR ─────────
-  // globe.gl uses its own RAF loop; for WebXR we need setAnimationLoop
-  let tick = 0;
-  renderer.setAnimationLoop(() => {
-    orbit.rotation.y += 0.006;
-    flameMat.opacity = 0.7 + 0.2 * Math.sin(tick += 0.12);
-    globe.controls().update();
-    // Keep labels facing camera
-    titleLabel.lookAt(camera.position);
-    statsLabel.lookAt(camera.position);
-    renderer.render(scene, camera);
+  // ── Controls hint ─────────────────────────────────────────────────────────
+  const hintPanel = makePanel([
+    { text: 'VR Controls', color: '#fde047', bold: true, size: 24 },
+    { text: 'Left stick  →  move / strafe', color: '#e2e8f0', size: 19 },
+    { text: 'Right stick →  turn · up/down', color: '#e2e8f0', size: 19 },
+    { text: 'Right trigger → spin globe', color: '#e2e8f0', size: 19 },
+    { text: 'Aim at marker + trigger → info', color: '#86efac', size: 19 },
+    { text: 'Oculus button → exit VR', color: '#94a3b8', size: 17 },
+  ], { w: 560, lineH: 38, border: '#fde047' });
+  scene.add(hintPanel);
+
+  // ── Exit panel (attached to rig) ──────────────────────────────────────────
+  const exitPanel = makePanel([
+    { text: '✕  EXIT VR', color: '#f87171', bold: true, size: 28 },
+    { text: 'Aim + trigger', color: '#94a3b8', size: 18 },
+  ], { w: 280, h: 110, border: '#f87171', scale: 0.1 });
+  exitPanel.position.set(28, -6, -48);
+  rig.add(exitPanel);
+
+  // ── Info panel (world-space, shown when marker selected) ──────────────────
+  let infoPanelMesh = null;
+  let infoPanelVisible = false;
+
+  function buildInfoPanel(loc) {
+    if (infoPanelMesh) { scene.remove(infoPanelMesh); infoPanelMesh = null; }
+    const ws = WORKSHOPS[loc] || [];
+    if (!ws.length) return null;
+
+    const lines = [
+      { text: loc, color: '#60a5fa', bold: true, size: 26 },
+      { text: `${ws.length} workshop${ws.length>1?'s':''}`, color: '#94a3b8', size: 18 },
+    ];
+    ws.forEach(w => {
+      const statusColor = w.status === 'past' ? '#64748b' : w.status === 'upcoming' ? '#4ade80' : '#fbbf24';
+      const agendaMark = w.agenda ? ' 📋' : '';
+      lines.push({ text: `${w.date || 'TBD'}`, color: '#94a3b8', size: 16, align: 'left' });
+      lines.push({ text: `  ${w.topic}${agendaMark}`, color: w.color || '#e2e8f0', size: 18, bold: true, align: 'left' });
+    });
+    lines.push({ text: ws.some(w=>w.agenda) ? '[ trigger again to open agenda ]' : '', color: '#475569', size: 15 });
+
+    const panel = makePanel(lines, { w: 580, lineH: 32, h: lines.length * 32 + 40, border: '#60a5fa', scale: 0.1 });
+    scene.add(panel);
+    infoPanelMesh = panel;
+    return panel;
+  }
+
+  // Convert lat/lng to 3D globe position
+  // ── Marker hit-spheres in scene root, updated every frame to match globe ──
+  // globe.gl's globe object exposes its rotation via globe.scene() children.
+  // Easiest: keep spheres in scene and sync their world position each frame
+  // by reading from the globe's internal GlobeObject.
+
+  function latLngToLocal(lat, lng, r = 105) {
+    const phi   = (90 - lat) * Math.PI / 180;
+    const theta = (lng + 180) * Math.PI / 180;
+    return new T.Vector3(
+      -r * Math.sin(phi) * Math.cos(theta),
+       r * Math.cos(phi),
+       r * Math.sin(phi) * Math.sin(theta)
+    );
+  }
+
+  // Find the globe mesh group to get its world matrix each frame
+  let globeGroup = null;
+  for (const child of scene.children) {
+    if (child.type === 'Group' && child !== rig) { globeGroup = child; break; }
+  }
+
+  // Local positions (before globe rotation)
+  const markerLocalPos = MARKERS.map(m => latLngToLocal(m.lat, m.lng, 110));
+
+  const markerSpheres = MARKERS.map((m, i) => {
+    const geo = new T.SphereGeometry(5, 8, 8);
+    const mat = new M({ color: parseInt(m.color.replace('#',''), 16), transparent: true, opacity: 0.15 });
+    const mesh = new T.Mesh(geo, mat);
+    mesh.position.copy(markerLocalPos[i]);
+    mesh.userData = m;
+    scene.add(mesh);  // stay in scene root
+    return mesh;
   });
 
-  console.log('WebXR Globe ready. renderer.xr.enabled:', renderer.xr.enabled);
+  // ── XR controllers ────────────────────────────────────────────────────────
+  const raycaster = new T.Raycaster();
+  raycaster.far = 600;
+  const worldPos  = new T.Vector3();
+  const worldQuat = new T.Quaternion();
+  const rayDir    = new T.Vector3();
+
+  const ctrl = [
+    renderer.xr.getController(0),
+    renderer.xr.getController(1),
+  ];
+
+  let selectedLoc = null;
+  let agendaTriggered = false;
+
+  ctrl.forEach((c, i) => {
+    rig.add(c);
+    // Pointer ray line
+    const rayGeo = new T.BufferGeometry().setFromPoints([new T.Vector3(0,0,0), new T.Vector3(0,0,-1)]);
+    const rayLine = new T.Line(rayGeo, new T.LineBasicMaterial({ color: i===0 ? 0x60a5fa : 0xf87171 }));
+    rayLine.scale.z = 80;
+    c.add(rayLine);
+
+    c.addEventListener('selectstart', () => {
+      c.getWorldPosition(worldPos);
+      c.getWorldQuaternion(worldQuat);
+      rayDir.set(0, 0, -1).applyQuaternion(worldQuat);
+      raycaster.set(worldPos, rayDir);
+
+      // 1. Check exit panel
+      const exitHit = raycaster.intersectObject(exitPanel, true);
+      if (exitHit.length > 0) { renderer.xr.getSession()?.end(); return; }
+
+      // 2. Check marker spheres
+      const markerHits = raycaster.intersectObjects(markerSpheres, false);
+      if (markerHits.length > 0) {
+        const hit = markerHits[0];
+        const m   = hit.object.userData;
+
+        if (selectedLoc === m.loc) {
+          // Second trigger on same location → try open agenda
+          const ws = WORKSHOPS[m.loc] || [];
+          const withAgenda = ws.find(w => w.agenda);
+          if (withAgenda) {
+            // Open agenda URL (works in 2D browser; in VR opens in overlay/browser)
+            window.open(withAgenda.agenda, '_blank');
+          }
+          return;
+        }
+
+        selectedLoc = m.loc;
+
+        // Position info panel: get world position of the hit marker sphere
+        const panel = buildInfoPanel(m.loc);
+        if (panel) {
+          // Get world position of the hit sphere (it moves with globe)
+          const markerWorld = new T.Vector3();
+          hit.object.getWorldPosition(markerWorld);
+          // Push panel slightly further out from globe centre
+          const dir = markerWorld.clone().normalize();
+          panel.position.copy(markerWorld.clone().addScaledVector(dir, 30));
+          // Face outward from globe centre (away from origin)
+          panel.lookAt(new T.Vector3(0, 0, 0));
+          panel.rotateY(Math.PI);
+          infoPanelVisible = true;
+        }
+        globe.controls().autoRotate = false;
+        return;
+      }
+
+      // 3. Click empty space → close info panel
+      if (infoPanelVisible) {
+        if (infoPanelMesh) { scene.remove(infoPanelMesh); infoPanelMesh = null; }
+        infoPanelVisible = false;
+        selectedLoc = null;
+        globe.controls().autoRotate = true;
+      }
+    });
+  });
+
+  // ── XR session events ─────────────────────────────────────────────────────
+  let inVR = false, hintTimer = 0;
+  renderer.xr.addEventListener('sessionstart', () => {
+    inVR = true; hintTimer = 0;
+    hintPanel.visible = true;
+    // Place hint panel in world space, facing player
+    hintPanel.position.set(0, 60, 150);
+    selectedLoc = null;
+  });
+  renderer.xr.addEventListener('sessionend', () => {
+    inVR = false;
+    globe.controls().autoRotate = true;
+  });
+
+  // ── Render loop ───────────────────────────────────────────────────────────
+  const _tmp = new T.Vector3();
+  const _fwd = new T.Vector3();
+  const _rgt = new T.Vector3();
+  let tick = 0;
+
+  // Highlight marker under controller ray (hover glow)
+  let hoveredMarker = null;
+
+  renderer.setAnimationLoop((time, frame) => {
+    tick += 0.016;
+    rocketOrbit.rotation.y += 0.006;
+    flameMat.opacity = 0.7 + 0.2 * Math.sin(tick * 7.5);
+    globe.controls().update();
+
+    // Sync marker spheres to globe's actual rotation
+    if (globeGroup) {
+      const mat4 = globeGroup.matrixWorld;
+      markerSpheres.forEach((mesh, i) => {
+        mesh.position.copy(markerLocalPos[i]).applyMatrix4(mat4);
+      });
+    }
+
+    if (inVR) {
+      hintTimer += 0.016;
+      if (hintTimer > 9 && hintPanel.visible) hintPanel.visible = false;
+
+      _tmp.setFromMatrixPosition(camera.matrixWorld);
+      titlePanel.lookAt(_tmp);
+      hintPanel.lookAt(_tmp);
+
+      // ── Hover: highlight marker under right controller ray ────────────────
+      ctrl[1].getWorldPosition(worldPos);
+      ctrl[1].getWorldQuaternion(worldQuat);
+      rayDir.set(0, 0, -1).applyQuaternion(worldQuat);
+      raycaster.set(worldPos, rayDir);
+      const hoverHits = raycaster.intersectObjects(markerSpheres, false);
+      const newHovered = hoverHits.length > 0 ? hoverHits[0].object : null;
+      if (newHovered !== hoveredMarker) {
+        if (hoveredMarker) hoveredMarker.material.opacity = 0.15;
+        if (newHovered) newHovered.material.opacity = 0.7;
+        hoveredMarker = newHovered;
+      }
+
+      // ── Gamepad input ─────────────────────────────────────────────────────
+      const session = renderer.xr.getSession();
+      const sources = session ? [...session.inputSources] : [];
+      let leftAxes = null, rightAxes = null, rightTrigger = 0;
+      sources.forEach(src => {
+        if (!src.gamepad) return;
+        if (src.handedness === 'left'  && src.gamepad.axes.length >= 4) leftAxes = src.gamepad.axes;
+        if (src.handedness === 'right' && src.gamepad.axes.length >= 4) {
+          rightAxes    = src.gamepad.axes;
+          rightTrigger = src.gamepad.buttons[0]?.value ?? 0;
+        }
+      });
+
+      if (leftAxes) {
+        const lx = Math.abs(leftAxes[2]) > DEADZONE ? leftAxes[2] : 0;
+        const ly = Math.abs(leftAxes[3]) > DEADZONE ? leftAxes[3] : 0;
+        if (lx || ly) {
+          camera.getWorldDirection(_fwd); _fwd.y = 0; _fwd.normalize();
+          _rgt.crossVectors(new T.Vector3(0,1,0), _fwd).negate();
+          rig.position.addScaledVector(_fwd, -ly * MOVE_SPEED);
+          rig.position.addScaledVector(_rgt,  lx * MOVE_SPEED);
+        }
+      }
+      if (rightAxes) {
+        const rx = Math.abs(rightAxes[2]) > DEADZONE ? rightAxes[2] : 0;
+        const ry = Math.abs(rightAxes[3]) > DEADZONE ? rightAxes[3] : 0;
+        if (rx) rig.rotateY(-rx * TURN_SPEED);
+        if (ry) rig.position.y -= ry * MOVE_SPEED * 0.5;
+      }
+      // Right trigger + left stick → spin globe
+      if (rightTrigger > 0.5 && leftAxes) {
+        const lx = Math.abs(leftAxes[2]) > DEADZONE ? leftAxes[2] : 0;
+        if (lx) { globe.controls().autoRotate = false; /* globe spins via controls drag */ }
+      }
+    }
+
+    renderer.render(scene, camera);
+  });
 });
 </script>
 </body>
