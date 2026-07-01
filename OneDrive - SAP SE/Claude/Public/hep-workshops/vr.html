@@ -23,11 +23,15 @@ canvas{display:block}
 </div>
 <div id="vr-btn-wrap"></div>
 
-<script type="importmap">{"imports":{"three":"https://esm.sh/three@0.179.0","three/addons/":"https://esm.sh/three@0.179.0/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{
+  "three":"https://esm.sh/three@0.179.0",
+  "three/addons/":"https://esm.sh/three@0.179.0/examples/jsm/",
+  "three/examples/jsm/renderers/CSS2DRenderer":"https://esm.sh/three@0.179.0/examples/jsm/renderers/CSS2DRenderer"
+}}</script>
 <script type="module">
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
-import Globe from 'https://esm.sh/globe.gl@2.46.1';
+import Globe from 'https://esm.sh/globe.gl@2.46.1?external=three';
 
 const T = THREE;
 const MOVE_SPEED = 1.2;

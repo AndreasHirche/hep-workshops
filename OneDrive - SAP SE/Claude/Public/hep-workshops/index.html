@@ -519,7 +519,11 @@
 </main></div>
 
 <script src="https://unpkg.com/leaflet@1.9/dist/leaflet.js"></script>
-<script type="importmap">{"imports":{"three":"https://esm.sh/three@0.179.0","globe.gl":"https://esm.sh/globe.gl@2.46.1"}}</script>
+<script type="importmap">{"imports":{
+  "three":"https://esm.sh/three@0.179.0",
+  "three/examples/jsm/renderers/CSS2DRenderer":"https://esm.sh/three@0.179.0/examples/jsm/renderers/CSS2DRenderer",
+  "globe.gl":"https://esm.sh/globe.gl@2.46.1?external=three"
+}}</script>
 <script type="module">
 import * as THREE from 'three';
 import Globe from 'globe.gl';
